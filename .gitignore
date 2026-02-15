@@ -361,3 +361,35 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+##
+## ControlPeso.Thiscloud — Exclusiones específicas del proyecto
+##
+
+# Base de datos SQLite (desarrollo local)
+*.db
+*.db-shm
+*.db-wal
+controlpeso.db
+
+# Logs de Serilog
+logs/
+*.log
+
+# User secrets
+secrets.json
+
+# Archivos temporales de scaffold
+*.scaffold.log
+
+# Covertura de tests
+coverage/
+*.coverage
+*.coveragexml
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# VS Code
+.vscode/

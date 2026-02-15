@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ControlPeso.Application/ControlPeso.Application.csproj" />
+    <Project Path="src/ControlPeso.Domain/ControlPeso.Domain.csproj" />
+    <Project Path="src/ControlPeso.Infrastructure/ControlPeso.Infrastructure.csproj" />
+    <Project Path="src/ControlPeso.Web/ControlPeso.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ControlPeso.Application.Tests/ControlPeso.Application.Tests.csproj" />
+    <Project Path="tests/ControlPeso.Domain.Tests/ControlPeso.Domain.Tests.csproj" />
+    <Project Path="tests/ControlPeso.Infrastructure.Tests/ControlPeso.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>

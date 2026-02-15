@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>WeightTracker - Dashboard</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#308ce8",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#111921",
+                        "success": "#4caf50",
+                        "neutral-slate": "#e7edf3",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased font-display">
+<div class="flex min-h-screen">
+<!-- Sidebar Navigation -->
+<aside class="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col fixed h-full z-20">
+<div class="p-6 flex items-center gap-3">
+<div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-2xl">monitor_weight</span>
+</div>
+<div>
+<h1 class="font-bold text-lg leading-none">WeightTracker</h1>
+<span class="text-xs text-slate-500 font-medium">v2.4.0 Professional</span>
+</div>
+</div>
+<nav class="flex-1 px-4 py-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary font-semibold transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">person</span>
+<span>Profile</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Admin</span>
+</a>
+<div class="pt-4 pb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">Reports</div>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span>Trends</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">history</span>
+<span>History</span>
+</a>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
+<div class="size-10 rounded-full bg-slate-200 overflow-hidden" data-alt="User profile avatar circle" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCEf1Sei7dtMWjkM3dIovKtDk197UtOh1ediUKnTc424FGRDIqt2Ttx2F2zXnVdKBeHNcI4mYhkVysJcYi7ZT902RHt-H8MqK4ju5_P9BT0HX3dkxHvx_l-NTZc-nhRuLwiVKVkHQSiiWXMcZabsrnqwKA9bumfaSxlz0yRnrS5aW3ah0SXVkjXTt-GKcpipcAQvjTGH5Vu0GHADIFHHa6Hi9XgNUZPeRMrLbIvOTmBmY8kjgu9qzMaistH-BZig0hwhPj09ijv0g')"></div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-semibold truncate">Alex Rivera</p>
+<p class="text-xs text-slate-500 truncate">Pro Member</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 ml-64 p-8 overflow-y-auto">
+<!-- Header Row -->
+<div class="flex items-center justify-between mb-8">
+<div>
+<h2 class="text-2xl font-bold text-slate-800 dark:text-white">Welcome back, Alex!</h2>
+<p class="text-slate-500 dark:text-slate-400">Here is your progress for the last 30 days.</p>
+</div>
+<div class="flex gap-3">
+<button class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-slate-50">
+<span class="material-symbols-outlined text-lg">calendar_today</span>
+                        Oct 2023
+                    </button>
+<button class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-md shadow-primary/30 flex items-center gap-2 hover:brightness-110">
+<span class="material-symbols-outlined text-lg">download</span>
+                        Export
+                    </button>
+</div>
+</div>
+<!-- Summary Cards Row -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<!-- Current Weight -->
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<div>
+<p class="text-sm font-medium text-slate-500 dark:text-slate-400">Current Weight</p>
+<h3 class="text-3xl font-bold mt-1">185.4 <span class="text-lg font-medium text-slate-400">lbs</span></h3>
+</div>
+<div class="p-2 bg-primary/10 rounded-lg text-primary">
+<span class="material-symbols-outlined">scale</span>
+</div>
+</div>
+<div class="mt-4 flex items-center gap-1 text-xs text-slate-400 font-medium">
+<span class="material-symbols-outlined text-sm">schedule</span>
+                        Last measured 2 hours ago
+                    </div>
+</div>
+<!-- Weekly Change -->
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<div>
+<p class="text-sm font-medium text-slate-500 dark:text-slate-400">Weekly Change</p>
+<h3 class="text-3xl font-bold mt-1 text-success">-1.2 <span class="text-lg font-medium opacity-60">lbs</span></h3>
+</div>
+<div class="p-2 bg-success/10 rounded-lg text-success">
+<span class="material-symbols-outlined">trending_down</span>
+</div>
+</div>
+<div class="mt-4 flex items-center gap-2">
+<div class="h-1 flex-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-success w-3/4 rounded-full"></div>
+</div>
+<span class="text-[10px] font-bold text-success uppercase">On Track</span>
+</div>
+</div>
+<!-- Goal Progress -->
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<div>
+<p class="text-sm font-medium text-slate-500 dark:text-slate-400">Goal Progress</p>
+<h3 class="text-3xl font-bold mt-1">85<span class="text-lg font-medium text-slate-400">%</span></h3>
+</div>
+<div class="p-2 bg-blue-500/10 rounded-lg text-blue-500">
+<span class="material-symbols-outlined">flag</span>
+</div>
+</div>
+<div class="mt-4">
+<div class="flex justify-between text-[11px] font-bold text-slate-500 mb-1 uppercase tracking-tight">
+<span>To Target</span>
+<span>5 lbs left</span>
+</div>
+<div class="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[85%] rounded-full shadow-[0_0_8px_rgba(48,140,232,0.4)]"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Chart Area -->
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm mb-8">
+<div class="flex items-center justify-between mb-6">
+<div>
+<h4 class="text-lg font-bold text-slate-800 dark:text-white">Weight Evolution</h4>
+<p class="text-sm text-slate-500">Performance trend over the past 30 days</p>
+</div>
+<div class="flex border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden text-xs font-semibold">
+<button class="px-4 py-2 bg-slate-50 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-800">1W</button>
+<button class="px-4 py-2 bg-primary text-white border-r border-slate-200 dark:border-slate-800">1M</button>
+<button class="px-4 py-2 bg-slate-50 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-800">3M</button>
+<button class="px-4 py-2 bg-slate-50 dark:bg-slate-800">ALL</button>
+</div>
+</div>
+<div class="relative h-[320px] w-full mt-4">
+<!-- Simple SVG line chart placeholder to maintain visual accuracy -->
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 1000 300"><defs>
+<lineargradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#308ce8" stop-opacity="0.2"></stop>
+<stop offset="100%" stop-color="#308ce8" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<!-- Grid Lines -->
+<line stroke="#1e293b" stroke-width="1" x1="0" x2="1000" y1="50" y2="50"></line>
+<line stroke="#1e293b" stroke-width="1" x1="0" x2="1000" y1="100" y2="100"></line>
+<line stroke="#1e293b" stroke-width="1" x1="0" x2="1000" y1="150" y2="150"></line>
+<line stroke="#1e293b" stroke-width="1" x1="0" x2="1000" y1="200" y2="200"></line>
+<line stroke="#1e293b" stroke-width="1" x1="0" x2="1000" y1="250" y2="250"></line>
+<!-- Area Fill -->
+<path d="M0,220 C100,210 200,240 300,180 C400,120 500,150 600,100 C700,50 800,130 900,90 C1000,50 1000,50 1000,50 V300 H0 Z" fill="url(#chartGradient)"></path>
+<!-- Line Path -->
+<path d="M0,220 C100,210 200,240 300,180 C400,120 500,150 600,100 C700,50 800,130 900,90 C1000,50 1000,50 1000,50" fill="none" stroke="#308ce8" stroke-linecap="round" stroke-width="4"></path>
+<!-- Points -->
+<circle cx="300" cy="180" fill="#308ce8" r="6" stroke="white" stroke-width="3"></circle>
+<circle cx="600" cy="100" fill="#308ce8" r="6" stroke="white" stroke-width="3"></circle>
+<circle cx="900" cy="90" fill="#308ce8" r="6" stroke="white" stroke-width="3"></circle></svg>
+<div class="flex justify-between mt-4 px-2 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+<span>Oct 01</span>
+<span>Oct 07</span>
+<span>Oct 14</span>
+<span>Oct 21</span>
+<span>Oct 28</span>
+<span>Nov 04</span>
+</div>
+</div>
+</div>
+<!-- Data Table -->
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+<div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<h4 class="text-lg font-bold text-slate-800 dark:text-white">Measurement Log</h4>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+<input class="pl-9 pr-4 py-1.5 text-sm bg-slate-50 dark:bg-slate-800 border-none rounded-lg w-64 focus:ring-1 focus:ring-primary" placeholder="Search entries..." type="text"/>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-slate-50 dark:bg-slate-800/50 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+<th class="px-6 py-4">Date &amp; Time</th>
+<th class="px-6 py-4">Weight (lbs)</th>
+<th class="px-6 py-4">Trend</th>
+<th class="px-6 py-4">Notes</th>
+<th class="px-6 py-4 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="text-sm font-semibold text-slate-800 dark:text-white">Nov 04, 2023</div>
+<div class="text-[10px] text-slate-500 font-medium">08:15 AM</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-sm font-bold text-slate-700 dark:text-slate-200">185.4</span>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-success/10 text-success text-[10px] font-bold flex items-center gap-1 w-fit">
+<span class="material-symbols-outlined text-xs">south</span> -0.2
+                                    </span>
+</td>
+<td class="px-6 py-4">
+<p class="text-xs text-slate-500 max-w-xs truncate">Fasted state, after morning cardio.</p>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-400">
+<span class="material-symbols-outlined text-lg">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="text-sm font-semibold text-slate-800 dark:text-white">Nov 03, 2023</div>
+<div class="text-[10px] text-slate-500 font-medium">08:20 AM</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-sm font-bold text-slate-700 dark:text-slate-200">185.6</span>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] font-bold flex items-center gap-1 w-fit">
+<span class="material-symbols-outlined text-xs">horizontal_rule</span> 0.0
+                                    </span>
+</td>
+<td class="px-6 py-4">
+<p class="text-xs text-slate-500 max-w-xs truncate">Standard reading.</p>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-400">
+<span class="material-symbols-outlined text-lg">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="text-sm font-semibold text-slate-800 dark:text-white">Nov 02, 2023</div>
+<div class="text-[10px] text-slate-500 font-medium">09:05 AM</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-sm font-bold text-slate-700 dark:text-slate-200">185.6</span>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-red-500/10 text-red-500 text-[10px] font-bold flex items-center gap-1 w-fit">
+<span class="material-symbols-outlined text-xs">north</span> +0.4
+                                    </span>
+</td>
+<td class="px-6 py-4">
+<p class="text-xs text-slate-500 max-w-xs truncate">Late night dinner yesterday.</p>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-400">
+<span class="material-symbols-outlined text-lg">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Showing 1 to 3 of 42 entries</p>
+<div class="flex gap-1">
+<button class="size-8 flex items-center justify-center rounded border border-slate-200 dark:border-slate-800 text-slate-400 disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="size-8 flex items-center justify-center rounded bg-primary text-white text-xs font-bold">1</button>
+<button class="size-8 flex items-center justify-center rounded border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold">2</button>
+<button class="size-8 flex items-center justify-center rounded border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold">3</button>
+<button class="size-8 flex items-center justify-center rounded border border-slate-200 dark:border-slate-800 text-slate-400">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Floating Action Button (FAB) -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-primary text-white rounded-full shadow-2xl shadow-primary/40 flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-30 group">
+<span class="material-symbols-outlined text-3xl transition-transform group-hover:rotate-90">add</span>
+<!-- Tooltip -->
+<span class="absolute right-full mr-4 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap">
+            Add New Entry
+        </span>
+</button>
+</body></html>
