@@ -3,21 +3,23 @@
 > **Proyecto**: ControlPeso.Thiscloud
 > **Archivo**: `.github/copilot-instructions.md`
 > **Modelo Copilot**: Claude Sonnet 4.5 (modo agente)
-> **Última actualización**: 2026-02-15
+> **Última actualización**: 2026-02-17
+> **Estado del proyecto**: 🟢 EN DESARROLLO — Fase 3/8 (53.2% completado)
 
 ---
 
 ## Contexto del Proyecto
 
-Este es un proyecto **Blazor Server (.NET 9)** con **MudBlazor** como framework de UI exclusivo. La aplicación "Control Peso Thiscloud" permite a los usuarios registrar, monitorear y analizar su peso corporal con tendencias, historial y panel de administración.
+Este es un proyecto **Blazor Server (.NET 10)** con **MudBlazor** como framework de UI exclusivo.
 
 ### Stack Tecnológico (DECISIÓN CERRADA)
 
-- **Runtime**: .NET 9 (`net9.0`)
+- **Runtime**: .NET 10 (`net10.0`)
 - **UI Framework**: Blazor Server + MudBlazor 8.0.0
 - **ORM**: Entity Framework Core 9.0.1, modo **Database First**
 - **Base de datos**: SQLite (desarrollo/MVP) — preparado para migrar a SQL Server
 - **Autenticación**: Google OAuth 2.0 (ASP.NET Core Identity + Google provider)
+- **Logging**: ThisCloud.Framework.Loggings 1.0.86 (Serilog + redaction + correlation)
 - **Analytics**: Google Analytics 4 (gtag.js) + Cloudflare Analytics (capa gratuita)
 - **IDE**: Visual Studio 2022+ con GitHub Copilot (Claude Sonnet 4.5 agente)
 
