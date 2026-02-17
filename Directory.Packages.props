@@ -16,8 +16,11 @@
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
     <!-- Serilog -->
     <PackageVersion Include="Serilog.AspNetCore" Version="8.0.3" />
-    <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0" />
-    <PackageVersion Include="Serilog.Sinks.File" Version="6.0.0" />
+    <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />
+    <!-- ThisCloud.Framework - Logging estructurado enterprise-grade -->
+    <PackageVersion Include="ThisCloud.Framework.Loggings.Abstractions" Version="1.0.86" />
+    <PackageVersion Include="ThisCloud.Framework.Loggings.Serilog" Version="1.0.86" />
   </ItemGroup>
   <ItemGroup Label="Testing Dependencies">
     <!-- Testing Framework -->

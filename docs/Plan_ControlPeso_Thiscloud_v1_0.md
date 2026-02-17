@@ -4,8 +4,8 @@
 - Rama: `main` → `develop` → `feature/*`
 - Versión: **1.0.0**
 - Fecha inicio: **2026-02-15**
-- Última actualización: **2026-02-15 16:00**
-- Estado global: 🟢 **EN PROGRESO** — Fase 0 ✅ | Fase 1 ⏳ | Fase 2 ⏳ | Fase 3 ⏳ | Fase 4 ⏳ | Fase 5 ⏳ | Fase 6 ⏳ | Fase 7 ⏳ | Fase 8 ⏳ (7/52 tareas = **13%** ejecutado)
+- Última actualización: **2026-02-17 13:30**
+- Estado global: 🟢 **EN PROGRESO** — Fase 0 ✅ | Fase 1 ✅ | Fase 1.5 ⏳ | Fase 2 ⏳ | Fase 3 ⏳ | Fase 4 ⏳ | Fase 5 ⏳ | Fase 6 ⏳ | Fase 7 ⏳ | Fase 8 ⏳ (14/62 tareas = **23%** ejecutado)
 
 ## Objetivo
 
@@ -846,6 +846,31 @@ Criterios de aceptación:
 - Domain tiene ZERO dependencias NuGet (solo Entities scaffolded + Enums/Exceptions manuales).
 - DbContext con converters funciona correctamente.
 
+### Fase 1.5 — Integración ThisCloud.Framework.Loggings + Upgrade .NET 10
+
+**Contexto**: Antes de comenzar la capa Application (Fase 2), integrar el framework custom ThisCloud.Framework para logging estructurado enterprise-grade. Requiere actualizar target de .NET 9 a .NET 10 (LTS). Ver análisis completo en `docs/THISCLOUD_FRAMEWORK_INTEGRATION.md`.
+
+Tareas:
+- P1.5.1 Actualizar target framework de .NET 9 a .NET 10 en todos los .csproj.
+- P1.5.2 Verificar compatibilidad de paquetes NuGet con .NET 10 (MudBlazor, EF Core, etc.).
+- P1.5.3 Agregar paquetes ThisCloud.Framework.Loggings (Abstractions + Serilog) en Directory.Packages.props.
+- P1.5.4 Configurar Serilog en Program.cs (UseThisCloudFrameworkSerilog + AddThisCloudFrameworkLoggings).
+- P1.5.5 Configurar appsettings.json con sección ThisCloud.Loggings (Console + File sinks, Redaction, Correlation).
+- P1.5.6 Configurar appsettings.Production.json (Console.Enabled=false, MinimumLevel=Warning).
+- P1.5.7 Actualizar copilot-instructions.md con reglas de logging obligatorio (ILogger en todos los servicios).
+- P1.5.8 Ejecutar build completo y verificar compatibilidad .NET 10.
+- P1.5.9 Smoke test: arrancar app, verificar logs en console + archivo, validar redaction de secretos.
+- P1.5.10 Commit con mensaje descriptivo + push a feature/fase-1.
+
+Criterios de aceptación:
+- Todos los proyectos targetean net10.0.
+- `dotnet build` ejecuta sin errores (excepto warnings EnableGenerateDocumentationFile).
+- App arranca correctamente con Serilog configurado.
+- Logs aparecen en console (Development) y archivo rolling (logs/controlpeso-YYYYMMDD.ndjson).
+- Correlation ID presente en todos los logs.
+- Redaction funciona (intentar loguear "Authorization" header y confirmar que está oculto).
+- Build y tests pasan en CI (.NET 10 SDK disponible en GitHub Actions).
+
 ### Fase 2 — Application Layer (Interfaces + DTOs + Servicios + Mapeos)
 
 Tareas:
@@ -974,13 +999,23 @@ Criterios de aceptación:
 | P0.5  | 0 | MudBlazor + tema oscuro base | 100% | ✅ |
 | P0.6  | 0 | .editorconfig + .gitignore + README | 100% | ✅ |
 | P0.7  | 0 | CI básico | 100% | ✅ |
-| P1.1  | 1 | schema_v1.sql (DDL completo) | 0% | ⏳ |
-| P1.2  | 1 | Aplicar SQL → crear controlpeso.db | 0% | ⏳ |
-| P1.3  | 1 | Scaffold EF Core → entidades + DbContext | 0% | ⏳ |
-| P1.4  | 1 | Verificar entidades vs DDL | 0% | ⏳ |
-| P1.5  | 1 | Enums manuales (Domain/Enums) | 0% | ⏳ |
-| P1.6  | 1 | Excepciones de dominio | 0% | ⏳ |
-| P1.7  | 1 | Value converters post-scaffold | 0% | ⏳ |
+| P1.1  | 1 | schema_v1.sql (DDL completo) | 100% | ✅ |
+| P1.2  | 1 | Aplicar SQL → crear controlpeso.db | 100% | ✅ |
+| P1.3  | 1 | Scaffold EF Core → entidades + DbContext | 100% | ✅ |
+| P1.4  | 1 | Verificar entidades vs DDL | 100% | ✅ |
+| P1.5  | 1 | Enums manuales (Domain/Enums) | 100% | ✅ |
+| P1.6  | 1 | Excepciones de dominio | 100% | ✅ |
+| P1.7  | 1 | Value converters post-scaffold | 100% | ✅ |
+| P1.5.1 | 1.5 | Actualizar target .NET 9 → .NET 10 | 0% | ⏳ |
+| P1.5.2 | 1.5 | Verificar compatibilidad paquetes NuGet | 0% | ⏳ |
+| P1.5.3 | 1.5 | Agregar paquetes ThisCloud.Framework.Loggings | 0% | ⏳ |
+| P1.5.4 | 1.5 | Configurar Serilog en Program.cs | 0% | ⏳ |
+| P1.5.5 | 1.5 | Configurar appsettings.json (Loggings) | 0% | ⏳ |
+| P1.5.6 | 1.5 | Configurar appsettings.Production.json | 0% | ⏳ |
+| P1.5.7 | 1.5 | Actualizar copilot-instructions.md (logging) | 0% | ⏳ |
+| P1.5.8 | 1.5 | Build completo + verificar .NET 10 | 0% | ⏳ |
+| P1.5.9 | 1.5 | Smoke test (logs console + archivo + redaction) | 0% | ⏳ |
+| P1.5.10 | 1.5 | Commit + push | 0% | ⏳ |
 | P2.1  | 2 | Interfaces de servicio | 0% | ⏳ |
 | P2.2  | 2 | DTOs | 0% | ⏳ |
 | P2.3  | 2 | PagedResult + Filtros | 0% | ⏳ |
@@ -1039,6 +1074,9 @@ Criterios de aceptación:
 | 2026-02-15 | Schema SQL normalizado como contrato maestro | Database First: todo gobierno de datos del lado SQL con CHECK, tipos, restricciones completas |
 | 2026-02-15 | Fase 1 reestructurada: SQL primero → Scaffold → Domain | Alinear con flujo Database First real |
 | 2026-02-15 16:00 | **Fase 0 completada (7/7 tareas)** | Setup de proyecto: solución con arquitectura Onion, CPM, MudBlazor 8.0.0, tema oscuro, .editorconfig, .gitignore, README.md, CI workflow. Build exitoso + tests pasando. |
+| 2026-02-17 13:15 | **Fase 1 completada (7/7 tareas)** | Schema SQL como contrato maestro (4 tablas, 17 índices), scaffold EF Core, entidades en Domain/Entities, 5 enums manuales, 3 excepciones de dominio, DbContext en Infrastructure. Database First workflow establecido. |
+| 2026-02-17 13:20 | **Evaluación ThisCloud.Framework** | Análisis del framework custom del usuario (github.com/mdesantis1984/ThisCloud.Framework) - .NET 10 framework modular con paquetes NuGet públicos. Componentes identificados: Loggings (Serilog + Admin), Web (Minimal APIs), Contracts. Análisis en progreso para integración con ControlPeso.Thiscloud antes de Fase 2. |
+| 2026-02-17 13:30 | **Nueva Fase 1.5 agregada - Integración Framework + .NET 10** | Decisión: Integrar ThisCloud.Framework.Loggings ANTES de Fase 2 (logging estructurado es fundacional). Requiere actualizar de .NET 9 a .NET 10 (LTS). 10 nuevas tareas agregadas (P1.5.1 a P1.5.10): upgrade target, configurar Serilog, appsettings, smoke tests. Total tareas: 52→62. Progreso global ajustado: 27%→23%. Ver análisis completo en docs/THISCLOUD_FRAMEWORK_INTEGRATION.md |
 
 ---
 

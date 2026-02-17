@@ -1,13 +1,24 @@
 using ControlPeso.Web.Components;
 using MudBlazor.Services;
+using ThisCloud.Framework.Loggings.Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// 1. Configure Serilog FIRST (before any other service registration)
+builder.Host.UseThisCloudFrameworkSerilog(
+    builder.Configuration,
+    serviceName: "ControlPeso.Thiscloud");
+
+// 2. Register ThisCloud logging services
+builder.Services.AddThisCloudFrameworkLoggings(
+    builder.Configuration,
+    serviceName: "ControlPeso.Thiscloud");
+
+// 3. Add Blazor services
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// Add MudBlazor services
+// 4. Add MudBlazor services
 builder.Services.AddMudServices();
 
 var app = builder.Build();
