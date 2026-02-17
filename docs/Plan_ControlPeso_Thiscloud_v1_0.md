@@ -4,14 +4,14 @@
 - Rama: `main` → `develop` → `feature/*`
 - Versión: **1.0.0**
 - Fecha inicio: **2026-02-15**
-- Última actualización: **2026-02-17 22:30**
-- Estado global: 🟢 **EN PROGRESO** — Fase 0 ✅ | Fase 1 ✅ | Fase 1.5 ✅ | Fase 2 ✅ | Fase 3 ✅ | Fase 4 ⏳ | Fase 5 ⏳ | Fase 6 ⏳ | Fase 7 ⏳ | Fase 8 ⏳ (35/62 tareas = **56.5%** ejecutado)
+- Última actualización: **2026-02-17 23:15**
+- Estado global: 🟢 **EN PROGRESO** — Fase 0 ✅ | Fase 1 ✅ | Fase 1.5 ✅ | Fase 2 ✅ | Fase 3 ✅ | Fase 4 ⏳ (1/8 tareas) | Fase 5 ⏳ | Fase 6 ⏳ | Fase 7 ⏳ | Fase 8 ⏳ (36/63 tareas = **57.1%** ejecutado)
 
 ## Objetivo
 
-Entregar una aplicación web **minimalista** de control de peso corporal, construida con **Blazor Server (.NET 9)** y **MudBlazor** como framework de UI exclusivo, con:
+Entregar una aplicación web **minimalista** de control de peso corporal, construida con **Blazor Server (.NET 10)** y **MudBlazor** como framework de UI exclusivo, con:
 
-- Autenticación vía **Google OAuth 2.0** (sin contraseñas propias).
+- Autenticación vía **Google OAuth 2.0** y **LinkedIn OAuth 2.0** (sin contraseñas propias).
 - Dashboard con métricas actuales (peso actual, cambio semanal, progreso hacia meta).
 - Registro de peso con fecha, hora, notas y tendencia automática.
 - Historial con búsqueda, filtros por rango de fechas y paginación.
@@ -909,22 +909,26 @@ Criterios de aceptación:
 - ✅ Arquitectura respetada: Tests E2E (Application → Infrastructure → InMemory DB).
 - ✅ Cobertura: WeightLogService 100%, UserService 75%, SOLID + Onion compliance.
 
-### Fase 4 — Autenticación Google OAuth
+### Fase 4 — Autenticación OAuth 2.0 (Google + LinkedIn)
 
 Tareas:
-- P4.1 Configurar Google OAuth en ASP.NET Core.
-- P4.2 Implementar GoogleAuthExtensions.
-- P4.3 Implementar callback que crea/actualiza usuario en DB.
-- P4.4 Crear página Login.razor con "Continuar con Google" (MudButton).
-- P4.5 Configurar cookie segura (HttpOnly, Secure, SameSite).
+- ✅ P4.1 Configurar Google OAuth + LinkedIn OAuth en ASP.NET Core. **100%**
+- P4.2 Implementar AuthenticationExtensions (Google + LinkedIn providers).
+- P4.3 Implementar callback que crea/actualiza usuario en DB (para ambos providers).
+- P4.4 Crear página Login.razor con botones "Continuar con Google" y "Continuar con LinkedIn" (MudButton).
+- P4.5 Configurar cookie segura (HttpOnly, Secure, SameSite). ✅ Completado en P4.1
 - P4.6 Implementar logout.
 - P4.7 Proteger rutas con [Authorize].
+- P4.8 Actualizar modelo de datos: agregar LinkedInId a tabla Users (opcional, permite vincular ambas cuentas).
 
 Criterios de aceptación:
 - Login con Google funciona E2E.
-- Usuario se crea en DB al primer login.
-- Logout limpia sesión.
+- Login con LinkedIn funciona E2E.
+- Usuario se crea en DB al primer login (desde cualquier provider).
+- Usuario puede vincular ambas cuentas (GoogleId + LinkedInId en mismo registro).
+- Logout limpia sesión correctamente.
 - Rutas protegidas redirigen a Login.
+- Cookie configurada de forma segura (HttpOnly, Secure, SameSite=Lax).
 
 ### Fase 5 — UI Core (Layout + Dashboard + AddWeight)
 

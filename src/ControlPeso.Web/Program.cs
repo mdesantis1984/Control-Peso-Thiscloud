@@ -56,6 +56,18 @@ builder.Services.AddAuthentication(options =>
     // Scopes para obtener información del usuario
     options.Scope.Add("profile");
     options.Scope.Add("email");
+})
+.AddLinkedIn(options =>
+{
+    var linkedInConfig = builder.Configuration.GetSection("Authentication:LinkedIn");
+    options.ClientId = linkedInConfig["ClientId"] ?? throw new InvalidOperationException("LinkedIn ClientId not configured");
+    options.ClientSecret = linkedInConfig["ClientSecret"] ?? throw new InvalidOperationException("LinkedIn ClientSecret not configured");
+    options.SaveTokens = true;
+
+    // Scopes para obtener información del usuario de LinkedIn
+    options.Scope.Add("openid");
+    options.Scope.Add("profile");
+    options.Scope.Add("email");
 });
 
 builder.Services.AddAuthorization();
