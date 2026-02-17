@@ -97,21 +97,27 @@ public static class UserMapper
     {
         ArgumentNullException.ThrowIfNull(entity);
         ArgumentNullException.ThrowIfNull(info);
-        
+
         var changed = false;
-        
+
         if (entity.Name != info.Name)
         {
             entity.Name = info.Name;
             changed = true;
         }
-        
+
+        if (entity.Email != info.Email)
+        {
+            entity.Email = info.Email;
+            changed = true;
+        }
+
         if (entity.AvatarUrl != info.AvatarUrl)
         {
             entity.AvatarUrl = info.AvatarUrl;
             changed = true;
         }
-        
+
         if (changed)
         {
             entity.UpdatedAt = DateTime.UtcNow.ToString("O");
