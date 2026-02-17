@@ -1,3 +1,29 @@
 <Solution>
-  <Project Path="ControlPeso/ControlPeso.csproj" />
+  <Folder Name="/docs/">
+    <File Path="docs/Plan_ControlPeso_Thiscloud_v1_0.md" />
+  </Folder>
+  <Folder Name="/docs/schema/" />
+  <Folder Name="/src/" />
+  <Folder Name="/src/ControlPeso.Application/">
+    <Project Path="src/ControlPeso.Application/ControlPeso.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/ControlPeso.Domain/">
+    <Project Path="src/ControlPeso.Domain/ControlPeso.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/ControlPeso.Infrastructure/">
+    <Project Path="src/ControlPeso.Infrastructure/ControlPeso.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/ControlPeso.Web/">
+    <Project Path="src/ControlPeso.Web/ControlPeso.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/ControlPeso.Application.Tests/">
+    <Project Path="tests/ControlPeso.Application.Tests/ControlPeso.Application.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/ControlPeso.Domain.Tests/">
+    <Project Path="tests/ControlPeso.Domain.Tests/ControlPeso.Domain.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/ControlPeso.Infrastructure.Tests/">
+    <Project Path="tests/ControlPeso.Infrastructure.Tests/ControlPeso.Infrastructure.Tests.csproj" />
+  </Folder>
 </Solution>

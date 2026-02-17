@@ -1,4 +1,4 @@
-﻿namespace ControlPeso.Infrastructure.Tests;
+namespace ControlPeso.Infrastructure.Tests;
 
 public class UnitTest1
 {
