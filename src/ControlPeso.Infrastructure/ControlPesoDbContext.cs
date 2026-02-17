@@ -1,7 +1,5 @@
-using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
 using ControlPeso.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace ControlPeso.Infrastructure;
 
