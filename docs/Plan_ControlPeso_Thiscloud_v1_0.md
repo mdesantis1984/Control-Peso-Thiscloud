@@ -4,8 +4,8 @@
 - Rama: `main` → `develop` → `feature/*`
 - Versión: **1.0.0**
 - Fecha inicio: **2026-02-15**
-- Última actualización: **2026-02-17 14:45**
-- Estado global: 🟢 **EN PROGRESO** — Fase 0 ✅ | Fase 1 ✅ | Fase 1.5 ✅ | Fase 2 ⏳ | Fase 3 ⏳ | Fase 4 ⏳ | Fase 5 ⏳ | Fase 6 ⏳ | Fase 7 ⏳ | Fase 8 ⏳ (24/62 tareas = **39%** ejecutado)
+- Última actualización: **2026-02-17 19:30**
+- Estado global: 🟢 **EN PROGRESO** — Fase 0 ✅ | Fase 1 ✅ | Fase 1.5 ✅ | Fase 2 ⏳ (P2.1-P2.5 ✅, P2.6 ⏳) | Fase 3 ⏳ | Fase 4 ⏳ | Fase 5 ⏳ | Fase 6 ⏳ | Fase 7 ⏳ | Fase 8 ⏳ (29/62 tareas = **47%** ejecutado)
 
 ## Objetivo
 
@@ -1085,6 +1085,7 @@ Criterios de aceptación:
 | 2026-02-17 15:30 | **P2.1 completada - Fase 2 iniciada** | Interfaces de servicio creadas (IWeightLogService, IUserService, ITrendService, IAdminService). Commit a15ffdf. 28 errores de compilación esperados (faltan DTOs). |
 | 2026-02-17 15:35 | **Estrategia de Testing definida (85% cobertura obligatoria)** | Usuario confirma OPCIÓN B: Tests con 85% de cobertura mínima en TODAS las tareas con lógica antes de continuar. Plan actualizado con subtareas de tests en P2.3, P2.4, P2.5, P2.6. Comando de cobertura: `dotnet test --collect:"XPlat Code Coverage"`. |
 | 2026-02-17 19:15 | **P2.4 completada - Mappers + Tests 100% cobertura** | Creados 3 mappers (WeightLogMapper, UserMapper, AuditLogMapper) con conversiones de tipos: string↔Guid, string↔DateTime/DateOnly/TimeOnly, double↔decimal, int↔enum. Creado AuditLogDto. Corregidos nombres de entidades (User→Users, WeightLog→WeightLogs según scaffold plural). 32 tests exhaustivos (10 WeightLog + 17 User + 10 AuditLog) cubriendo todos los métodos + edge cases + SQL defaults + OAuth sync. Cobertura: 100% en los 3 mappers. Total: 54/54 tests pasando. Commit a9da2ee. Progreso global: 45% (28/62 tareas). |
+| 2026-02-17 19:30 | **P2.5 completada - FluentValidation Validators + Tests 100% cobertura** | Creados 3 validators (CreateWeightLogValidator, UpdateWeightLogValidator, UpdateUserProfileValidator) con reglas de validación: rangos de peso 20-500 kg, altura 50-300 cm, fecha ≤ hoy, longitud de strings, enums válidos, idiomas es/en. Agregado FluentValidation 11.11.0 a Application.csproj. 38 tests comprehensive (13+4+12+9 edge cases) con 100% de cobertura en los 3 validators. Total: 92/92 tests pasando. Commit 78be106. Progreso global: 47% (29/62 tareas). |
 
 ---
 
