@@ -4,8 +4,8 @@
 - Rama: `main` → `develop` → `feature/*`
 - Versión: **1.0.0**
 - Fecha inicio: **2026-02-15**
-- Última actualización: **2026-02-17 13:30**
-- Estado global: 🟢 **EN PROGRESO** — Fase 0 ✅ | Fase 1 ✅ | Fase 1.5 ⏳ | Fase 2 ⏳ | Fase 3 ⏳ | Fase 4 ⏳ | Fase 5 ⏳ | Fase 6 ⏳ | Fase 7 ⏳ | Fase 8 ⏳ (14/62 tareas = **23%** ejecutado)
+- Última actualización: **2026-02-17 14:45**
+- Estado global: 🟢 **EN PROGRESO** — Fase 0 ✅ | Fase 1 ✅ | Fase 1.5 ✅ | Fase 2 ⏳ | Fase 3 ⏳ | Fase 4 ⏳ | Fase 5 ⏳ | Fase 6 ⏳ | Fase 7 ⏳ | Fase 8 ⏳ (24/62 tareas = **39%** ejecutado)
 
 ## Objetivo
 
@@ -1006,16 +1006,16 @@ Criterios de aceptación:
 | P1.5  | 1 | Enums manuales (Domain/Enums) | 100% | ✅ |
 | P1.6  | 1 | Excepciones de dominio | 100% | ✅ |
 | P1.7  | 1 | Value converters post-scaffold | 100% | ✅ |
-| P1.5.1 | 1.5 | Actualizar target .NET 9 → .NET 10 | 0% | ⏳ |
-| P1.5.2 | 1.5 | Verificar compatibilidad paquetes NuGet | 0% | ⏳ |
-| P1.5.3 | 1.5 | Agregar paquetes ThisCloud.Framework.Loggings | 0% | ⏳ |
-| P1.5.4 | 1.5 | Configurar Serilog en Program.cs | 0% | ⏳ |
-| P1.5.5 | 1.5 | Configurar appsettings.json (Loggings) | 0% | ⏳ |
-| P1.5.6 | 1.5 | Configurar appsettings.Production.json | 0% | ⏳ |
-| P1.5.7 | 1.5 | Actualizar copilot-instructions.md (logging) | 0% | ⏳ |
-| P1.5.8 | 1.5 | Build completo + verificar .NET 10 | 0% | ⏳ |
-| P1.5.9 | 1.5 | Smoke test (logs console + archivo + redaction) | 0% | ⏳ |
-| P1.5.10 | 1.5 | Commit + push | 0% | ⏳ |
+| P1.5.1 | 1.5 | Actualizar target .NET 9 → .NET 10 | 100% | ✅ |
+| P1.5.2 | 1.5 | Verificar compatibilidad paquetes NuGet | 100% | ✅ |
+| P1.5.3 | 1.5 | Agregar paquetes ThisCloud.Framework.Loggings | 100% | ✅ |
+| P1.5.4 | 1.5 | Configurar Serilog en Program.cs | 100% | ✅ |
+| P1.5.5 | 1.5 | Configurar appsettings.json (Loggings) | 100% | ✅ |
+| P1.5.6 | 1.5 | Configurar appsettings.Production.json | 100% | ✅ |
+| P1.5.7 | 1.5 | Actualizar copilot-instructions.md (logging) | 100% | ✅ |
+| P1.5.8 | 1.5 | Build completo + verificar .NET 10 | 100% | ✅ |
+| P1.5.9 | 1.5 | Smoke test (logs console + archivo + redaction) | 100% | ✅ |
+| P1.5.10 | 1.5 | Commit + push | 100% | ✅ |
 | P2.1  | 2 | Interfaces de servicio | 0% | ⏳ |
 | P2.2  | 2 | DTOs | 0% | ⏳ |
 | P2.3  | 2 | PagedResult + Filtros | 0% | ⏳ |
@@ -1077,6 +1077,7 @@ Criterios de aceptación:
 | 2026-02-17 13:15 | **Fase 1 completada (7/7 tareas)** | Schema SQL como contrato maestro (4 tablas, 17 índices), scaffold EF Core, entidades en Domain/Entities, 5 enums manuales, 3 excepciones de dominio, DbContext en Infrastructure. Database First workflow establecido. |
 | 2026-02-17 13:20 | **Evaluación ThisCloud.Framework** | Análisis del framework custom del usuario (github.com/mdesantis1984/ThisCloud.Framework) - .NET 10 framework modular con paquetes NuGet públicos. Componentes identificados: Loggings (Serilog + Admin), Web (Minimal APIs), Contracts. Análisis en progreso para integración con ControlPeso.Thiscloud antes de Fase 2. |
 | 2026-02-17 13:30 | **Nueva Fase 1.5 agregada - Integración Framework + .NET 10** | Decisión: Integrar ThisCloud.Framework.Loggings ANTES de Fase 2 (logging estructurado es fundacional). Requiere actualizar de .NET 9 a .NET 10 (LTS). 10 nuevas tareas agregadas (P1.5.1 a P1.5.10): upgrade target, configurar Serilog, appsettings, smoke tests. Total tareas: 52→62. Progreso global ajustado: 27%→23%. Ver análisis completo en docs/THISCLOUD_FRAMEWORK_INTEGRATION.md |
+| 2026-02-17 14:45 | **Fase 1.5 completada (10/10 tareas)** | Integración exitosa de ThisCloud.Framework.Loggings + upgrade a .NET 10: target framework actualizado en todos los proyectos, paquetes agregados (Loggings.Abstractions 1.0.86 + Serilog 1.0.86), Serilog configurado con Console + File sinks, appsettings.json y appsettings.Production.json configurados, copilot-instructions.md actualizado con 9 nuevas reglas de logging (29-37), build exitoso, smoke test verificado. Commit 3563d2c pushed. Progreso global: 23%→39% (24/62 tareas). |
 
 ---
 
