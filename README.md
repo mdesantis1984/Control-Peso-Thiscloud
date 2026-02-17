@@ -1,11 +1,15 @@
 # Control Peso Thiscloud
 
-![.NET 9](https://img.shields.io/badge/.NET-9.0-512BD4?logo=dotnet)
+![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)
 ![Blazor Server](https://img.shields.io/badge/Blazor-Server-512BD4?logo=blazor)
 ![MudBlazor](https://img.shields.io/badge/MudBlazor-8.0.0-594AE2)
 ![License](https://img.shields.io/badge/License-MIT-green)
+![Progress](https://img.shields.io/badge/Progress-53.2%25-brightgreen)
 
-Aplicación web minimalista de control de peso corporal construida con **Blazor Server (.NET 9)** y **MudBlazor**.
+Aplicación web minimalista de control de peso corporal construida con **Blazor Server (.NET 10)** y **MudBlazor**.
+
+> **Estado del proyecto**: 🟢 **EN DESARROLLO** — Fase 3/8 (53.2% completado)  
+> **Última actualización**: 2026-02-17
 
 ## ✨ Características
 
@@ -44,22 +48,32 @@ ControlPeso.Thiscloud/
 
 | Componente | Tecnología |
 |------------|-----------|
-| **Framework** | .NET 9.0 |
+| **Framework** | .NET 10.0 (LTS) |
 | **UI** | Blazor Server |
 | **Componentes UI** | MudBlazor 8.0.0 |
 | **ORM** | Entity Framework Core 9.0.1 (Database First) |
 | **Base de datos** | SQLite (dev/MVP) → SQL Server (prod) |
 | **Validación** | FluentValidation 11.11.0 |
-| **Logging** | Serilog 8.0.3 |
-| **Testing** | xUnit 2.9.2 + Moq 4.20.72 + bUnit 1.34.7 |
+| **Logging** | Serilog 8.0.3 + **ThisCloud.Framework.Loggings 1.0.86** |
+| **Testing** | xUnit 2.9.2 + Moq 4.20.72 + FluentAssertions 7.0.0 |
 | **Autenticación** | Google OAuth 2.0 |
 | **Analytics** | Google Analytics 4 + Cloudflare Analytics |
+
+### ThisCloud.Framework Integration
+
+Este proyecto utiliza **ThisCloud.Framework.Loggings** para logging estructurado enterprise-grade:
+- ✅ Serilog con Console + File sinks (NDJSON rolling)
+- ✅ Redaction automática de secretos
+- ✅ Correlation ID en todos los logs
+- ✅ Configuración centralizada en `appsettings.json`
+
+Ver [THISCLOUD_FRAMEWORK_INTEGRATION.md](docs/THISCLOUD_FRAMEWORK_INTEGRATION.md) para detalles.
 
 ## 🚀 Inicio rápido
 
 ### Prerrequisitos
 
-- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - [Visual Studio 2022 17.12+](https://visualstudio.microsoft.com/) o [VS Code](https://code.visualstudio.com/)
 - [SQLite](https://www.sqlite.org/download.html) (opcional, para inspeccionar DB)
 
@@ -143,16 +157,33 @@ El proyecto usa **Central Package Management** (`Directory.Packages.props`).
 
 ## 📝 Documentación
 
-- [Plan del proyecto (v1.0)](docs/Plan_ControlPeso_Thiscloud_v1_0.md)
+- [Plan del proyecto (v1.0)](docs/Plan_ControlPeso_Thiscloud_v1_0.md) — **Estado: 53.2% completado**
+  - ✅ Fase 0: Setup completo (7/7 tareas)
+  - ✅ Fase 1: Schema SQL + Scaffold + Domain (7/7 tareas)
+  - ✅ Fase 1.5: Integración ThisCloud.Framework + .NET 10 (10/10 tareas)
+  - ✅ Fase 2: Application Layer completo (8/8 tareas, 158 tests, 90.7% cobertura)
+  - ⏳ Fase 3: Infrastructure Layer (1/3 tareas)
+  - ⏳ Fases 4-8: Pendientes
 - [Esquema de base de datos](docs/schema/schema_v1.sql)
+- [Integración ThisCloud.Framework](docs/THISCLOUD_FRAMEWORK_INTEGRATION.md)
 
 ## 🧪 Cobertura de tests
 
-Target: **85% mínimo**
+Target: **85% mínimo** | Actual: **90.7% (Application layer)**
 
 ```bash
-dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+# Ejecutar tests con cobertura
+dotnet test --collect:"XPlat Code Coverage"
+
+# Ver reporte HTML (requiere reportgenerator)
+dotnet tool install -g dotnet-reportgenerator-globaltool
+reportgenerator -reports:**/coverage.cobertura.xml -targetdir:coverage-report
 ```
+
+**Estado actual**:
+- ✅ Application layer: 90.7% (1036/1181 líneas)
+- ✅ 160/160 tests pasando
+- ✅ Branch coverage: 96.7%
 
 ## 🤝 Contribuir
 
