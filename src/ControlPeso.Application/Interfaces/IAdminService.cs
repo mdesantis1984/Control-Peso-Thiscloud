@@ -1,3 +1,7 @@
+using ControlPeso.Application.DTOs;
+using ControlPeso.Application.Filters;
+using ControlPeso.Domain.Enums;
+
 namespace ControlPeso.Application.Interfaces;
 
 /// <summary>
