@@ -1,3 +1,6 @@
+using ControlPeso.Application.DTOs;
+using ControlPeso.Application.Filters;
+
 namespace ControlPeso.Application.Interfaces;
 
 /// <summary>
