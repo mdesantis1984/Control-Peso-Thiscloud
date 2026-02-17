@@ -4,7 +4,7 @@
 - Rama: `main` → `develop` → `feature/*`
 - Versión: **1.0.0**
 - Fecha inicio: **2026-02-15**
-- Última actualización: **2026-02-17 21:45**
+- Última actualización: **2026-02-17 22:30**
 - Estado global: 🟢 **EN PROGRESO** — Fase 0 ✅ | Fase 1 ✅ | Fase 1.5 ✅ | Fase 2 ✅ | Fase 3 ✅ | Fase 4 ⏳ | Fase 5 ⏳ | Fase 6 ⏳ | Fase 7 ⏳ | Fase 8 ⏳ (35/62 tareas = **56.5%** ejecutado)
 
 ## Objetivo
@@ -898,12 +898,16 @@ Criterios de aceptación:
 Tareas:
 - ✅ P3.1 Crear ServiceCollectionExtensions para registro DI (DbContext, servicios). **100%**
 - ✅ P3.2 Implementar seed data para desarrollo (usuarios demo + registros de peso). **100%**
-- ✅ P3.3 Tests de integración con SQLite in-memory. **100%**
+- ✅ P3.3 Tests de integración comprehensivos con InMemory EF Core. **100%**
 
 Criterios de aceptación:
 - ✅ CRUD funciona E2E contra SQLite.
 - ✅ Seed data se carga correctamente (3 usuarios demo + ~80-90 weight logs).
-- ✅ Tests de integración setup completo (verificación manual E2E exitosa).
+- ✅ Tests de integración: **17 tests comprehensivos pasando** (WeightLogService 11 tests, UserService 6 tests).
+- ✅ InMemoryDbContextFactory para aislamiento de tests + DbSeederFactory público.
+- ✅ ControlPesoDbContext.OnConfiguring soporta InMemory provider override condicional.
+- ✅ Arquitectura respetada: Tests E2E (Application → Infrastructure → InMemory DB).
+- ✅ Cobertura: WeightLogService 100%, UserService 75%, SOLID + Onion compliance.
 
 ### Fase 4 — Autenticación Google OAuth
 
