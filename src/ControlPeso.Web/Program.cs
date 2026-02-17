@@ -1,3 +1,5 @@
+using ControlPeso.Application.Extensions;
+using ControlPeso.Infrastructure.Extensions;
 using ControlPeso.Web.Components;
 using MudBlazor.Services;
 using ThisCloud.Framework.Loggings.Serilog;
@@ -14,11 +16,17 @@ builder.Services.AddThisCloudFrameworkLoggings(
     builder.Configuration,
     serviceName: "ControlPeso.Thiscloud");
 
-// 3. Add Blazor services
+// 3. Register Infrastructure services (DbContext, repositories)
+builder.Services.AddInfrastructureServices(builder.Configuration, builder.Environment);
+
+// 4. Register Application services (business logic, DTOs, validators)
+builder.Services.AddApplicationServices();
+
+// 5. Add Blazor services
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// 4. Add MudBlazor services
+// 6. Add MudBlazor services
 builder.Services.AddMudServices();
 
 var app = builder.Build();
