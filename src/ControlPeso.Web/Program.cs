@@ -29,6 +29,38 @@ builder.Services.AddRazorComponents()
 // 6. Add MudBlazor services
 builder.Services.AddMudServices();
 
+// 7. Add Authentication & Authorization
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = "Cookies";
+    options.DefaultChallengeScheme = "Google";
+})
+.AddCookie("Cookies", options =>
+{
+    options.LoginPath = "/login";
+    options.LogoutPath = "/logout";
+    options.AccessDeniedPath = "/access-denied";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.ExpireTimeSpan = TimeSpan.FromDays(30);
+    options.SlidingExpiration = true;
+})
+.AddGoogle("Google", options =>
+{
+    var googleConfig = builder.Configuration.GetSection("Authentication:Google");
+    options.ClientId = googleConfig["ClientId"] ?? throw new InvalidOperationException("Google ClientId not configured");
+    options.ClientSecret = googleConfig["ClientSecret"] ?? throw new InvalidOperationException("Google ClientSecret not configured");
+    options.SaveTokens = true;
+
+    // Scopes para obtener información del usuario
+    options.Scope.Add("profile");
+    options.Scope.Add("email");
+});
+
+builder.Services.AddAuthorization();
+builder.Services.AddCascadingAuthenticationState();
+
 var app = builder.Build();
 
 // Seed database in Development environment
@@ -49,6 +81,8 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseAntiforgery();
 
