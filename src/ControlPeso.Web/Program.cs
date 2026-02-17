@@ -31,6 +31,14 @@ builder.Services.AddMudServices();
 
 var app = builder.Build();
 
+// Seed database in Development environment
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var seeder = scope.ServiceProvider.GetRequiredService<ControlPeso.Infrastructure.Data.IDbSeeder>();
+    await seeder.SeedAsync();
+}
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {

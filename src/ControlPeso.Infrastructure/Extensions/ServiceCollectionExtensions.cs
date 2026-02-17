@@ -1,3 +1,4 @@
+using ControlPeso.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -51,8 +52,12 @@ public static class ServiceCollectionExtensions
             }
         });
 
-        // TODO P3.2: Agregar registro de servicios de seed data cuando se implemente
-        // services.AddScoped<IDbSeeder, DbSeeder>();
+        // Registrar DbContext genérico apuntando al específico
+        // Esto permite que servicios de Application inyecten DbContext sin conocer ControlPesoDbContext
+        services.AddScoped<DbContext>(provider => provider.GetRequiredService<ControlPesoDbContext>());
+
+        // Registrar DbSeeder para seed de datos en Development
+        services.AddScoped<IDbSeeder, DbSeeder>();
 
         // TODO: Agregar repositorios si se implementan (opcional - los servicios de Application
         // pueden usar DbContext directamente para simplicidad en MVP)
