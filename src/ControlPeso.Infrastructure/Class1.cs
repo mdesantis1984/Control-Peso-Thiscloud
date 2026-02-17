@@ -1,4 +1,4 @@
-﻿namespace ControlPeso.Infrastructure;
+namespace ControlPeso.Infrastructure;
 
 public class Class1
 {

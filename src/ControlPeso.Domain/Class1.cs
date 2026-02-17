@@ -1,4 +1,4 @@
-﻿namespace ControlPeso.Domain;
+namespace ControlPeso.Domain;
 
 public class Class1
 {
