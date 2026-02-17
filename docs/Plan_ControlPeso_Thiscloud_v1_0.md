@@ -1023,8 +1023,8 @@ Criterios de aceptación:
 | P2.1  | 2 | Interfaces de servicio | 0% | ⏳ |
 | P2.2  | 2 | DTOs | 0% | ⏳ |
 | P2.3  | 2 | PagedResult + Filtros | 0% | ⏳ |
-| P2.4  | 2 | Mappers (entidad↔DTO) | 0% | ⏳ |
-| P2.5  | 2 | Validadores FluentValidation | 0% | ⏳ |
+| P2.4  | 2 | Mappers (entidad↔DTO) + Tests (85% cobertura) | 100% | ✅ |
+| P2.5  | 2 | Validadores FluentValidation + Tests (85%) | 0% | ⏳ |
 | P2.6  | 2 | Servicios Application | 0% | ⏳ |
 | P2.7  | 2 | DI Extensions Application | 0% | ⏳ |
 | P2.8  | 2 | Tests Application | 0% | ⏳ |
@@ -1084,6 +1084,7 @@ Criterios de aceptación:
 | 2026-02-17 14:45 | **Fase 1.5 completada (10/10 tareas)** | Integración exitosa de ThisCloud.Framework.Loggings + upgrade a .NET 10: target framework actualizado en todos los proyectos, paquetes agregados (Loggings.Abstractions 1.0.86 + Serilog 1.0.86), Serilog configurado con Console + File sinks, appsettings.json y appsettings.Production.json configurados, copilot-instructions.md actualizado con 9 nuevas reglas de logging (29-37), build exitoso, smoke test verificado. Commit 3563d2c pushed. Progreso global: 23%→39% (24/62 tareas). |
 | 2026-02-17 15:30 | **P2.1 completada - Fase 2 iniciada** | Interfaces de servicio creadas (IWeightLogService, IUserService, ITrendService, IAdminService). Commit a15ffdf. 28 errores de compilación esperados (faltan DTOs). |
 | 2026-02-17 15:35 | **Estrategia de Testing definida (85% cobertura obligatoria)** | Usuario confirma OPCIÓN B: Tests con 85% de cobertura mínima en TODAS las tareas con lógica antes de continuar. Plan actualizado con subtareas de tests en P2.3, P2.4, P2.5, P2.6. Comando de cobertura: `dotnet test --collect:"XPlat Code Coverage"`. |
+| 2026-02-17 19:15 | **P2.4 completada - Mappers + Tests 100% cobertura** | Creados 3 mappers (WeightLogMapper, UserMapper, AuditLogMapper) con conversiones de tipos: string↔Guid, string↔DateTime/DateOnly/TimeOnly, double↔decimal, int↔enum. Creado AuditLogDto. Corregidos nombres de entidades (User→Users, WeightLog→WeightLogs según scaffold plural). 32 tests exhaustivos (10 WeightLog + 17 User + 10 AuditLog) cubriendo todos los métodos + edge cases + SQL defaults + OAuth sync. Cobertura: 100% en los 3 mappers. Total: 54/54 tests pasando. Commit a9da2ee. Progreso global: 45% (28/62 tareas). |
 
 ---
 
