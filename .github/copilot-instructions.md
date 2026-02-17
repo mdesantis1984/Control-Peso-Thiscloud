@@ -932,6 +932,123 @@ dotnet ef dbcontext scaffold "Data Source=../../controlpeso.db" \
 
 ---
 
+## Git Flow ControlPeso.Thiscloud (MANDATORIO)
+
+### Ramas Principales
+
+- **`main`** - Rama principal (producción). PROTEGIDA. Solo recibe merges desde `develop`.
+- **`develop`** - Rama de integración/desarrollo. PROTEGIDA. Recibe merges desde `feature/*`.
+- **`feature/*`** - Ramas de trabajo (ej: `feature/fase-2`, `feature/fase-3`). Se crean desde `develop`.
+
+### Flujo Completo
+
+```
+1. Crear feature desde develop actualizado:
+   git checkout develop
+   git pull origin develop
+   git checkout -b feature/fase-X
+
+2. Trabajar en la fase:
+   - Hacer commits POR TAREA completada (no por archivo)
+   - Ejemplo: "feat(fase-2): complete P2.1 - create service interfaces"
+   - Cada commit debe representar una tarea del plan terminada
+
+3. Finalizar fase completa:
+   - Verificar que TODAS las tareas de la fase están ✅
+   - git push origin feature/fase-X
+   - Crear PR: feature/fase-X → develop
+
+4. Aprobar PR:
+   - Review + CI verde
+   - Merge a develop (create merge commit, NO squash)
+   - Eliminar rama feature/fase-X
+
+5. Integrar a main (solo cuando develop está estable):
+   - PR: develop → main
+   - NUNCA directamente desde feature/* a main
+   - Solo cuando múltiples fases están completas y estables
+
+6. Siguiente fase:
+   - git checkout develop
+   - git pull origin develop
+   - git checkout -b feature/fase-Y
+   - Repetir desde paso 2
+
+7. Release final (al completar TODO el plan):
+   - Todas las fases P0-P8 completas en develop
+   - PR final: develop → main
+   - Merge a main
+   - Crear tag: git tag v1.0.0
+   - git push origin v1.0.0
+```
+
+### Reglas Obligatorias
+
+- ❌ **PROHIBIDO** commits directos a `main` o `develop`
+- ❌ **PROHIBIDO** PR directo de `feature/*` a `main` (siempre pasar por `develop`)
+- ❌ **PROHIBIDO** squash commits (usar "Create a merge commit")
+- ✅ **OBLIGATORIO** PR con CI verde antes de merge
+- ✅ **OBLIGATORIO** commits descriptivos por tarea completada
+- ✅ **OBLIGATORIO** actualizar plan ANTES de marcar tarea "Done"
+- ✅ **OBLIGATORIO** eliminar rama feature/* después de merge
+- ✅ **OBLIGATORIO** pull de develop antes de crear nueva feature
+
+### Estructura de Commits
+
+```
+Formato: <tipo>(scope): <descripción>
+
+Tipos:
+- feat: Nueva funcionalidad (ej: feat(fase-2): add IWeightLogService interface)
+- fix: Corrección de bug
+- docs: Cambios en documentación
+- style: Formato de código (no afecta lógica)
+- refactor: Refactorización sin cambio de funcionalidad
+- test: Agregar o modificar tests
+- chore: Tareas de mantenimiento (build, CI, deps)
+- ci: Cambios en CI/CD workflows
+
+Ejemplos:
+✅ feat(fase-2): complete P2.1 - create service interfaces
+✅ feat(fase-2): complete P2.2 - create DTOs with validation
+✅ test(application): add unit tests for WeightLogService
+✅ docs: update plan - mark P2.1-P2.4 as completed
+✅ ci: fix build workflow for .NET 10
+
+❌ "update files"
+❌ "WIP"
+❌ "fix stuff"
+```
+
+### Workflow de Desarrollo
+
+```
+main (producción - solo releases)
+  ↓
+develop (integración - fases completas)
+  ↓
+feature/fase-2 (trabajo actual)
+  ↓ commits por tarea
+  ↓ P2.1 ✅ → commit
+  ↓ P2.2 ✅ → commit
+  ↓ P2.3 ✅ → commit
+  ↓ ... (todas las tareas de fase 2)
+  ↓ Fase 2 completa
+  PR → develop (CI verde)
+       ↓ merge
+    develop (actualizado)
+       ↓
+    feature/fase-3 (nueva rama)
+       ↓ ... (repetir)
+       ↓ Todas las fases completas
+       PR → main
+            ↓ merge
+         main (v1.0.0)
+            ↓ tag release
+```
+
+---
+
 ## Checklist Antes de Commit
 
 - [ ] Código compila sin warnings (`dotnet build`)
