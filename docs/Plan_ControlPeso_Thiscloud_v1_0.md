@@ -873,21 +873,25 @@ Criterios de aceptación:
 
 ### Fase 2 — Application Layer (Interfaces + DTOs + Servicios + Mapeos)
 
+**REGLA OBLIGATORIA**: 85% de cobertura de tests en TODAS las tareas con lógica antes de continuar.
+
 Tareas:
 - P2.1 Crear interfaces de servicio: IWeightLogService, IUserService, ITrendService, IAdminService.
 - P2.2 Crear DTOs para cada operación (Create, Update, Response, Filter).
-- P2.3 Crear PagedResult<T>, DateRange, filtros.
-- P2.4 Crear mappers en Mapping/ (entidad scaffolded ↔ DTO con conversiones de tipo).
-- P2.5 Crear validadores FluentValidation para DTOs de entrada.
-- P2.6 Implementar servicios con lógica de negocio.
+- P2.3 Crear PagedResult<T>, DateRange, filtros + **Tests + 85% cobertura**.
+- P2.4 Crear mappers en Mapping/ (entidad scaffolded ↔ DTO con conversiones de tipo) + **Tests + 85% cobertura**.
+- P2.5 Crear validadores FluentValidation para DTOs de entrada + **Tests + 85% cobertura**.
+- P2.6 Implementar servicios con lógica de negocio + **Tests + 85% cobertura**.
 - P2.7 Crear ServiceCollectionExtensions para registro DI.
-- P2.8 Tests unitarios para servicios (mockeando dependencias).
+- P2.8 Verificar 85% cobertura global de Fase 2 + tests de integración.
 
 Criterios de aceptación:
 - Application depende SOLO de Domain.
 - Mappers convierten correctamente string→Guid, string→DateTime, int→enum, etc.
 - Validación de entrada funciona.
 - Tests con mock pasan.
+- **MÍNIMO 85% de cobertura de código en cada tarea con lógica**.
+- Comando `dotnet test --collect:"XPlat Code Coverage"` reporta ≥85% para Application layer.
 
 ### Fase 3 — Infrastructure Layer (DI + Seed Data)
 
@@ -1078,6 +1082,8 @@ Criterios de aceptación:
 | 2026-02-17 13:20 | **Evaluación ThisCloud.Framework** | Análisis del framework custom del usuario (github.com/mdesantis1984/ThisCloud.Framework) - .NET 10 framework modular con paquetes NuGet públicos. Componentes identificados: Loggings (Serilog + Admin), Web (Minimal APIs), Contracts. Análisis en progreso para integración con ControlPeso.Thiscloud antes de Fase 2. |
 | 2026-02-17 13:30 | **Nueva Fase 1.5 agregada - Integración Framework + .NET 10** | Decisión: Integrar ThisCloud.Framework.Loggings ANTES de Fase 2 (logging estructurado es fundacional). Requiere actualizar de .NET 9 a .NET 10 (LTS). 10 nuevas tareas agregadas (P1.5.1 a P1.5.10): upgrade target, configurar Serilog, appsettings, smoke tests. Total tareas: 52→62. Progreso global ajustado: 27%→23%. Ver análisis completo en docs/THISCLOUD_FRAMEWORK_INTEGRATION.md |
 | 2026-02-17 14:45 | **Fase 1.5 completada (10/10 tareas)** | Integración exitosa de ThisCloud.Framework.Loggings + upgrade a .NET 10: target framework actualizado en todos los proyectos, paquetes agregados (Loggings.Abstractions 1.0.86 + Serilog 1.0.86), Serilog configurado con Console + File sinks, appsettings.json y appsettings.Production.json configurados, copilot-instructions.md actualizado con 9 nuevas reglas de logging (29-37), build exitoso, smoke test verificado. Commit 3563d2c pushed. Progreso global: 23%→39% (24/62 tareas). |
+| 2026-02-17 15:30 | **P2.1 completada - Fase 2 iniciada** | Interfaces de servicio creadas (IWeightLogService, IUserService, ITrendService, IAdminService). Commit a15ffdf. 28 errores de compilación esperados (faltan DTOs). |
+| 2026-02-17 15:35 | **Estrategia de Testing definida (85% cobertura obligatoria)** | Usuario confirma OPCIÓN B: Tests con 85% de cobertura mínima en TODAS las tareas con lógica antes de continuar. Plan actualizado con subtareas de tests en P2.3, P2.4, P2.5, P2.6. Comando de cobertura: `dotnet test --collect:"XPlat Code Coverage"`. |
 
 ---
 
