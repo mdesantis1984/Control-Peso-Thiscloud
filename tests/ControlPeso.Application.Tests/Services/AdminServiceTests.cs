@@ -23,7 +23,7 @@ public sealed class AdminServiceTests : IDisposable
         var options = new DbContextOptionsBuilder<DbContext>()
             .UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}")
             .Options;
-        
+
         _context = new TestDbContext(options);
         _loggerMock = new Mock<ILogger<AdminService>>();
         _userServiceMock = new Mock<IUserService>();
@@ -64,14 +64,14 @@ public sealed class AdminServiceTests : IDisposable
         var user2 = CreateUserEntity(Guid.NewGuid(), UserStatus.Active);
         var user3 = CreateUserEntity(Guid.NewGuid(), UserStatus.Inactive);
         var user4 = CreateUserEntity(Guid.NewGuid(), UserStatus.Pending);
-        
+
         _context.Set<Users>().AddRange(user1, user2, user3, user4);
 
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var log1 = CreateWeightLog(Guid.Parse(user1.Id), today);
         var log2 = CreateWeightLog(Guid.Parse(user1.Id), today.AddDays(-5));
         var log3 = CreateWeightLog(Guid.Parse(user2.Id), today.AddDays(-20));
-        
+
         _context.Set<WeightLogs>().AddRange(log1, log2, log3);
         await _context.SaveChangesAsync();
 
@@ -280,7 +280,7 @@ public sealed class AdminServiceTests : IDisposable
 
     #region Helper Methods
 
-    private Users CreateUserEntity(Guid id, UserStatus status)
+    private static Users CreateUserEntity(Guid id, UserStatus status)
     {
         return new Users
         {
@@ -299,7 +299,7 @@ public sealed class AdminServiceTests : IDisposable
         };
     }
 
-    private WeightLogs CreateWeightLog(Guid userId, DateOnly date)
+    private static WeightLogs CreateWeightLog(Guid userId, DateOnly date)
     {
         return new WeightLogs
         {

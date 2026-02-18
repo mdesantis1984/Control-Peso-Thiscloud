@@ -1,4 +1,3 @@
-using ControlPeso.Application.DTOs;
 using ControlPeso.Application.Mapping;
 using ControlPeso.Domain.Entities;
 using FluentAssertions;

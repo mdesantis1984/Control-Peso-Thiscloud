@@ -21,7 +21,7 @@ public sealed class WeightLogServiceTests : IDisposable
         var options = new DbContextOptionsBuilder<DbContext>()
             .UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}")
             .Options;
-        
+
         _context = new TestDbContext(options);
         _loggerMock = new Mock<ILogger<WeightLogService>>();
         _service = new WeightLogService(_context, _loggerMock.Object);
@@ -80,7 +80,7 @@ public sealed class WeightLogServiceTests : IDisposable
         var log1 = CreateWeightLogEntity(Guid.NewGuid(), userId, new DateOnly(2026, 2, 15), 75.5);
         var log2 = CreateWeightLogEntity(Guid.NewGuid(), userId, new DateOnly(2026, 2, 16), 75.2);
         var log3 = CreateWeightLogEntity(Guid.NewGuid(), userId, new DateOnly(2026, 2, 17), 74.8);
-        
+
         _context.Set<WeightLogs>().AddRange(log1, log2, log3);
         await _context.SaveChangesAsync();
 
@@ -104,7 +104,7 @@ public sealed class WeightLogServiceTests : IDisposable
         var log1 = CreateWeightLogEntity(Guid.NewGuid(), userId, new DateOnly(2026, 2, 10), 76.0);
         var log2 = CreateWeightLogEntity(Guid.NewGuid(), userId, new DateOnly(2026, 2, 15), 75.5);
         var log3 = CreateWeightLogEntity(Guid.NewGuid(), userId, new DateOnly(2026, 2, 20), 75.0);
-        
+
         _context.Set<WeightLogs>().AddRange(log1, log2, log3);
         await _context.SaveChangesAsync();
 
@@ -136,7 +136,7 @@ public sealed class WeightLogServiceTests : IDisposable
         var log1 = CreateWeightLogEntity(Guid.NewGuid(), userId, new DateOnly(2026, 2, 17), 74.8);
         var log2 = CreateWeightLogEntity(Guid.NewGuid(), userId, new DateOnly(2026, 2, 15), 75.5);
         var log3 = CreateWeightLogEntity(Guid.NewGuid(), userId, new DateOnly(2026, 2, 16), 75.2);
-        
+
         _context.Set<WeightLogs>().AddRange(log1, log2, log3);
         await _context.SaveChangesAsync();
 
@@ -207,7 +207,7 @@ public sealed class WeightLogServiceTests : IDisposable
         result.UserId.Should().Be(userId);
         result.Weight.Should().Be(75.5m);
         result.Trend.Should().Be(WeightTrend.Neutral); // No previous weight
-        
+
         var saved = await _context.Set<WeightLogs>().FirstOrDefaultAsync(w => w.Id == result.Id.ToString());
         saved.Should().NotBeNull();
     }
@@ -242,7 +242,7 @@ public sealed class WeightLogServiceTests : IDisposable
         // Arrange
         var userId = Guid.NewGuid();
         CreateUser(userId);
-        
+
         var previousLog = CreateWeightLogEntity(Guid.NewGuid(), userId, new DateOnly(2026, 2, 14), 75.0);
         _context.Set<WeightLogs>().Add(previousLog);
         await _context.SaveChangesAsync();
@@ -269,7 +269,7 @@ public sealed class WeightLogServiceTests : IDisposable
         // Arrange
         var userId = Guid.NewGuid();
         CreateUser(userId);
-        
+
         var previousLog = CreateWeightLogEntity(Guid.NewGuid(), userId, new DateOnly(2026, 2, 14), 75.5);
         _context.Set<WeightLogs>().Add(previousLog);
         await _context.SaveChangesAsync();
@@ -296,7 +296,7 @@ public sealed class WeightLogServiceTests : IDisposable
         // Arrange
         var userId = Guid.NewGuid();
         CreateUser(userId);
-        
+
         var previousLog = CreateWeightLogEntity(Guid.NewGuid(), userId, new DateOnly(2026, 2, 14), 75.0);
         _context.Set<WeightLogs>().Add(previousLog);
         await _context.SaveChangesAsync();
@@ -328,7 +328,7 @@ public sealed class WeightLogServiceTests : IDisposable
         var userId = Guid.NewGuid();
         var logId = Guid.NewGuid();
         CreateUser(userId);
-        
+
         var weightLog = CreateWeightLogEntity(logId, userId, new DateOnly(2026, 2, 15), 75.5);
         _context.Set<WeightLogs>().Add(weightLog);
         await _context.SaveChangesAsync();
@@ -477,7 +477,7 @@ public sealed class WeightLogServiceTests : IDisposable
         var log2 = CreateWeightLogEntity(Guid.NewGuid(), userId, new DateOnly(2026, 2, 10), 76.0);
         var log3 = CreateWeightLogEntity(Guid.NewGuid(), userId, new DateOnly(2026, 2, 20), 75.0);
         var log4 = CreateWeightLogEntity(Guid.NewGuid(), userId, new DateOnly(2026, 3, 1), 74.0); // Outside range
-        
+
         _context.Set<WeightLogs>().AddRange(log1, log2, log3, log4);
         await _context.SaveChangesAsync();
 
@@ -500,7 +500,7 @@ public sealed class WeightLogServiceTests : IDisposable
 
     #region Helper Methods
 
-    private WeightLogs CreateWeightLogEntity(Guid id, Guid userId, DateOnly date, double weight)
+    private static WeightLogs CreateWeightLogEntity(Guid id, Guid userId, DateOnly date, double weight)
     {
         return new WeightLogs
         {
@@ -532,7 +532,7 @@ public sealed class WeightLogServiceTests : IDisposable
             CreatedAt = DateTime.UtcNow.ToString("O"),
             UpdatedAt = DateTime.UtcNow.ToString("O")
         };
-        
+
         _context.Set<Users>().Add(user);
         _context.SaveChanges();
     }

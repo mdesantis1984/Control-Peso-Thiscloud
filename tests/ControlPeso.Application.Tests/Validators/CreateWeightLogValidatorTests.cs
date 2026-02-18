@@ -1,7 +1,6 @@
 using ControlPeso.Application.DTOs;
 using ControlPeso.Application.Validators;
 using ControlPeso.Domain.Enums;
-using FluentAssertions;
 using FluentValidation.TestHelper;
 
 namespace ControlPeso.Application.Tests.Validators;

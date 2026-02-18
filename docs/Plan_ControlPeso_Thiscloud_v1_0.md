@@ -4,8 +4,8 @@
 - Rama: `main` → `develop` → `feature/*`
 - Versión: **1.0.0**
 - Fecha inicio: **2026-02-15**
-- Última actualización: **2026-02-18 14:00**
-- Estado global: 🟢 **EN PROGRESO** — Fase 0 ✅ | Fase 1 ✅ | Fase 1.5 ✅ | Fase 2 ✅ | Fase 3 ✅ | Fase 4 ✅ | Fase 5 ✅ | Fase 6 ✅ | Fase 7 ⏳ | Fase 8 ⏳ (56/63 tareas = **88.9%** ejecutado)
+- Última actualización: **2026-02-18 15:30**
+- Estado global: 🟢 **EN PROGRESO** — Fase 0 ✅ | Fase 1 ✅ | Fase 1.5 ✅ | Fase 2 ✅ | Fase 3 ✅ | Fase 4 ✅ | Fase 5 ✅ | Fase 6 ✅ | Fase 7 ✅ | Fase 8 ⏳ (61/63 tareas = **96.8%** ejecutado)
 
 ## Objetivo
 
@@ -965,6 +965,12 @@ Criterios de aceptación:
 
 ### Fase 7 — Admin Panel + Roles
 
+**Estado**: ✅ **COMPLETADA** (2026-02-18)
+
+**Hito 1 - Calidad de código (2026-02-18 15:30)**: Erradicación masiva de warnings sin atajos (98.5% reducción - de 464 a 7 warnings). Correcciones: MUD0002 (atributos ilegales MudBlazor), CS8601/CS8604 (nullability), CS1030 (#warning), CS8618 (DbSet nullable), RZ10012 (namespaces), IDE0055 (formatting). 10 archivos modificados, tests 176/176 passing, build exitoso.
+
+**Hito 2 - Funcionalidades Admin Panel**: Dashboard con 8 métricas estadísticas usuarios, MudDataGrid server-side pagination + filtros (search/role/status), ChangeRoleDialog/ChangeStatusDialog con AuditLog automático, protección [Authorize(Roles="Administrator")] + NavMenu conditional, exportación CSV con CsvHelper + JSRuntime download. 10 archivos implementación.
+
 Tareas:
 - P7.1 Crear Admin.razor con estadísticas de usuarios.
 - P7.2 Crear tabla de usuarios (MudDataGrid).
@@ -973,9 +979,11 @@ Tareas:
 - P7.5 Implementar filtrado y exportación.
 
 Criterios de aceptación:
-- Solo rol Administrator accede a Admin.
-- Gestión de usuarios funciona.
-- AuditLog registra cambios.
+- ✅ Solo rol Administrator accede a Admin.
+- ✅ Gestión de usuarios funciona (cambio rol/estado + AuditLog).
+- ✅ AuditLog registra cambios.
+- ✅ Filtrado y exportación CSV implementados.
+- ✅ Tests 176/176 passing, build exitoso, warnings reducidos 98.5%.
 
 ### Fase 8 — SEO + Analytics + Seguridad + Pulido
 
@@ -1061,11 +1069,11 @@ Criterios de aceptación:
 | P6.3  | 6 | Trends.razor + análisis | 100% | ✅ |
 | P6.4  | 6 | TrendCard.razor | 100% | ✅ |
 | P6.5  | 6 | Paginación History | 100% | ✅ |
-| P7.1  | 7 | Admin.razor + estadísticas | 0% | ⏳ |
-| P7.2  | 7 | Tabla usuarios (MudDataGrid) | 0% | ⏳ |
-| P7.3  | 7 | Cambio rol/estado + AuditLog | 0% | ⏳ |
-| P7.4  | 7 | Protección por rol Administrator | 0% | ⏳ |
-| P7.5  | 7 | Filtrado y exportación | 0% | ⏳ |
+| P7.1  | 7 | Admin.razor + estadísticas | 100% | ✅ |
+| P7.2  | 7 | Tabla usuarios (MudDataGrid) | 100% | ✅ |
+| P7.3  | 7 | Cambio rol/estado + AuditLog | 100% | ✅ |
+| P7.4  | 7 | Protección por rol Administrator | 100% | ✅ |
+| P7.5  | 7 | Filtrado y exportación | 100% | ✅ |
 | P8.1  | 8 | SEO meta tags | 0% | ⏳ |
 | P8.2  | 8 | Google Analytics 4 | 0% | ⏳ |
 | P8.3  | 8 | Cloudflare Analytics | 0% | ⏳ |
@@ -1102,6 +1110,8 @@ Criterios de aceptación:
 | 2026-02-17 21:45 | **Fase 3 COMPLETA (3/3 tareas) - P3.3 Testing setup completo** | Actualizado proyecto Infrastructure.Tests con dependencias requeridas: Microsoft.EntityFrameworkCore + InMemory + Logging.Abstractions. Referencias agregadas a Application + Domain. InternalsVisibleTo agregado en Infrastructure.csproj. Creado BasicIntegrationSmokeTests con 3 tests (constructor, DbContext, WeightLogService integration). Eliminado placeholder UnitTest1.cs. Build exitoso. Nota técnica: Tests de integración encuentran conflictos de service provider con DbContext scaffolded (InMemory vs SQLite provider registration). Verificación manual E2E completada exitosamente: seed data funcional (3 usuarios + ~85 weight logs creados), CRUD operations verificadas via unit tests de Application (90.7% coverage). App startup exitoso con DbContext + seed execution. Commit b446e19. Progreso global: 56.5% (35/62 tareas). **Fase 3 completa y lista para PR a develop**. |
 | 2026-02-18 12:35 | **Fase 4 COMPLETA (8/8 tareas) - P4.8 LinkedInId Database First** | **P4.1-P4.7 (11 commits)**: OAuth Google + LinkedIn configurado (NuGet packages: Microsoft.AspNetCore.Authentication.Google 9.0.1 + AspNet.Security.OAuth.LinkedIn 9.0.0). AuthenticationExtensions con dos providers. OAuthUserInfo DTO genérico con Provider discriminator. UserService.CreateOrUpdateFromOAuthAsync con switch por provider. UserMapper con ToEntity(OAuthUserInfo) y UpdateFromOAuth helpers. Login.razor con Google/LinkedIn buttons. EndpointExtensions con MapAuthenticationEndpoints (refactor de Program.cs). Logout.razor página de confirmación. [Authorize] en Counter + Weather. Home.razor como landing page pública con AuthorizeView. Commits: fff6234, d9d6fa1, e5b6b53, 5245ea1, e41ce2e, e4b5930, 5edc000, 5726723, ae554fc, 1c5d9ba, 1cda03d, cd71635. **P4.8 (commit d92e0b5)**: Database First strict adherence - (1) Modified docs/schema/schema_v1.sql: GoogleId NULL, added LinkedInId TEXT NULL UNIQUE, CHECK constraint (GoogleId OR LinkedInId required), IX_Users_LinkedInId index. (2) Created docs/migrations/add_linkedin_id.sql (DROP/CREATE migration for reference). (3) Deleted controlpeso.db, applied updated schema via sqlite3.exe (found in WinGet folder). (4) Scaffolded entities with EF Core: Users.cs with LinkedInId property (line 12), GoogleId nullable (line 10). Fixed scaffold namespace: ControlPeso.Infrastructure → ControlPeso.Domain.Entities (4 entities). Added using directive in ControlPesoDbContext.cs. (5) Restored DbSeeder.SeedAsync original implementation (temporary stub removed). (6) Updated UserMapper.ToEntity(OAuthUserInfo): GoogleId and LinkedInId assignment based on Provider. (7) Updated UserService: replaced EF.Property<string>(u, "LinkedInId") workaround with u.LinkedInId direct property access (2 locations: GetByLinkedInIdAsync, CreateOrUpdateFromOAuthAsync). (8) Full solution build SUCCESS. (9) App run SUCCESS: seed created 3 users, LinkedInId column verified in DB. SQL as source of truth → scaffold → no manual entity edits. Progreso global: 66.7% (42/63 tareas). **Fase 4 completa y lista para PR a develop**. |
 | 2026-02-18 14:00 | **Fase 5 COMPLETA (9/9 tareas) + Fase 6 COMPLETA (5/5 tareas)** | **Fase 5**: UI Core implementada - (1) MainLayout.razor con MudAppBar responsive + MudDrawer persistent + AuthorizeView, (2) NavMenu.razor con MudNavMenu links a Dashboard/History/Trends/Profile/Admin + _isAdmin check + icons Material.Filled, (3) ControlPesoTheme.cs tema oscuro customizado (Primary #1E88E5 blue, Secondary #FFC107 amber, Dark/Success/Warning/Error), (4) Dashboard.razor con 4 StatsCards (peso actual, cambio semanal, progreso meta, IMC) + WeightChart últimos 30 días + quick add button, (5) WeightChart.razor con MudChart Line (ChartSeries, XAxisLabels, responsive), (6) StatsCard.razor reutilizable con MudCard + icon + title + value + change chip, (7) AddWeightDialog.razor con MudDialog + MudForm + validation + CreateWeightLogDto, (8) LanguageSelector.razor (implementación placeholder - i18n pendiente para v2.0), (9) NotificationBell.razor (implementación placeholder - notifications backend pendiente v2.0). **Fase 6**: Páginas secundarias implementadas - (1) Profile.razor con datos editables (Name, Height, DateOfBirth, GoalWeight, UnitSystem, Language) + preferencias (DarkMode, NotificationsEnabled) + IUserService integration, (2) History.razor con MudDataGrid<WeightLogDto> server-side pagination + search text + date range filters + delete ConfirmDialog + stats footer (avg/min/max), (3) Trends.razor con análisis real (últimos 7/30 días avg comparado con períodos anteriores, proyección lineal 30 días, estadísticas completas, WeightChart reutilizado), (4) TrendCard.razor component reutilizable (percentage change auto-calculated, icon/color dinámico, LowerIsBetter parameter), (5) Paginación History implementada en P6.2 con MudDataGrid ServerData. **100% code-behind pattern**, **100% MudBlazor components**, **Onion architecture respetada**, **logging comprehensivo ILogger<T>**, **tests 176/176 passing**. PR #5 merged (Fase 5 - commit 8eb0294), PR #6 merged (Fase 6 - commit 2733e57 + d2df635). Progreso global: 66.7%→88.9% (56/63 tareas). **Fase 7 lista para iniciar**. |
+| 2026-02-18 15:30 | **Calidad de código - Erradicación masiva de warnings sin atajos** | Corrección comprehensiva de warnings de compilación: **reducción de 464 a 7 warnings (98.5%)**. Estrategia sin `#pragma warning disable` ni `NoWarn` en .csproj según instrucción del usuario. **Correcciones aplicadas**: (1) **MUD0002 (24)** - Atributos ilegales MudBlazor corregidos: `Image→src` (lowercase) en MudAvatar, `Title→title` (lowercase HTML5) en MudIconButton, `Suffix→Adornment+AdornmentText` en MudNumericField, eliminado `Color` no soportado en MudNumericField, `Checked+CheckedChanged→@bind-Value` en MudSwitch. Archivos: Admin.razor (2 fixes), AddWeightDialog.razor (2 fixes), Profile.razor (3 fixes). (2) **CS8601/CS8604 (6)** - Nullability violations corregidos: null-coalescing `?? string.Empty` en UserMapper.ToDto() para GoogleId scaffolded nullable, null-forgiving `!` operator en tests (datos seed NOT NULL). Archivos: UserMapper.cs, UserServiceIntegrationTests.cs. (3) **CS1030 (2)** - Directiva `#warning` scaffolded eliminada en ControlPesoDbContext.OnConfiguring(), agregado comment explicativo connection string fallback. (4) **CS8618 (4)** - DbSet properties non-nullable: agregado `= null!;` a AuditLog/UserPreferences/Users/WeightLogs en ControlPesoDbContext. (5) **RZ10012 (20)** - Componentes sin namespace: agregado `@using Microsoft.AspNetCore.Components` + `@using ControlPeso.Web.Components.Shared` en Components/_Imports.razor, **creado** Pages/_Imports.razor (copy para resolver scope). (6) **IDE0055 (414)** - Formatting: ejecutado `dotnet format` para auto-fix indentation/spacing/line breaks. **Warnings restantes (7)**: EnableGenerateDocumentationFile (informativos Roslyn) - NO corregibles sin generar CS1591 (358 XML comment warnings) o usar `NoWarn` (prohibido). **Verificación**: Build exitoso, tests 176/176 passing. **10 archivos modificados** (7 razor + 2 cs + 1 _Imports nuevo). Branch: feature/fase-7 (pendiente commit warnings fix antes de Fase 7 implementation). |
+| 2026-02-18 16:00 | **Fase 7 COMPLETA (5/5 tareas) - Admin Panel + Warnings Cleanup** | **FASE 7 CERRADA**: Implementación completa de Admin Panel (P7.1-P7.5) + calidad de código (warnings 464→7). **Hito 1 - Calidad código (15:30)**: Correcciones MUD0002/CS8601/CS8604/CS1030/CS8618/RZ10012/IDE0055 sin atajos en 10 archivos (7 razor + 2 cs + 1 nuevo _Imports), reducción 98.5% warnings. **Hito 2 - Funcionalidades Admin Panel**: (P7.1) Admin.razor con dashboard 8 métricas estadísticas usuarios (total users, activos, inactivos, pendientes, admins, avg weight logs/user, total weight logs, recent logins), (P7.2) MudDataGrid<UserDto> server-side pagination + filtros search/role/status + PropertyColumn definitions + Actions TemplateColumn, (P7.3) ChangeRoleDialog + ChangeStatusDialog con IAdminService.UpdateUserRoleAsync/UpdateUserStatusAsync + AuditLog automático creation, (P7.4) [Authorize(Roles="Administrator")] protection + NavMenu conditional _isAdmin check + redirect NoAuthorize, (P7.5) CSV export CsvHelper + JSRuntime downloadFileFromStream + app.js helper function. **Total**: 20 archivos modificados (10 warnings + 10 Admin Panel). **Tests**: 176/176 passing ✅. **Build**: SUCCESS ✅. **Warnings**: 7 informativos aceptados (EnableGenerateDocumentationFile). Progreso global: 88.9%→96.8% (61/63 tareas). **Fase 7 lista para PR #7 a develop**. |
 
 ---
 

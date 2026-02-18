@@ -20,11 +20,11 @@ public partial class History
 
     private MudDataGrid<WeightLogDto>? _grid;
     private bool _isLoading;
-    
+
     private string _searchText = string.Empty;
     private DateTime? _dateFrom;
     private DateTime? _dateTo;
-    
+
     private int _totalRecords;
     private decimal? _averageWeight;
     private decimal? _minWeight;
@@ -109,7 +109,7 @@ public partial class History
     {
         _searchText = value;
         Logger.LogDebug("Search text changed: {SearchText}", _searchText);
-        
+
         if (_grid is not null)
         {
             await _grid.ReloadServerData();
@@ -120,7 +120,7 @@ public partial class History
     {
         _dateFrom = value;
         Logger.LogDebug("Date from changed: {DateFrom}", _dateFrom);
-        
+
         if (_grid is not null)
         {
             await _grid.ReloadServerData();
@@ -131,7 +131,7 @@ public partial class History
     {
         _dateTo = value;
         Logger.LogDebug("Date to changed: {DateTo}", _dateTo);
-        
+
         if (_grid is not null)
         {
             await _grid.ReloadServerData();
@@ -141,7 +141,7 @@ public partial class History
     private async Task ClearFilters()
     {
         Logger.LogInformation("Clearing filters");
-        
+
         _searchText = string.Empty;
         _dateFrom = null;
         _dateTo = null;
@@ -155,7 +155,7 @@ public partial class History
     private async Task EditWeight(WeightLogDto weightLog)
     {
         Logger.LogInformation("Opening edit dialog for weight log {WeightLogId}", weightLog.Id);
-        
+
         // TODO: Implementar EditWeightDialog cuando esté disponible
         Snackbar.Add("Funcionalidad de edición próximamente", Severity.Info);
         await Task.CompletedTask;
@@ -182,11 +182,11 @@ public partial class History
             try
             {
                 Logger.LogInformation("Deleting weight log {WeightLogId}", weightLog.Id);
-                
+
                 await WeightLogService.DeleteAsync(weightLog.Id);
-                
+
                 Snackbar.Add("Registro eliminado correctamente", Severity.Success);
-                
+
                 if (_grid is not null)
                 {
                     await _grid.ReloadServerData();
@@ -202,7 +202,7 @@ public partial class History
         }
     }
 
-    private (string icon, Color color) GetTrendIconAndColor(WeightTrend trend) => trend switch
+    private static (string icon, Color color) GetTrendIconAndColor(WeightTrend trend) => trend switch
     {
         WeightTrend.Down => (Icons.Material.Filled.TrendingDown, Color.Success),
         WeightTrend.Up => (Icons.Material.Filled.TrendingUp, Color.Warning),

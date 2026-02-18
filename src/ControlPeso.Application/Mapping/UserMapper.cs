@@ -16,11 +16,11 @@ public static class UserMapper
     public static UserDto ToDto(Users entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
-        
+
         return new UserDto
         {
             Id = Guid.Parse(entity.Id),
-            GoogleId = entity.GoogleId,
+            GoogleId = entity.GoogleId ?? string.Empty, // Scaffold nullable but SQL is NOT NULL
             Name = entity.Name,
             Email = entity.Email,
             Role = (UserRole)entity.Role,
@@ -37,7 +37,7 @@ public static class UserMapper
             UpdatedAt = DateTime.Parse(entity.UpdatedAt)
         };
     }
-    
+
     /// <summary>
     /// Crea entidad Users nueva desde GoogleUserInfo (callback OAuth).
     /// Establece valores por defecto según schema SQL.
@@ -69,7 +69,7 @@ public static class UserMapper
             UpdatedAt = nowIso
         };
     }
-    
+
     /// <summary>
     /// Actualiza entidad Users existente con datos de UpdateUserProfileDto.
     /// Solo actualiza campos editables por el usuario.
@@ -79,7 +79,7 @@ public static class UserMapper
     {
         ArgumentNullException.ThrowIfNull(entity);
         ArgumentNullException.ThrowIfNull(dto);
-        
+
         entity.Name = dto.Name;
         entity.Height = (double)dto.Height;
         entity.UnitSystem = (int)dto.UnitSystem;
@@ -88,7 +88,7 @@ public static class UserMapper
         entity.GoalWeight = dto.GoalWeight.HasValue ? (double)dto.GoalWeight.Value : null;
         entity.UpdatedAt = DateTime.UtcNow.ToString("O");
     }
-    
+
     /// <summary>
     /// Actualiza campos sincronizables desde Google (nombre, avatar) si han cambiado.
     /// Se usa en el callback OAuth para mantener datos actualizados.

@@ -11,16 +11,16 @@ public sealed record AuditLogDto
     public required string Action { get; init; }
     public required string EntityType { get; init; }
     public required Guid EntityId { get; init; }
-    
+
     /// <summary>
     /// JSON snapshot del estado anterior (null si es creación).
     /// </summary>
     public string? OldValue { get; init; }
-    
+
     /// <summary>
     /// JSON snapshot del estado nuevo (null si es eliminación).
     /// </summary>
     public string? NewValue { get; init; }
-    
+
     public required DateTime CreatedAt { get; init; }
 }

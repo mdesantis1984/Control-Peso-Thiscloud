@@ -1,11 +1,10 @@
+using ControlPeso.Application.DTOs;
+using ControlPeso.Application.Filters;
+using ControlPeso.Application.Interfaces;
+using ControlPeso.Web.Components.Shared;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
-using ControlPeso.Application.Interfaces;
-using ControlPeso.Application.DTOs;
-using ControlPeso.Application.Filters;
-using ControlPeso.Domain.Enums;
-using ControlPeso.Web.Components.Shared;
 
 namespace ControlPeso.Web.Pages;
 
@@ -27,23 +26,23 @@ public partial class Dashboard
     private decimal _weeklyChange = 0;
     private decimal? _goalWeight = 0;
     private decimal _progress = 0;
-    
+
     private List<WeightLogDto> _weightLogs = new();
     private List<WeightLogDto> _recentLogs = new();
     private WeightStatsDto? _stats = null;
-    
+
     private Guid _currentUserId;
     private bool _isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
         Logger.LogInformation("Dashboard: Initializing");
-        
+
         try
         {
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
             var userIdClaim = authState.User.FindFirst("sub")?.Value;
-            
+
             if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out _currentUserId))
             {
                 Logger.LogWarning("Dashboard: Invalid or missing user ID claim");
@@ -86,16 +85,16 @@ public partial class Dashboard
             Logger.LogInformation("Dashboard: Loaded {Count} weight logs", _weightLogs.Count);
 
             // Calcular métricas
-            if (_weightLogs.Any())
+            if (_weightLogs.Count != 0)
             {
                 _currentWeight = _weightLogs.First().Weight;
-                
+
                 // Cambio semanal
                 var lastWeek = _weightLogs
                     .Where(l => l.Date >= DateOnly.FromDateTime(DateTime.Now.AddDays(-7)))
                     .OrderBy(l => l.Date)
                     .ToList();
-                
+
                 if (lastWeek.Count >= 2)
                 {
                     _weeklyChange = _weightLogs.First().Weight - lastWeek.First().Weight;
@@ -108,13 +107,13 @@ public partial class Dashboard
             if (user != null)
             {
                 _goalWeight = user.GoalWeight;
-                
+
                 if (_goalWeight.HasValue && user.StartingWeight.HasValue && _currentWeight > 0)
                 {
                     var totalToLose = user.StartingWeight.Value - _goalWeight.Value;
                     var lostSoFar = user.StartingWeight.Value - _currentWeight;
                     _progress = totalToLose != 0 ? (lostSoFar / totalToLose) * 100 : 0;
-                    
+
                     Logger.LogDebug("Dashboard: Progress calculated - {Progress}%", _progress);
                 }
             }
@@ -127,8 +126,8 @@ public partial class Dashboard
             };
 
             _stats = await WeightLogService.GetStatsAsync(_currentUserId, dateRange);
-            
-            Logger.LogInformation("Dashboard: Data loaded successfully - CurrentWeight: {Weight}kg, WeeklyChange: {Change}kg, Progress: {Progress}%", 
+
+            Logger.LogInformation("Dashboard: Data loaded successfully - CurrentWeight: {Weight}kg, WeeklyChange: {Change}kg, Progress: {Progress}%",
                 _currentWeight, _weeklyChange, _progress);
         }
         catch (Exception ex)
