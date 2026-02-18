@@ -31,7 +31,8 @@ public static class EndpointExtensions
             };
             return Results.Challenge(properties, ["Google"]);
         })
-        .WithName("LoginGoogle");
+        .WithName("LoginGoogle")
+        .RequireRateLimiting("oauth"); // Rate limit: 5 attempts per minute
 
         // LinkedIn OAuth Challenge endpoint
         authGroup.MapGet("/login/linkedin", (string? returnUrl) =>
@@ -42,7 +43,8 @@ public static class EndpointExtensions
             };
             return Results.Challenge(properties, ["LinkedIn"]);
         })
-        .WithName("LoginLinkedIn");
+        .WithName("LoginLinkedIn")
+        .RequireRateLimiting("oauth"); // Rate limit: 5 attempts per minute
 
         // Logout endpoint (GET para compatibilidad con Blazor NavigationManager)
         authGroup.MapGet("/logout", async (HttpContext context, string? returnUrl) =>

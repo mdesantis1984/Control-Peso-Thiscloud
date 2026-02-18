@@ -4,7 +4,21 @@
 @using ControlPeso.Domain.Enums
 @using MudBlazor
 
-<PageTitle>Perfil - Control Peso</PageTitle>
+<PageTitle>Perfil - Control Peso Thiscloud</PageTitle>
+
+<HeadContent>
+    <meta name="description" content="Edita tu perfil en Control Peso Thiscloud. Actualiza tus datos personales, altura, peso objetivo, sistema de unidades, idioma y preferencias de notificaciones." />
+    <meta name="keywords" content="perfil usuario, configuración, preferencias, datos personales, altura, peso objetivo" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="canonical" href="https://controlpeso.thiscloud.com.ar/profile" />
+
+    @* Open Graph *@
+    <meta property="og:title" content="Perfil - Control Peso Thiscloud" />
+    <meta property="og:description" content="Edita tu perfil y preferencias en Control Peso Thiscloud." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://controlpeso.thiscloud.com.ar/profile" />
+    <meta property="og:image" content="https://controlpeso.thiscloud.com.ar/images/og-image.png" />
+</HeadContent>
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
     @if (_isLoading)
