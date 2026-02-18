@@ -1,10 +1,15 @@
+using System;
+using System.Collections.Generic;
+
 namespace ControlPeso.Domain.Entities;
 
 public partial class Users
 {
     public string Id { get; set; } = null!;
 
-    public string GoogleId { get; set; } = null!;
+    public string? GoogleId { get; set; }
+
+    public string? LinkedInId { get; set; }
 
     public string Name { get; set; } = null!;
 

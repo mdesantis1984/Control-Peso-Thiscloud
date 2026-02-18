@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using ControlPeso.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,14 +25,8 @@ public partial class ControlPesoDbContext : DbContext
     public virtual DbSet<WeightLogs> WeightLogs { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        // Solo configurar SQLite si no se pasaron opciones en el constructor
-        // Esto permite usar InMemory en tests sin conflictos
-        if (!optionsBuilder.IsConfigured)
-        {
-            optionsBuilder.UseSqlite("Data Source=../../controlpeso.db");
-        }
-    }
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlite("Data Source=../../controlpeso.db");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -68,11 +64,15 @@ public partial class ControlPesoDbContext : DbContext
 
             entity.HasIndex(e => e.GoogleId, "IX_Users_GoogleId").IsUnique();
 
+            entity.HasIndex(e => e.LinkedInId, "IX_Users_LinkedInId").IsUnique();
+
             entity.HasIndex(e => e.Email, "IX_Users_Email");
 
             entity.HasIndex(e => e.GoogleId, "IX_Users_GoogleId");
 
             entity.HasIndex(e => e.Language, "IX_Users_Language");
+
+            entity.HasIndex(e => e.LinkedInId, "IX_Users_LinkedInId");
 
             entity.HasIndex(e => e.Role, "IX_Users_Role");
 
