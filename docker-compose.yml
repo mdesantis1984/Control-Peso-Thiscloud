@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # Control Peso Web Application
+  # ============================================
+  controlpeso-web:
+    container_name: controlpeso-web
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"  # HTTP
+    environment:
+      # ASP.NET Core Configuration
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      
+      # Database Connection (SQLite file-based)
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/controlpeso.db
+      
+      # Google OAuth (set in .env file)
+      - Authentication__Google__ClientId=${GOOGLE_CLIENT_ID}
+      - Authentication__Google__ClientSecret=${GOOGLE_CLIENT_SECRET}
+      
+      # LinkedIn OAuth (set in .env file)
+      - Authentication__LinkedIn__ClientId=${LINKEDIN_CLIENT_ID}
+      - Authentication__LinkedIn__ClientSecret=${LINKEDIN_CLIENT_SECRET}
+      
+      # Google Analytics (set in .env file)
+      - GoogleAnalytics__MeasurementId=${GOOGLE_ANALYTICS_MEASUREMENT_ID}
+      
+      # Cloudflare Analytics (set in .env file)
+      - CloudflareAnalytics__Token=${CLOUDFLARE_ANALYTICS_TOKEN}
+      
+      # Logging Configuration (ThisCloud.Framework)
+      - ThisCloud__Loggings__IsEnabled=true
+      - ThisCloud__Loggings__MinimumLevel=Information
+      - ThisCloud__Loggings__Console__Enabled=true
+      - ThisCloud__Loggings__File__Enabled=true
+      - ThisCloud__Loggings__File__Path=/app/logs/controlpeso-.ndjson
+      - ThisCloud__Loggings__File__RollingFileSizeMb=10
+      - ThisCloud__Loggings__File__RetainedFileCountLimit=30
+      - ThisCloud__Loggings__File__UseCompactJson=true
+      - ThisCloud__Loggings__Redaction__Enabled=true
+      - ThisCloud__Loggings__Correlation__HeaderName=X-Correlation-Id
+      - ThisCloud__Loggings__Correlation__GenerateIfMissing=true
+      
+      # AllowedHosts
+      - AllowedHosts=*
+    
+    volumes:
+      # Persist SQLite database
+      - controlpeso-data:/app/data
+      
+      # Persist logs
+      - controlpeso-logs:/app/logs
+    
+    networks:
+      - controlpeso-network
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    labels:
+      com.controlpeso.service: "web"
+      com.controlpeso.version: "1.0.0"
+
+# ============================================
+# Networks
+# ============================================
+networks:
+  controlpeso-network:
+    driver: bridge
+    name: controlpeso-network
+
+# ============================================
+# Volumes
+# ============================================
+volumes:
+  # SQLite database persistence
+  controlpeso-data:
+    driver: local
+    name: controlpeso-data
+  
+  # Logs persistence
+  controlpeso-logs:
+    driver: local
+    name: controlpeso-logs

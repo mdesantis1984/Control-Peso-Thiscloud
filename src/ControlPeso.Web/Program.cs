@@ -101,6 +101,17 @@ app.UseAntiforgery();
 // Register authentication endpoints (OAuth Challenge + Logout)
 app.MapAuthenticationEndpoints();
 
+// Health check endpoint for Docker/Kubernetes
+app.MapGet("/health", () => Results.Ok(new
+{
+    status = "healthy",
+    timestamp = DateTime.UtcNow,
+    version = "1.0.0"
+}))
+.WithName("HealthCheck")
+.WithTags("Health")
+.ExcludeFromDescription(); // No mostrar en Swagger si se agrega
+
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
