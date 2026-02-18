@@ -117,11 +117,11 @@ Abre tu navegador en `https://localhost:5001`
 Despliegue local con **Docker Compose** (recomendado para producción):
 
 ```bash
-# 1. Copiar archivo de configuración
-cp .env.example .env
+# 1. Copiar template de credenciales
+cp docker-compose.override.yml.example docker-compose.override.yml
 
-# 2. Editar .env con tus credenciales OAuth
-nano .env  # o notepad .env en Windows
+# 2. Editar docker-compose.override.yml con tus credenciales OAuth REALES
+nano docker-compose.override.yml  # o notepad en Windows
 
 # 3. Construir y ejecutar
 docker-compose up -d --build
@@ -129,6 +129,8 @@ docker-compose up -d --build
 # 4. Acceder a la aplicación
 # http://localhost:8080
 ```
+
+⚠️ **IMPORTANTE**: `docker-compose.override.yml` contiene tus credenciales sensibles y **NO** se sube al repositorio Git (ya está en `.gitignore`).
 
 ### Scripts de ayuda
 

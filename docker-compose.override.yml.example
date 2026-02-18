@@ -1,0 +1,55 @@
+# ============================================
+# docker-compose.override.yml.example
+# ============================================
+# Este archivo es un TEMPLATE para tus credenciales sensibles.
+#
+# INSTRUCCIONES:
+# 1. Copia este archivo: cp docker-compose.override.yml.example docker-compose.override.yml
+# 2. Edita docker-compose.override.yml con tus credenciales REALES
+# 3. NUNCA commitees docker-compose.override.yml al repositorio Git
+#
+# Docker Compose automáticamente combina:
+#   - docker-compose.yml (configuración base)
+#   - docker-compose.override.yml (secrets - gitignored)
+#
+# ============================================
+
+services:
+  controlpeso-web:
+    environment:
+      # ============================================
+      # Google OAuth 2.0 (OBLIGATORIO)
+      # ============================================
+      # Obtener de: https://console.cloud.google.com/apis/credentials
+      # Redirect URLs autorizadas:
+      #   - http://localhost:8080/signin-google
+      #   - http://localhost:8080/auth/callback/google
+      - Authentication__Google__ClientId=YOUR_GOOGLE_CLIENT_ID_HERE.apps.googleusercontent.com
+      - Authentication__Google__ClientSecret=GOCSPX-YOUR_GOOGLE_CLIENT_SECRET_HERE
+      
+      # ============================================
+      # LinkedIn OAuth (OBLIGATORIO)
+      # ============================================
+      # Obtener de: https://www.linkedin.com/developers/apps
+      # Redirect URLs autorizadas:
+      #   - http://localhost:8080/signin-linkedin
+      #   - http://localhost:8080/auth/callback/linkedin
+      # Permisos requeridos: openid, profile, email
+      - Authentication__LinkedIn__ClientId=YOUR_LINKEDIN_CLIENT_ID_HERE
+      - Authentication__LinkedIn__ClientSecret=YOUR_LINKEDIN_CLIENT_SECRET_HERE
+      
+      # ============================================
+      # Google Analytics 4 (OPCIONAL)
+      # ============================================
+      # Obtener de: https://analytics.google.com/
+      # Formato: G-XXXXXXXXXX
+      # Si no lo usas, deja vacío o comenta la línea
+      - GoogleAnalytics__MeasurementId=G-XXXXXXXXXX
+      
+      # ============================================
+      # Cloudflare Web Analytics (OPCIONAL)
+      # ============================================
+      # Obtener de: https://dash.cloudflare.com/
+      # Token del beacon script de Cloudflare Analytics
+      # Si no lo usas, deja vacío o comenta la línea
+      - CloudflareAnalytics__Token=YOUR_CLOUDFLARE_TOKEN_HERE

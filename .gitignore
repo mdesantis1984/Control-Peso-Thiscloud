@@ -394,10 +394,11 @@ coverage/
 # VS Code
 .vscode/
 
-# Docker
+# Docker - Secrets Management
 .env
 .env.*
 !.env.example
+docker-compose.override.yml
 docker-data/
 docker-logs/
 backup-*.db
