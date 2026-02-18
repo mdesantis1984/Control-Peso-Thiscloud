@@ -17,9 +17,9 @@ public partial class Profile
     private bool _isLoading = true;
     private bool _isSaving;
     private bool _isSavingPreferences;
-    
+
     private UserDto? _user;
-    
+
     // Form fields
     private string _name = string.Empty;
     private decimal _height = 170m;
@@ -27,7 +27,7 @@ public partial class Profile
     private decimal? _goalWeight;
     private UnitSystem _unitSystem = UnitSystem.Metric;
     private string _language = "es";
-    
+
     // Preferences
     private bool _darkMode = true;
     private bool _notificationsEnabled = true;
@@ -35,7 +35,7 @@ public partial class Profile
     protected override async Task OnInitializedAsync()
     {
         Logger.LogInformation("Loading user profile");
-        
+
         try
         {
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
@@ -81,7 +81,8 @@ public partial class Profile
 
     private async Task SaveChanges()
     {
-        if (_user is null) return;
+        if (_user is null)
+            return;
 
         Logger.LogInformation("Saving profile changes for user {UserId}", _user.Id);
         _isSaving = true;
@@ -101,7 +102,7 @@ public partial class Profile
             var updatedUser = await UserService.UpdateProfileAsync(_user.Id, dto);
 
             _user = updatedUser;
-            
+
             Logger.LogInformation("Profile updated successfully - UserId: {UserId}", _user.Id);
             Snackbar.Add("Perfil actualizado correctamente", Severity.Success);
         }
@@ -118,7 +119,8 @@ public partial class Profile
 
     private async Task SavePreferences()
     {
-        if (_user is null) return;
+        if (_user is null)
+            return;
 
         Logger.LogInformation("Saving preferences for user {UserId}", _user.Id);
         _isSavingPreferences = true;
@@ -131,7 +133,7 @@ public partial class Profile
 
             Logger.LogInformation("Preferences saved successfully - UserId: {UserId}, DarkMode: {DarkMode}, Notifications: {Notifications}",
                 _user.Id, _darkMode, _notificationsEnabled);
-            
+
             Snackbar.Add("Preferencias guardadas correctamente", Severity.Success);
         }
         catch (Exception ex)

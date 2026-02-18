@@ -1,0 +1,59 @@
+@using ControlPeso.Domain.Enums
+@using MudBlazor
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.body1" Class="mb-4">
+            ¿Estás seguro de que deseas cambiar el rol de <strong>@UserName</strong>?
+        </MudText>
+
+        <MudSelect 
+            @bind-Value="_selectedRole"
+            Label="Nuevo Rol"
+            Variant="Variant.Outlined"
+            Required="true">
+            <MudSelectItem Value="@UserRole.User">Usuario</MudSelectItem>
+            <MudSelectItem Value="@UserRole.Administrator">Administrador</MudSelectItem>
+        </MudSelect>
+
+        <MudAlert Severity="Severity.Warning" Class="mt-4" Dense="true">
+            <MudText Typo="Typo.body2">
+                Esta acción quedará registrada en el log de auditoría.
+            </MudText>
+        </MudAlert>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Color="Color.Default">Cancelar</MudButton>
+        <MudButton 
+            OnClick="Submit" 
+            Color="Color.Primary" 
+            Variant="Variant.Filled"
+            Disabled="@(_selectedRole == CurrentRole)">
+            Cambiar Rol
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IDialogReference MudDialog { get; set; } = default!;
+
+    [Parameter, EditorRequired] public string UserName { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public UserRole CurrentRole { get; set; }
+
+    private UserRole _selectedRole;
+
+    protected override void OnInitialized()
+    {
+        _selectedRole = CurrentRole;
+    }
+
+    private void Submit()
+    {
+        MudDialog.Close(DialogResult.Ok(_selectedRole));
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Cancel());
+    }
+}

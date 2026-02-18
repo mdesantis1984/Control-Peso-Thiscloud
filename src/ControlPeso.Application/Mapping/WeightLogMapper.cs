@@ -16,7 +16,7 @@ public static class WeightLogMapper
     public static WeightLogDto ToDto(WeightLogs entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
-        
+
         return new WeightLogDto
         {
             Id = Guid.Parse(entity.Id),
@@ -30,7 +30,7 @@ public static class WeightLogMapper
             CreatedAt = DateTime.Parse(entity.CreatedAt)
         };
     }
-    
+
     /// <summary>
     /// Convierte CreateWeightLogDto a entidad WeightLogs para inserción.
     /// Genera nuevo Id y establece CreatedAt, calcula Trend como Neutral (se actualiza en servicio).
@@ -54,7 +54,7 @@ public static class WeightLogMapper
             CreatedAt = now.ToString("O")  // ISO 8601
         };
     }
-    
+
     /// <summary>
     /// Actualiza entidad WeightLogs existente con datos de UpdateWeightLogDto.
     /// NO modifica Id, UserId, CreatedAt.
@@ -63,7 +63,7 @@ public static class WeightLogMapper
     {
         ArgumentNullException.ThrowIfNull(entity);
         ArgumentNullException.ThrowIfNull(dto);
-        
+
         entity.Date = dto.Date.ToString("yyyy-MM-dd");
         entity.Time = dto.Time.ToString("HH:mm");
         entity.Weight = (double)dto.Weight;

@@ -10,17 +10,17 @@ public sealed record GoogleUserInfo
     /// Subject claim (sub) - Identificador único de Google.
     /// </summary>
     public required string GoogleId { get; init; }
-    
+
     /// <summary>
     /// Nombre completo del usuario.
     /// </summary>
     public required string Name { get; init; }
-    
+
     /// <summary>
     /// Email verificado del usuario.
     /// </summary>
     public required string Email { get; init; }
-    
+
     /// <summary>
     /// URL del avatar/foto de perfil (opcional).
     /// </summary>

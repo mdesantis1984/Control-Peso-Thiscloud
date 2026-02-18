@@ -21,7 +21,7 @@ public sealed class UserServiceTests : IDisposable
         var options = new DbContextOptionsBuilder<DbContext>()
             .UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}")
             .Options;
-        
+
         _context = new TestDbContext(options);
         _loggerMock = new Mock<ILogger<UserService>>();
         _service = new UserService(_context, _loggerMock.Object);
@@ -364,7 +364,7 @@ public sealed class UserServiceTests : IDisposable
         var user1 = CreateUserEntity(Guid.NewGuid(), "google_1", "Alice", "alice@example.com");
         var user2 = CreateUserEntity(Guid.NewGuid(), "google_2", "Bob", "bob@example.com");
         var user3 = CreateUserEntity(Guid.NewGuid(), "google_3", "Charlie", "charlie@example.com");
-        
+
         _context.Set<Users>().AddRange(user1, user2, user3);
         await _context.SaveChangesAsync();
 
@@ -386,7 +386,7 @@ public sealed class UserServiceTests : IDisposable
         var user1 = CreateUserEntity(Guid.NewGuid(), "google_1", "Alice Johnson", "alice@example.com");
         var user2 = CreateUserEntity(Guid.NewGuid(), "google_2", "Bob Smith", "bob@example.com");
         var user3 = CreateUserEntity(Guid.NewGuid(), "google_3", "Alice Brown", "charlie@example.com");
-        
+
         _context.Set<Users>().AddRange(user1, user2, user3);
         await _context.SaveChangesAsync();
 
@@ -408,7 +408,7 @@ public sealed class UserServiceTests : IDisposable
         user1.Role = (int)UserRole.Administrator;
         var user2 = CreateUserEntity(Guid.NewGuid(), "google_2", "Normal User", "user@example.com");
         user2.Role = (int)UserRole.User;
-        
+
         _context.Set<Users>().AddRange(user1, user2);
         await _context.SaveChangesAsync();
 
@@ -430,7 +430,7 @@ public sealed class UserServiceTests : IDisposable
         user1.Status = (int)UserStatus.Active;
         var user2 = CreateUserEntity(Guid.NewGuid(), "google_2", "Inactive User", "inactive@example.com");
         user2.Status = (int)UserStatus.Inactive;
-        
+
         _context.Set<Users>().AddRange(user1, user2);
         await _context.SaveChangesAsync();
 
@@ -476,7 +476,7 @@ public sealed class UserServiceTests : IDisposable
         var user1 = CreateUserEntity(Guid.NewGuid(), "google_1", "Charlie", "charlie@example.com");
         var user2 = CreateUserEntity(Guid.NewGuid(), "google_2", "Alice", "alice@example.com");
         var user3 = CreateUserEntity(Guid.NewGuid(), "google_3", "Bob", "bob@example.com");
-        
+
         _context.Set<Users>().AddRange(user1, user2, user3);
         await _context.SaveChangesAsync();
 
@@ -499,7 +499,7 @@ public sealed class UserServiceTests : IDisposable
         var user1 = CreateUserEntity(Guid.NewGuid(), "google_1", "Charlie", "charlie@example.com");
         var user2 = CreateUserEntity(Guid.NewGuid(), "google_2", "Alice", "alice@example.com");
         var user3 = CreateUserEntity(Guid.NewGuid(), "google_3", "Bob", "bob@example.com");
-        
+
         _context.Set<Users>().AddRange(user1, user2, user3);
         await _context.SaveChangesAsync();
 
@@ -529,7 +529,7 @@ public sealed class UserServiceTests : IDisposable
 
     #region Helper Methods
 
-    private Users CreateUserEntity(Guid id, string googleId, string name, string email)
+    private static Users CreateUserEntity(Guid id, string googleId, string name, string email)
     {
         return new Users
         {

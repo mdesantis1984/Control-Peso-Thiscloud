@@ -20,7 +20,7 @@ public partial class Login
         // El middleware de autenticación manejará el redirect a Google OAuth
         var returnUrl = NavigationManager.ToAbsoluteUri("/").ToString();
         NavigationManager.NavigateTo(
-            $"/api/auth/login/google?returnUrl={Uri.EscapeDataString(returnUrl)}", 
+            $"/api/auth/login/google?returnUrl={Uri.EscapeDataString(returnUrl)}",
             forceLoad: true);
     }
 
@@ -34,7 +34,7 @@ public partial class Login
         // El middleware de autenticación manejará el redirect a LinkedIn OAuth
         var returnUrl = NavigationManager.ToAbsoluteUri("/").ToString();
         NavigationManager.NavigateTo(
-            $"/api/auth/login/linkedin?returnUrl={Uri.EscapeDataString(returnUrl)}", 
+            $"/api/auth/login/linkedin?returnUrl={Uri.EscapeDataString(returnUrl)}",
             forceLoad: true);
     }
 }

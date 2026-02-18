@@ -15,7 +15,7 @@ public static class AuditLogMapper
     public static AuditLogDto ToDto(AuditLog entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
-        
+
         return new AuditLogDto
         {
             Id = Guid.Parse(entity.Id),
@@ -28,7 +28,7 @@ public static class AuditLogMapper
             CreatedAt = DateTime.Parse(entity.CreatedAt)
         };
     }
-    
+
     /// <summary>
     /// Crea entidad AuditLog para registrar un cambio administrativo.
     /// </summary>
@@ -42,7 +42,7 @@ public static class AuditLogMapper
     {
         ArgumentNullException.ThrowIfNull(action);
         ArgumentNullException.ThrowIfNull(entityType);
-        
+
         return new AuditLog
         {
             Id = Guid.NewGuid().ToString(),
