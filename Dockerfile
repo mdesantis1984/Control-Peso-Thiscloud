@@ -5,7 +5,7 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Copy solution and project files
-COPY ["ControlPeso.Thiscloud.sln", "./"]
+COPY ["ControlPeso.slnx", "./"]
 COPY ["Directory.Build.props", "./"]
 COPY ["Directory.Packages.props", "./"]
 COPY ["src/ControlPeso.Domain/ControlPeso.Domain.csproj", "src/ControlPeso.Domain/"]
