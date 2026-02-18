@@ -141,7 +141,8 @@ public static class UserMapper
         var entity = new Users
         {
             Id = Guid.NewGuid().ToString(),
-            GoogleId = info.Provider == "Google" ? info.ExternalId : string.Empty,  // Placeholder hasta P4.8
+            GoogleId = info.Provider == "Google" ? info.ExternalId : null,
+            LinkedInId = info.Provider == "LinkedIn" ? info.ExternalId : null,
             Name = info.Name,
             Email = info.Email,
             Role = (int)UserRole.User,
@@ -157,12 +158,6 @@ public static class UserMapper
             CreatedAt = nowIso,
             UpdatedAt = nowIso
         };
-
-        // Cuando P4.8 agregue LinkedInId, descomentar:
-        // if (info.Provider == "LinkedIn")
-        // {
-        //     entity.LinkedInId = info.ExternalId;
-        // }
 
         return entity;
     }

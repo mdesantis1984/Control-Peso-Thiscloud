@@ -93,7 +93,6 @@ public sealed class UserService : IUserService
 
     /// <summary>
     /// Obtiene un usuario por su LinkedIn ID.
-    /// Nota: Requiere P4.8 (agregar columna LinkedInId a Users table).
     /// </summary>
     public async Task<UserDto?> GetByLinkedInIdAsync(string linkedInId, CancellationToken ct = default)
     {
@@ -103,11 +102,9 @@ public sealed class UserService : IUserService
 
         try
         {
-            // Nota: LinkedInId column no existe aún (P4.8 pending)
-            // Esta query fallará hasta que se agregue la columna en schema SQL y re-scaffold
             var user = await _context.Set<Users>()
                 .AsNoTracking()
-                .FirstOrDefaultAsync(u => EF.Property<string>(u, "LinkedInId") == linkedInId, ct);
+                .FirstOrDefaultAsync(u => u.LinkedInId == linkedInId, ct);
 
             if (user is null)
             {
@@ -199,7 +196,6 @@ public sealed class UserService : IUserService
     /// Query por provider-specific ID (GoogleId o LinkedInId).
     /// Si existe, actualiza Name, Email, AvatarUrl.
     /// Si no existe, crea uno nuevo con status Active y role User.
-    /// Nota: LinkedIn requiere P4.8 (columna LinkedInId).
     /// </summary>
     public async Task<UserDto> CreateOrUpdateFromOAuthAsync(OAuthUserInfo oauthInfo, CancellationToken ct = default)
     {
@@ -222,7 +218,7 @@ public sealed class UserService : IUserService
                     .FirstOrDefaultAsync(u => u.GoogleId == oauthInfo.ExternalId, ct),
 
                 "LinkedIn" => await _context.Set<Users>()
-                    .FirstOrDefaultAsync(u => EF.Property<string>(u, "LinkedInId") == oauthInfo.ExternalId, ct),
+                    .FirstOrDefaultAsync(u => u.LinkedInId == oauthInfo.ExternalId, ct),
 
                 _ => throw new NotSupportedException($"OAuth provider '{oauthInfo.Provider}' is not supported. Supported providers: Google, LinkedIn")
             };

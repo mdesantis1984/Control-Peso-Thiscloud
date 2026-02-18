@@ -33,40 +33,34 @@ internal sealed class DbSeeder : IDbSeeder
         try
         {
             // Asegurar que la base de datos existe
-            _logger.LogInformation("Ensuring database is created...");
             await _context.Database.EnsureCreatedAsync(ct);
 
-            // Verificar si ya existen usuarios (seed ya ejecutado)
+            // Verificar si ya hay datos
             var existingUsersCount = await _context.Users.CountAsync(ct);
             if (existingUsersCount > 0)
             {
-                _logger.LogInformation(
-                    "Database already seeded with {Count} users. Skipping seed.",
-                    existingUsersCount);
+                _logger.LogInformation("Database already seeded with {Count} users. Skipping seed.", existingUsersCount);
                 return;
             }
 
             _logger.LogInformation("Database is empty. Creating seed data...");
 
-            // Crear usuarios demo
+            // 1. Crear usuarios demo
             var users = CreateDemoUsers();
             await _context.Users.AddRangeAsync(users, ct);
             await _context.SaveChangesAsync(ct);
-
             _logger.LogInformation("Created {Count} demo users", users.Count);
 
-            // Crear preferencias para cada usuario
+            // 2. Crear preferencias de usuario
             var preferences = CreateUserPreferences(users);
             await _context.UserPreferences.AddRangeAsync(preferences, ct);
             await _context.SaveChangesAsync(ct);
-
             _logger.LogInformation("Created {Count} user preferences", preferences.Count);
 
-            // Crear registros de peso para cada usuario
+            // 3. Crear registros de peso (últimos 30 días con tendencias realistas)
             var weightLogs = CreateWeightLogs(users);
             await _context.WeightLogs.AddRangeAsync(weightLogs, ct);
             await _context.SaveChangesAsync(ct);
-
             _logger.LogInformation("Created {Count} weight logs", weightLogs.Count);
 
             _logger.LogInformation("Database seed completed successfully");
