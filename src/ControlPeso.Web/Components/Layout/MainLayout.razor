@@ -1,23 +1,74 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
+@namespace ControlPeso.Web.Components.Layout
 
-<div class="page">
-    <div class="sidebar">
+<MudLayout>
+    <MudAppBar Elevation="1" Dense="false">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" 
+                       Color="Color.Inherit" 
+                       Edge="Edge.Start" 
+                       OnClick="@ToggleDrawer" 
+                       aria-label="Toggle navigation menu" />
+
+        <MudText Typo="Typo.h5" Class="ml-3">Control Peso Thiscloud</MudText>
+
+        <MudSpacer />
+
+        <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" 
+                       Color="Color.Inherit" 
+                       OnClick="@ToggleDarkMode"
+                       aria-label="Toggle dark mode" />
+
+        <NotificationBell />
+
+        <AuthorizeView>
+            <Authorized>
+                <MudMenu Icon="@Icons.Material.Filled.AccountCircle" 
+                         Color="Color.Inherit" 
+                         AnchorOrigin="Origin.BottomRight"
+                         TransformOrigin="Origin.TopRight"
+                         aria-label="User menu">
+                    <MudMenuItem Icon="@Icons.Material.Filled.Person" 
+                                 Href="/profile">
+                        Perfil
+                    </MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Filled.Settings" 
+                                 Href="/settings">
+                        Configuración
+                    </MudMenuItem>
+                    <MudDivider />
+                    <MudMenuItem Icon="@Icons.Material.Filled.Logout" 
+                                 Href="/logout">
+                        Cerrar Sesión
+                    </MudMenuItem>
+                </MudMenu>
+            </Authorized>
+            <NotAuthorized>
+                <MudButton Href="/login" 
+                           Variant="Variant.Outlined" 
+                           Color="Color.Inherit">
+                    Iniciar Sesión
+                </MudButton>
+            </NotAuthorized>
+        </AuthorizeView>
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="@_drawerOpen" 
+               Elevation="2" 
+               ClipMode="DrawerClipMode.Always">
         <NavMenu />
-    </div>
+    </MudDrawer>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-4 mb-4">
             @Body
-        </article>
-    </main>
-</div>
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
 
 <div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
+    <MudPaper Elevation="8" Class="pa-4">
+        <MudText Color="Color.Error" Typo="Typo.h6">Ha ocurrido un error no controlado</MudText>
+        <MudButton Href="." Color="Color.Primary" Class="mt-2">Recargar</MudButton>
+        <MudButton OnClick="@DismissError" Color="Color.Default" Class="mt-2 ml-2">Cerrar</MudButton>
+    </MudPaper>
 </div>
