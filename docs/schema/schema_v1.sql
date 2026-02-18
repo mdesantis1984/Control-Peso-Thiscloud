@@ -15,7 +15,7 @@ PRAGMA encoding = 'UTF-8';
 
 -- =====================================================================
 -- TABLA: Users
--- Propósito: Almacena usuarios autenticados vía Google OAuth.
+-- Propósito: Almacena usuarios autenticados vía OAuth (Google, LinkedIn).
 -- Gobierno de datos: SQL define todos los tipos, restricciones y defaults.
 -- =====================================================================
 CREATE TABLE IF NOT EXISTS Users (
@@ -25,14 +25,20 @@ CREATE TABLE IF NOT EXISTS Users (
 
     -- Identificador único de Google OAuth (sub claim del token)
     -- Restricción UNIQUE garantiza un usuario por cuenta Google
-    GoogleId          TEXT        NOT NULL    UNIQUE,
+    -- NULL permitido para usuarios que solo usan LinkedIn
+    GoogleId          TEXT        NULL        UNIQUE,
 
-    -- Nombre completo del usuario (tomado de Google profile)
+    -- Identificador único de LinkedIn OAuth (sub claim del token)
+    -- Restricción UNIQUE garantiza un usuario por cuenta LinkedIn
+    -- NULL permitido para usuarios que solo usan Google
+    LinkedInId        TEXT        NULL        UNIQUE,
+
+    -- Nombre completo del usuario (tomado de OAuth provider)
     -- CHECK: mínimo 1 carácter, máximo 200
     Name              TEXT        NOT NULL
         CHECK(length(Name) >= 1 AND length(Name) <= 200),
 
-    -- Email del usuario (tomado de Google profile)
+    -- Email del usuario (tomado de OAuth provider)
     -- CHECK: mínimo 5 caracteres (a@b.c), máximo 320 (RFC 5321)
     -- UNIQUE: un email = un usuario
     Email             TEXT        NOT NULL    UNIQUE
@@ -92,11 +98,15 @@ CREATE TABLE IF NOT EXISTS Users (
     CreatedAt         TEXT        NOT NULL
         CHECK(length(CreatedAt) >= 10 AND length(CreatedAt) <= 30),
     UpdatedAt         TEXT        NOT NULL
-        CHECK(length(UpdatedAt) >= 10 AND length(UpdatedAt) <= 30)
+        CHECK(length(UpdatedAt) >= 10 AND length(UpdatedAt) <= 30),
+
+    -- Constraint: Al menos un OAuth ID debe estar presente
+    CHECK((GoogleId IS NOT NULL) OR (LinkedInId IS NOT NULL))
 );
 
 -- Índices para Users
 CREATE INDEX IF NOT EXISTS IX_Users_GoogleId   ON Users(GoogleId);
+CREATE INDEX IF NOT EXISTS IX_Users_LinkedInId ON Users(LinkedInId);
 CREATE INDEX IF NOT EXISTS IX_Users_Email      ON Users(Email);
 CREATE INDEX IF NOT EXISTS IX_Users_Status     ON Users(Status);
 CREATE INDEX IF NOT EXISTS IX_Users_Role       ON Users(Role);
