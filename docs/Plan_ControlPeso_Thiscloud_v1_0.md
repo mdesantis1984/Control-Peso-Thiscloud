@@ -1039,13 +1039,14 @@ Criterios de aceptación:
 | P3.1  | 3 | DI Extensions Infrastructure | 100% | ✅ |
 | P3.2  | 3 | Seed data desarrollo | 100% | ✅ |
 | P3.3  | 3 | Tests integración SQLite | 100% | ✅ |
-| P4.1  | 4 | Google OAuth config | 0% | ⏳ |
-| P4.2  | 4 | GoogleAuthExtensions | 0% | ⏳ |
-| P4.3  | 4 | Callback crear/actualizar user | 0% | ⏳ |
-| P4.4  | 4 | Login.razor | 0% | ⏳ |
-| P4.5  | 4 | Cookie segura | 0% | ⏳ |
+| P4.1  | 4 | Google OAuth + LinkedIn OAuth config | 100% | ✅ |
+| P4.2  | 4 | AuthenticationExtensions (Google + LinkedIn) | 0% | ⏳ |
+| P4.3  | 4 | Callback crear/actualizar user (ambos providers) | 0% | ⏳ |
+| P4.4  | 4 | Login.razor (Google + LinkedIn buttons) | 0% | ⏳ |
+| P4.5  | 4 | Cookie segura | 100% | ✅ |
 | P4.6  | 4 | Logout | 0% | ⏳ |
 | P4.7  | 4 | [Authorize] en rutas | 0% | ⏳ |
+| P4.8  | 4 | Agregar LinkedInId a tabla Users | 0% | ⏳ |
 | P5.1  | 5 | MainLayout.razor | 0% | ⏳ |
 | P5.2  | 5 | NavMenu.razor | 0% | ⏳ |
 | P5.3  | 5 | Tema oscuro | 0% | ⏳ |
