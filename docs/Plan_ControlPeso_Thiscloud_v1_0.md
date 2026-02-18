@@ -4,8 +4,8 @@
 - Rama: `main` → `develop` → `feature/*`
 - Versión: **1.0.0**
 - Fecha inicio: **2026-02-15**
-- Última actualización: **2026-02-18 00:10**
-- Estado global: 🟢 **EN PROGRESO** — Fase 0 ✅ | Fase 1 ✅ | Fase 1.5 ✅ | Fase 2 ✅ | Fase 3 ✅ | Fase 4 ⏳ (5/8 tareas) | Fase 5 ⏳ | Fase 6 ⏳ | Fase 7 ⏳ | Fase 8 ⏳ (39/63 tareas = **61.9%** ejecutado)
+- Última actualización: **2026-02-18 00:30**
+- Estado global: 🟢 **EN PROGRESO** — Fase 0 ✅ | Fase 1 ✅ | Fase 1.5 ✅ | Fase 2 ✅ | Fase 3 ✅ | Fase 4 ⏳ (6/8 tareas) | Fase 5 ⏳ | Fase 6 ⏳ | Fase 7 ⏳ | Fase 8 ⏳ (40/63 tareas = **63.5%** ejecutado)
 
 ## Objetivo
 
@@ -1044,7 +1044,7 @@ Criterios de aceptación:
 | P4.3  | 4 | Callback crear/actualizar user (ambos providers) | 100% | ✅ |
 | P4.4  | 4 | Login.razor (Google + LinkedIn buttons) | 100% | ✅ |
 | P4.5  | 4 | Cookie segura | 100% | ✅ |
-| P4.6  | 4 | Logout | 0% | ⏳ |
+| P4.6  | 4 | Logout | 100% | ✅ |
 | P4.7  | 4 | [Authorize] en rutas | 0% | ⏳ |
 | P4.8  | 4 | Agregar LinkedInId a tabla Users | 0% | ⏳ |
 | P5.1  | 5 | MainLayout.razor | 0% | ⏳ |
