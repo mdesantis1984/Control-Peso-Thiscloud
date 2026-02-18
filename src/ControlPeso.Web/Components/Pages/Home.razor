@@ -1,7 +1,81 @@
-﻿@page "/"
+@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Control Peso Thiscloud</PageTitle>
 
-<h1>Hello, world!</h1>
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-8">
+    <MudStack Spacing="6">
+        @* Hero Section *@
+        <MudStack Spacing="3" AlignItems="AlignItems.Center" Class="text-center">
+            <MudIcon Icon="@Icons.Material.Filled.Scale" Size="Size.Large" Color="Color.Primary" Style="font-size: 4rem;" />
+            <MudText Typo="Typo.h2">Control Peso Thiscloud</MudText>
+            <MudText Typo="Typo.h6" Color="Color.Secondary">
+                Lleva un registro simple y efectivo de tu peso corporal
+            </MudText>
 
-Welcome to your new app.
+            <AuthorizeView>
+                <Authorized>
+                    <MudButton 
+                        Variant="Variant.Filled" 
+                        Color="Color.Primary" 
+                        Size="Size.Large"
+                        Href="/dashboard"
+                        StartIcon="@Icons.Material.Filled.Dashboard">
+                        Ir al Dashboard
+                    </MudButton>
+                </Authorized>
+                <NotAuthorized>
+                    <MudButton 
+                        Variant="Variant.Filled" 
+                        Color="Color.Primary" 
+                        Size="Size.Large"
+                        Href="/login"
+                        StartIcon="@Icons.Material.Filled.Login">
+                        Iniciar Sesión
+                    </MudButton>
+                </NotAuthorized>
+            </AuthorizeView>
+        </MudStack>
+
+        <MudDivider />
+
+        @* Features Section *@
+        <MudGrid>
+            <MudItem xs="12" md="4">
+                <MudPaper Elevation="2" Class="pa-4">
+                    <MudStack Spacing="2" AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@Icons.Material.Filled.Timeline" Size="Size.Large" Color="Color.Success" />
+                        <MudText Typo="Typo.h6">Seguimiento Simple</MudText>
+                        <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Secondary">
+                            Registra tu peso de forma rápida y sencilla
+                        </MudText>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" md="4">
+                <MudPaper Elevation="2" Class="pa-4">
+                    <MudStack Spacing="2" AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@Icons.Material.Filled.ShowChart" Size="Size.Large" Color="Color.Info" />
+                        <MudText Typo="Typo.h6">Análisis de Tendencias</MudText>
+                        <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Secondary">
+                            Visualiza tu progreso con gráficos y estadísticas
+                        </MudText>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" md="4">
+                <MudPaper Elevation="2" Class="pa-4">
+                    <MudStack Spacing="2" AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@Icons.Material.Filled.Security" Size="Size.Large" Color="Color.Warning" />
+                        <MudText Typo="Typo.h6">Privado y Seguro</MudText>
+                        <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Secondary">
+                            Tus datos están protegidos con autenticación OAuth
+                        </MudText>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    </MudStack>
+</MudContainer>
+

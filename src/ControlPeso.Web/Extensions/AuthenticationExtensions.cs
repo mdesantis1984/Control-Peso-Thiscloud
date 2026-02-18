@@ -49,7 +49,7 @@ public static class AuthenticationExtensions
     {
         // Rutas de autenticación
         options.LoginPath = "/login";
-        options.LogoutPath = "/logout";
+        options.LogoutPath = "/api/auth/logout";
         options.AccessDeniedPath = "/access-denied";
 
         // Configuración de seguridad de cookie
