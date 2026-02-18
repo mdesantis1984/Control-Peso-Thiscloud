@@ -4,14 +4,14 @@
 - Rama: `main` → `develop` → `feature/*`
 - Versión: **1.0.0**
 - Fecha inicio: **2026-02-15**
-- Última actualización: **2026-02-17 22:30**
-- Estado global: 🟢 **EN PROGRESO** — Fase 0 ✅ | Fase 1 ✅ | Fase 1.5 ✅ | Fase 2 ✅ | Fase 3 ✅ | Fase 4 ⏳ | Fase 5 ⏳ | Fase 6 ⏳ | Fase 7 ⏳ | Fase 8 ⏳ (35/62 tareas = **56.5%** ejecutado)
+- Última actualización: **2026-02-18 12:35**
+- Estado global: 🟢 **EN PROGRESO** — Fase 0 ✅ | Fase 1 ✅ | Fase 1.5 ✅ | Fase 2 ✅ | Fase 3 ✅ | Fase 4 ✅ (8/8 tareas) | Fase 5 ⏳ | Fase 6 ⏳ | Fase 7 ⏳ | Fase 8 ⏳ (42/63 tareas = **66.7%** ejecutado)
 
 ## Objetivo
 
-Entregar una aplicación web **minimalista** de control de peso corporal, construida con **Blazor Server (.NET 9)** y **MudBlazor** como framework de UI exclusivo, con:
+Entregar una aplicación web **minimalista** de control de peso corporal, construida con **Blazor Server (.NET 10)** y **MudBlazor** como framework de UI exclusivo, con:
 
-- Autenticación vía **Google OAuth 2.0** (sin contraseñas propias).
+- Autenticación vía **Google OAuth 2.0** y **LinkedIn OAuth 2.0** (sin contraseñas propias).
 - Dashboard con métricas actuales (peso actual, cambio semanal, progreso hacia meta).
 - Registro de peso con fecha, hora, notas y tendencia automática.
 - Historial con búsqueda, filtros por rango de fechas y paginación.
@@ -909,22 +909,26 @@ Criterios de aceptación:
 - ✅ Arquitectura respetada: Tests E2E (Application → Infrastructure → InMemory DB).
 - ✅ Cobertura: WeightLogService 100%, UserService 75%, SOLID + Onion compliance.
 
-### Fase 4 — Autenticación Google OAuth
+### Fase 4 — Autenticación OAuth 2.0 (Google + LinkedIn)
 
 Tareas:
-- P4.1 Configurar Google OAuth en ASP.NET Core.
-- P4.2 Implementar GoogleAuthExtensions.
-- P4.3 Implementar callback que crea/actualiza usuario en DB.
-- P4.4 Crear página Login.razor con "Continuar con Google" (MudButton).
-- P4.5 Configurar cookie segura (HttpOnly, Secure, SameSite).
+- ✅ P4.1 Configurar Google OAuth + LinkedIn OAuth en ASP.NET Core. **100%**
+- P4.2 Implementar AuthenticationExtensions (Google + LinkedIn providers).
+- P4.3 Implementar callback que crea/actualiza usuario en DB (para ambos providers).
+- P4.4 Crear página Login.razor con botones "Continuar con Google" y "Continuar con LinkedIn" (MudButton).
+- P4.5 Configurar cookie segura (HttpOnly, Secure, SameSite). ✅ Completado en P4.1
 - P4.6 Implementar logout.
 - P4.7 Proteger rutas con [Authorize].
+- P4.8 Actualizar modelo de datos: agregar LinkedInId a tabla Users (opcional, permite vincular ambas cuentas).
 
 Criterios de aceptación:
 - Login con Google funciona E2E.
-- Usuario se crea en DB al primer login.
-- Logout limpia sesión.
+- Login con LinkedIn funciona E2E.
+- Usuario se crea en DB al primer login (desde cualquier provider).
+- Usuario puede vincular ambas cuentas (GoogleId + LinkedInId en mismo registro).
+- Logout limpia sesión correctamente.
 - Rutas protegidas redirigen a Login.
+- Cookie configurada de forma segura (HttpOnly, Secure, SameSite=Lax).
 
 ### Fase 5 — UI Core (Layout + Dashboard + AddWeight)
 
@@ -1035,13 +1039,14 @@ Criterios de aceptación:
 | P3.1  | 3 | DI Extensions Infrastructure | 100% | ✅ |
 | P3.2  | 3 | Seed data desarrollo | 100% | ✅ |
 | P3.3  | 3 | Tests integración SQLite | 100% | ✅ |
-| P4.1  | 4 | Google OAuth config | 0% | ⏳ |
-| P4.2  | 4 | GoogleAuthExtensions | 0% | ⏳ |
-| P4.3  | 4 | Callback crear/actualizar user | 0% | ⏳ |
-| P4.4  | 4 | Login.razor | 0% | ⏳ |
-| P4.5  | 4 | Cookie segura | 0% | ⏳ |
-| P4.6  | 4 | Logout | 0% | ⏳ |
-| P4.7  | 4 | [Authorize] en rutas | 0% | ⏳ |
+| P4.1  | 4 | Google OAuth + LinkedIn OAuth config | 100% | ✅ |
+| P4.2  | 4 | AuthenticationExtensions (Google + LinkedIn) | 100% | ✅ |
+| P4.3  | 4 | Callback crear/actualizar user (ambos providers) | 100% | ✅ |
+| P4.4  | 4 | Login.razor (Google + LinkedIn buttons) | 100% | ✅ |
+| P4.5  | 4 | Cookie segura | 100% | ✅ |
+| P4.6  | 4 | Logout | 100% | ✅ |
+| P4.7  | 4 | [Authorize] en rutas | 100% | ✅ |
+| P4.8  | 4 | Agregar LinkedInId a tabla Users (Database First) | 100% | ✅ |
 | P5.1  | 5 | MainLayout.razor | 0% | ⏳ |
 | P5.2  | 5 | NavMenu.razor | 0% | ⏳ |
 | P5.3  | 5 | Tema oscuro | 0% | ⏳ |
@@ -1095,6 +1100,7 @@ Criterios de aceptación:
 | 2026-02-17 21:00 | **P3.1 completada - Fase 3 iniciada** | Creado ServiceCollectionExtensions para Infrastructure con registro DI de DbContext + SQLite. Configurado EF Core logging detallado en Development (EnableSensitiveDataLogging + EnableDetailedErrors) y mínimo en Production. Agregado Microsoft.Extensions.Hosting.Abstractions 9.0.1 a Directory.Packages.props. Actualizado Program.cs con registro de Application + Infrastructure services (orden: Serilog → Loggings → Infrastructure → Application → Blazor → MudBlazor). Configurado appsettings.json con ConnectionStrings:DefaultConnection. Eliminado placeholder Class1.cs. Build exitoso, 160/160 tests pasando (2 tests nuevos automáticos del framework). Commit 1f5efea. Progreso global: 53.2% (33/62 tareas). |
 | 2026-02-17 20:32 | **P3.2 completada - Seed Data implementado** | Creados IDbSeeder interface + DbSeeder implementation (328 líneas) con 3 usuarios demo realistas: Marco (Admin, 82.5→78kg), Juan (User, 78→70kg), María (User, 52→58kg). Weight logs con features realistas: 30 días por usuario, varianza diaria (±0.2-0.4kg), días faltantes (20% skip rate), horarios matutinos (6-9 AM aleatorio), cálculo de tendencia (threshold ±0.1kg), notas contextuales (30% probabilidad). Registrado DbSeeder en DI (Scoped). Agregado mapeo DbContext genérico → ControlPesoDbContext para compatibilidad con servicios de Application. Actualizado Program.cs para ejecutar SeedAsync en startup (Development only). EnsureCreatedAsync() para creación automática de BD. Diseño idempotente: verifica conteo de usuarios existentes antes de seed. Logging estructurado: Information/Error con ILogger<DbSeeder>. Build exitoso, seed verificado (3 usuarios + ~80-90 weight logs). Commit 5602bed. Progreso global: 54.8% (34/62 tareas). |
 | 2026-02-17 21:45 | **Fase 3 COMPLETA (3/3 tareas) - P3.3 Testing setup completo** | Actualizado proyecto Infrastructure.Tests con dependencias requeridas: Microsoft.EntityFrameworkCore + InMemory + Logging.Abstractions. Referencias agregadas a Application + Domain. InternalsVisibleTo agregado en Infrastructure.csproj. Creado BasicIntegrationSmokeTests con 3 tests (constructor, DbContext, WeightLogService integration). Eliminado placeholder UnitTest1.cs. Build exitoso. Nota técnica: Tests de integración encuentran conflictos de service provider con DbContext scaffolded (InMemory vs SQLite provider registration). Verificación manual E2E completada exitosamente: seed data funcional (3 usuarios + ~85 weight logs creados), CRUD operations verificadas via unit tests de Application (90.7% coverage). App startup exitoso con DbContext + seed execution. Commit b446e19. Progreso global: 56.5% (35/62 tareas). **Fase 3 completa y lista para PR a develop**. |
+| 2026-02-18 12:35 | **Fase 4 COMPLETA (8/8 tareas) - P4.8 LinkedInId Database First** | **P4.1-P4.7 (11 commits)**: OAuth Google + LinkedIn configurado (NuGet packages: Microsoft.AspNetCore.Authentication.Google 9.0.1 + AspNet.Security.OAuth.LinkedIn 9.0.0). AuthenticationExtensions con dos providers. OAuthUserInfo DTO genérico con Provider discriminator. UserService.CreateOrUpdateFromOAuthAsync con switch por provider. UserMapper con ToEntity(OAuthUserInfo) y UpdateFromOAuth helpers. Login.razor con Google/LinkedIn buttons. EndpointExtensions con MapAuthenticationEndpoints (refactor de Program.cs). Logout.razor página de confirmación. [Authorize] en Counter + Weather. Home.razor como landing page pública con AuthorizeView. Commits: fff6234, d9d6fa1, e5b6b53, 5245ea1, e41ce2e, e4b5930, 5edc000, 5726723, ae554fc, 1c5d9ba, 1cda03d, cd71635. **P4.8 (commit d92e0b5)**: Database First strict adherence - (1) Modified docs/schema/schema_v1.sql: GoogleId NULL, added LinkedInId TEXT NULL UNIQUE, CHECK constraint (GoogleId OR LinkedInId required), IX_Users_LinkedInId index. (2) Created docs/migrations/add_linkedin_id.sql (DROP/CREATE migration for reference). (3) Deleted controlpeso.db, applied updated schema via sqlite3.exe (found in WinGet folder). (4) Scaffolded entities with EF Core: Users.cs with LinkedInId property (line 12), GoogleId nullable (line 10). Fixed scaffold namespace: ControlPeso.Infrastructure → ControlPeso.Domain.Entities (4 entities). Added using directive in ControlPesoDbContext.cs. (5) Restored DbSeeder.SeedAsync original implementation (temporary stub removed). (6) Updated UserMapper.ToEntity(OAuthUserInfo): GoogleId and LinkedInId assignment based on Provider. (7) Updated UserService: replaced EF.Property<string>(u, "LinkedInId") workaround with u.LinkedInId direct property access (2 locations: GetByLinkedInIdAsync, CreateOrUpdateFromOAuthAsync). (8) Full solution build SUCCESS. (9) App run SUCCESS: seed created 3 users, LinkedInId column verified in DB. SQL as source of truth → scaffold → no manual entity edits. Progreso global: 66.7% (42/63 tareas). **Fase 4 completa y lista para PR a develop**. |
 
 ---
 

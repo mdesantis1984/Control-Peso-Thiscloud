@@ -1,6 +1,7 @@
 using ControlPeso.Application.Extensions;
 using ControlPeso.Infrastructure.Extensions;
 using ControlPeso.Web.Components;
+using ControlPeso.Web.Extensions;
 using MudBlazor.Services;
 using ThisCloud.Framework.Loggings.Serilog;
 
@@ -29,6 +30,9 @@ builder.Services.AddRazorComponents()
 // 6. Add MudBlazor services
 builder.Services.AddMudServices();
 
+// 7. Add Authentication & Authorization (Google OAuth + LinkedIn OAuth)
+builder.Services.AddOAuthAuthentication(builder.Configuration);
+
 var app = builder.Build();
 
 // Seed database in Development environment
@@ -49,8 +53,13 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseAntiforgery();
+
+// Register authentication endpoints (OAuth Challenge + Logout)
+app.MapAuthenticationEndpoints();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()

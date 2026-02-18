@@ -123,4 +123,77 @@ public static class UserMapper
             entity.UpdatedAt = DateTime.UtcNow.ToString("O");
         }
     }
+
+    /// <summary>
+    /// Crea entidad Users nueva desde OAuthUserInfo genérico (Google o LinkedIn).
+    /// Establece el campo GoogleId o LinkedInId según el provider.
+    /// Nota: LinkedInId requiere P4.8 (columna DB) para funcionar.
+    /// </summary>
+    public static Users ToEntity(OAuthUserInfo info)
+    {
+        ArgumentNullException.ThrowIfNull(info);
+        ArgumentException.ThrowIfNullOrWhiteSpace(info.Provider);
+        ArgumentException.ThrowIfNullOrWhiteSpace(info.ExternalId);
+
+        var now = DateTime.UtcNow;
+        var nowIso = now.ToString("O");
+
+        var entity = new Users
+        {
+            Id = Guid.NewGuid().ToString(),
+            GoogleId = info.Provider == "Google" ? info.ExternalId : null,
+            LinkedInId = info.Provider == "LinkedIn" ? info.ExternalId : null,
+            Name = info.Name,
+            Email = info.Email,
+            Role = (int)UserRole.User,
+            AvatarUrl = info.AvatarUrl,
+            MemberSince = nowIso,
+            Height = 170.0,
+            UnitSystem = (int)UnitSystem.Metric,
+            DateOfBirth = null,
+            Language = "es",
+            Status = (int)UserStatus.Active,
+            GoalWeight = null,
+            StartingWeight = null,
+            CreatedAt = nowIso,
+            UpdatedAt = nowIso
+        };
+
+        return entity;
+    }
+
+    /// <summary>
+    /// Actualiza campos sincronizables desde OAuth genérico (nombre, email, avatar) si han cambiado.
+    /// Funciona con cualquier provider (Google, LinkedIn, etc.).
+    /// </summary>
+    public static void UpdateFromOAuth(Users entity, OAuthUserInfo info)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+        ArgumentNullException.ThrowIfNull(info);
+
+        var changed = false;
+
+        if (entity.Name != info.Name)
+        {
+            entity.Name = info.Name;
+            changed = true;
+        }
+
+        if (entity.Email != info.Email)
+        {
+            entity.Email = info.Email;
+            changed = true;
+        }
+
+        if (entity.AvatarUrl != info.AvatarUrl)
+        {
+            entity.AvatarUrl = info.AvatarUrl;
+            changed = true;
+        }
+
+        if (changed)
+        {
+            entity.UpdatedAt = DateTime.UtcNow.ToString("O");
+        }
+    }
 }
