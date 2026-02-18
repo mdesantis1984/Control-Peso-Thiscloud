@@ -1,0 +1,93 @@
+@using ControlPeso.Domain.Enums
+@using MudBlazor
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.body1" Class="mb-4">
+            ¿Estás seguro de que deseas cambiar el estado de <strong>@UserName</strong>?
+        </MudText>
+
+        <MudSelect 
+            @bind-Value="_selectedStatus"
+            Label="Nuevo Estado"
+            Variant="Variant.Outlined"
+            Required="true">
+            <MudSelectItem Value="@UserStatus.Active">Activo</MudSelectItem>
+            <MudSelectItem Value="@UserStatus.Inactive">Inactivo</MudSelectItem>
+            <MudSelectItem Value="@UserStatus.Pending">Pendiente</MudSelectItem>
+        </MudSelect>
+
+        <MudAlert Severity="@GetAlertSeverity()" Class="mt-4" Dense="true">
+            <MudText Typo="Typo.body2">
+                @GetAlertText()
+            </MudText>
+        </MudAlert>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Color="Color.Default">Cancelar</MudButton>
+        <MudButton 
+            OnClick="Submit" 
+            Color="@GetButtonColor()" 
+            Variant="Variant.Filled"
+            Disabled="@(_selectedStatus == CurrentStatus)">
+            Cambiar Estado
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IDialogReference MudDialog { get; set; } = default!;
+
+    [Parameter, EditorRequired] public string UserName { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public UserStatus CurrentStatus { get; set; }
+
+    private UserStatus _selectedStatus;
+
+    protected override void OnInitialized()
+    {
+        _selectedStatus = CurrentStatus;
+    }
+
+    private void Submit()
+    {
+        MudDialog.Close(DialogResult.Ok(_selectedStatus));
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Cancel());
+    }
+
+    private Severity GetAlertSeverity()
+    {
+        return _selectedStatus switch
+        {
+            UserStatus.Inactive => Severity.Warning,
+            UserStatus.Active => Severity.Success,
+            UserStatus.Pending => Severity.Info,
+            _ => Severity.Normal
+        };
+    }
+
+    private string GetAlertText()
+    {
+        return _selectedStatus switch
+        {
+            UserStatus.Inactive => "El usuario no podrá acceder a la aplicación mientras esté inactivo.",
+            UserStatus.Active => "El usuario podrá acceder normalmente a la aplicación.",
+            UserStatus.Pending => "El usuario estará en espera de aprobación.",
+            _ => "Esta acción quedará registrada en el log de auditoría."
+        };
+    }
+
+    private Color GetButtonColor()
+    {
+        return _selectedStatus switch
+        {
+            UserStatus.Inactive => Color.Error,
+            UserStatus.Active => Color.Success,
+            UserStatus.Pending => Color.Warning,
+            _ => Color.Primary
+        };
+    }
+}

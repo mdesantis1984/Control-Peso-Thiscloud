@@ -7,10 +7,15 @@
 
   <ItemGroup>
     <PackageReference Include="MudBlazor" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" />
+    <PackageReference Include="AspNet.Security.OAuth.LinkedIn" />
+    <PackageReference Include="CsvHelper" />
+    <PackageReference Include="ThisCloud.Framework.Loggings.Abstractions" />
+    <PackageReference Include="ThisCloud.Framework.Loggings.Serilog" />
   </ItemGroup>
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>

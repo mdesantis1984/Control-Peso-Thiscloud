@@ -3,21 +3,23 @@
 > **Proyecto**: ControlPeso.Thiscloud
 > **Archivo**: `.github/copilot-instructions.md`
 > **Modelo Copilot**: Claude Sonnet 4.5 (modo agente)
-> **Última actualización**: 2026-02-15
+> **Última actualización**: 2026-02-17
+> **Estado del proyecto**: 🟢 EN DESARROLLO — Fase 3/8 (53.2% completado)
 
 ---
 
 ## Contexto del Proyecto
 
-Este es un proyecto **Blazor Server (.NET 9)** con **MudBlazor** como framework de UI exclusivo. La aplicación "Control Peso Thiscloud" permite a los usuarios registrar, monitorear y analizar su peso corporal con tendencias, historial y panel de administración.
+Este es un proyecto **Blazor Server (.NET 10)** con **MudBlazor** como framework de UI exclusivo.
 
 ### Stack Tecnológico (DECISIÓN CERRADA)
 
-- **Runtime**: .NET 9 (`net9.0`)
+- **Runtime**: .NET 10 (`net10.0`)
 - **UI Framework**: Blazor Server + MudBlazor 8.0.0
 - **ORM**: Entity Framework Core 9.0.1, modo **Database First**
 - **Base de datos**: SQLite (desarrollo/MVP) — preparado para migrar a SQL Server
 - **Autenticación**: Google OAuth 2.0 (ASP.NET Core Identity + Google provider)
+- **Logging**: ThisCloud.Framework.Loggings 1.0.86 (Serilog + redaction + correlation)
 - **Analytics**: Google Analytics 4 (gtag.js) + Cloudflare Analytics (capa gratuita)
 - **IDE**: Visual Studio 2022+ con GitHub Copilot (Claude Sonnet 4.5 agente)
 
@@ -149,99 +151,194 @@ Web ← Depende de Application + Infrastructure (solo para DI registration)
     - `MudCard` para contenedores
     - `MudDialog` para modales
     - `MudSnackbar` para notificaciones
-19. ✅ Tema oscuro configurado en `ControlPeso.Web.Theme.ControlPesoTheme.DarkTheme`
-20. ✅ Providers obligatorios en `Routes.razor`: `MudThemeProvider`, `MudPopoverProvider`, `MudDialogProvider`, `MudSnackbarProvider`
+    - Consultar **API completa**: https://mudblazor.com/api#components
+19. ✅ **Pixel Perfect Obligatorio**: Usar componentes MudBlazor en su **integridad** para conseguir diseño exacto
+    - Explorar TODOS los componentes disponibles en MudBlazor antes de implementar custom UI
+    - Preferir componentes nativos vs soluciones custom (ej: `MudChip`, `MudBadge`, `MudAvatar`, `MudTimeline`, etc.)
+    - Si un componente MudBlazor existe para el caso de uso, DEBE usarse (no reinventar)
+20. ✅ **ThemeManager**: Control de themes mediante **MudBlazor ThemeManager** (https://github.com/MudBlazor/ThemeManager)
+    - MudBlazor incluye theme dark **predeterminado** (no crear custom dark theme desde cero)
+    - Usar ThemeManager para:
+      - Toggle Dark/Light mode
+      - Customización de paleta de colores
+      - Ajustes de tipografía
+      - Preview en tiempo real
+    - Integración: Agregar `MudThemeManagerButton` en layout para acceso rápido
+21. ✅ Providers obligatorios en `Routes.razor`: `MudThemeProvider`, `MudPopoverProvider`, `MudDialogProvider`, `MudSnackbarProvider`
 
 ### Seguridad
 
-21. ❌ PROHIBIDO hardcodear secretos o connection strings
-22. ❌ PROHIBIDO `try/catch` vacíos
-23. ❌ PROHIBIDO loguear tokens, passwords, PII
-24. ❌ PROHIBIDO almacenar contraseñas (auth solo Google)
-25. ✅ Secretos en User Secrets (dev) o env vars (prod)
-26. ✅ TODO catch DEBE loguear la excepción
-27. ✅ Cookie: `HttpOnly + Secure + SameSite=Strict`
-28. ✅ CSP headers restrictivos
+22. ❌ PROHIBIDO hardcodear secretos o connection strings
+23. ❌ PROHIBIDO `try/catch` vacíos
+24. ❌ PROHIBIDO loguear tokens, passwords, PII
+25. ❌ PROHIBIDO almacenar contraseñas (auth solo Google)
+26. ✅ Secretos en User Secrets (dev) o env vars (prod)
+27. ✅ TODO catch DEBE loguear la excepción
+28. ✅ Cookie: `HttpOnly + Secure + SameSite=Strict`
+29. ✅ CSP headers restrictivos
+
+### Logging (MANDATORIO - ThisCloud.Framework.Loggings)
+
+**Contexto**: Usamos ThisCloud.Framework.Loggings.Serilog para logging estructurado enterprise-grade con redaction automática, correlation ID y file rolling.
+
+30. ✅ **OBLIGATORIO** inyectar `ILogger<T>` en TODOS los servicios (Application, Infrastructure, Web)
+31. ✅ **OBLIGATORIO** loguear en TODO método público (inicio/fin) con `LogInformation`
+32. ✅ **OBLIGATORIO** loguear en TODO catch con `LogError(ex, message, ...)`
+33. ✅ **OBLIGATORIO** usar logging estructurado con parámetros nombrados:
+    ```csharp
+    _logger.LogInformation("Creating weight log for user {UserId} - Date: {Date}, Weight: {Weight}kg", dto.UserId, dto.Date, dto.Weight);
+    ```
+34. ❌ **PROHIBIDO** string interpolation o concatenación en logs:
+    ```csharp
+    // ❌ MAL
+    _logger.LogInformation($"User {userId} logged in");
+
+    // ✅ BIEN
+    _logger.LogInformation("User {UserId} logged in", userId);
+    ```
+35. ❌ **PROHIBIDO** loguear secretos: `Authorization` headers, JWT tokens, API keys, passwords, Google ClientSecret
+    - El framework tiene redaction automática activada (`Redaction.Enabled=true`)
+    - Pero NO confiar solo en redaction: NO intentar loguear secretos explícitamente
+36. ❌ **PROHIBIDO** loguear request/response bodies completos (payload masivo)
+    - Solo loguear propiedades relevantes con parámetros nombrados
+37. ✅ Niveles de log según propósito:
+    - `Verbose`: Trazas detalladas de desarrollo/debugging (valores intermedios, payload JSON resumido)
+    - `Debug`: Información de diagnóstico (flujo de ejecución, decisiones lógicas)
+    - `Information`: Eventos normales de negocio (inicio/fin operaciones, cambios de estado)
+    - `Warning`: Situaciones anómalas recuperables (retry exitoso, valores por defecto aplicados)
+    - `Error`: Errores manejados que afectan operación actual (API timeout, validación fallida)
+    - `Critical`: Errores graves que afectan toda la aplicación (init failure, data corruption)
+38. ✅ Ejemplo completo de servicio con logging:
+    ```csharp
+    internal sealed class WeightLogService : IWeightLogService
+    {
+        private readonly ControlPesoDbContext _context;
+        private readonly ILogger<WeightLogService> _logger;
+
+        public WeightLogService(
+            ControlPesoDbContext context,
+            ILogger<WeightLogService> logger)
+        {
+            ArgumentNullException.ThrowIfNull(context);
+            ArgumentNullException.ThrowIfNull(logger);
+
+            _context = context;
+            _logger = logger;
+        }
+
+        public async Task<WeightLogDto> CreateAsync(CreateWeightLogDto dto, CancellationToken ct = default)
+        {
+            _logger.LogInformation(
+                "Creating weight log for user {UserId} - Date: {Date}, Weight: {Weight}kg",
+                dto.UserId, dto.Date, dto.Weight);
+
+            try
+            {
+                // ... lógica de negocio ...
+
+                _logger.LogInformation(
+                    "Weight log created successfully - Id: {WeightLogId}, UserId: {UserId}",
+                    result.Id, dto.UserId);
+
+                return result;
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex,
+                    "Database error creating weight log for user {UserId}",
+                    dto.UserId);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Unexpected error creating weight log for user {UserId}",
+                    dto.UserId);
+                throw;
+            }
+        }
+    }
+    ```
 
 ### Código C#
 
-29. ❌ NO usar `public` por defecto → Regla de mínima exposición: `private` > `internal` > `protected` > `public`
-30. ❌ NO modificar código auto-generado (`*.g.cs`, `// <auto-generated>`)
-31. ❌ NO agregar métodos/parámetros sin usar
-32. ✅ Null checks: `ArgumentNullException.ThrowIfNull(x)` para objetos, `string.IsNullOrWhiteSpace(x)` para strings
-33. ✅ Excepciones precisas (`ArgumentException`, `InvalidOperationException`, NO `Exception` genérica)
-34. ✅ Async end-to-end: métodos async terminan en `Async`, aceptan `CancellationToken`
-35. ✅ `ConfigureAwait(false)` en helpers/libraries
-36. ✅ Comentarios explican **por qué**, NO qué hace el código
-37. ✅ **Nullable enabled** en todos los proyectos: `<Nullable>enable</Nullable>`
-38. ✅ **Implicit usings** habilitado: `<ImplicitUsings>enable</ImplicitUsings>`
-39. ✅ Usar **records** para DTOs y value objects cuando aporte inmutabilidad
-40. ✅ Usar **primary constructors** donde sea apropiado
-41. ✅ Prefijo `I` para interfaces: `IWeightLogService`, `IUserRepository`
-42. ✅ Sufijo `Dto` para DTOs: `WeightLogDto`, `UserProfileDto`
-43. ✅ Sufijo `Service` para servicios de aplicación: `WeightLogService`
+39. ❌ NO usar `public` por defecto → Regla de mínima exposición: `private` > `internal` > `protected` > `public`
+40. ❌ NO modificar código auto-generado (`*.g.cs`, `// <auto-generated>`)
+41. ❌ NO agregar métodos/parámetros sin usar
+42. ✅ Null checks: `ArgumentNullException.ThrowIfNull(x)` para objetos, `string.IsNullOrWhiteSpace(x)` para strings
+43. ✅ Excepciones precisas (`ArgumentException`, `InvalidOperationException`, NO `Exception` genérica)
+44. ✅ Async end-to-end: métodos async terminan en `Async`, aceptan `CancellationToken`
+45. ✅ `ConfigureAwait(false)` en helpers/libraries
+46. ✅ Comentarios explican **por qué**, NO qué hace el código
+47. ✅ **Nullable enabled** en todos los proyectos: `<Nullable>enable</Nullable>`
+48. ✅ **Implicit usings** habilitado: `<ImplicitUsings>enable</ImplicitUsings>`
+49. ✅ Usar **records** para DTOs y value objects cuando aporte inmutabilidad
+50. ✅ Usar **primary constructors** donde sea apropiado
+51. ✅ Prefijo `I` para interfaces: `IWeightLogService`, `IUserRepository`
+52. ✅ Sufijo `Dto` para DTOs: `WeightLogDto`, `UserProfileDto`
+53. ✅ Sufijo `Service` para servicios de aplicación: `WeightLogService`
 
 ### Blazor + MudBlazor (Detalles Adicionales)
 
-44. ✅ Componentes `.razor` pequeños y cohesivos (máximo ~150 líneas)
-45. ✅ Lógica compleja en **code-behind** (`.razor.cs`) o servicios inyectados
-46. ✅ Estados UI explícitos: Loading → Empty → Error → Success
-47. ✅ **Virtualización** (`MudVirtualize`) para listas largas
-48. ✅ **`@key`** en loops de componentes para optimizar re-renderizado
-49. ❌ Evitar `StateHasChanged()` manual salvo necesidad justificada
-50. ✅ Formularios con `MudForm` + `MudTextField` + validación FluentValidation
-51. ✅ Diálogos con `IDialogService` de MudBlazor
-52. ✅ Snackbars con `ISnackbar` para notificaciones
-53. ✅ Navegación con `MudNavMenu` + `MudNavLink`
+54. ✅ Componentes `.razor` pequeños y cohesivos (máximo ~150 líneas)
+55. ✅ Lógica compleja en **code-behind** (`.razor.cs`) o servicios inyectados
+56. ✅ Estados UI explícitos: Loading → Empty → Error → Success
+57. ✅ **Virtualización** (`MudVirtualize`) para listas largas
+58. ✅ **`@key`** en loops de componentes para optimizar re-renderizado
+59. ❌ Evitar `StateHasChanged()` manual salvo necesidad justificada
+60. ✅ Formularios con `MudForm` + `MudTextField` + validación FluentValidation
+61. ✅ Diálogos con `IDialogService` de MudBlazor
+62. ✅ Snackbars con `ISnackbar` para notificaciones
+63. ✅ Navegación con `MudNavMenu` + `MudNavLink`
 
 ### Entity Framework Core (Database First)
 
-54. ✅ Modo **Database First**: el esquema SQL es el contrato maestro
-55. ✅ `DbContext` en **Infrastructure** únicamente
-56. ✅ Entidades scaffolded en **Domain/Entities** — no se modifican manualmente
-57. ✅ **AsNoTracking()** para consultas de solo lectura
-58. ✅ **Proyecciones selectivas** (`.Select()`) para evitar over-fetching
-59. ✅ Conexión SQLite en Development: `Data Source=controlpeso.db`
-60. ✅ Preparado para swap a SQL Server: solo cambiar connection string + provider
-61. ❌ **No** exponer `DbContext` fuera de Infrastructure
-62. ❌ **No** usar migrations code-first — los cambios se hacen en SQL y se re-scaffold
+64. ✅ Modo **Database First**: el esquema SQL es el contrato maestro
+65. ✅ `DbContext` en **Infrastructure** únicamente
+66. ✅ Entidades scaffolded en **Domain/Entities** — no se modifican manualmente
+67. ✅ **AsNoTracking()** para consultas de solo lectura
+68. ✅ **Proyecciones selectivas** (`.Select()`) para evitar over-fetching
+69. ✅ Conexión SQLite en Development: `Data Source=controlpeso.db`
+70. ✅ Preparado para swap a SQL Server: solo cambiar connection string + provider
+71. ❌ **No** exponer `DbContext` fuera de Infrastructure
+72. ❌ **No** usar migrations code-first — los cambios se hacen en SQL y se re-scaffold
 
 ### Manejo de Errores
 
-63. ✅ Middleware global de excepciones en Web
-64. ❌ **No** `try/catch` vacíos (PROHIBIDO)
-65. ✅ Logging estructurado con `ILogger<T>`
-66. ✅ Excepciones de dominio tipadas: `DomainException`, `NotFoundException`, `ValidationException`
-67. ✅ En Blazor: `ErrorBoundary` para errores de componentes
+73. ✅ Middleware global de excepciones en Web
+74. ❌ **No** `try/catch` vacíos (PROHIBIDO)
+75. ✅ Logging estructurado con `ILogger<T>` (ver sección Logging arriba)
+76. ✅ Excepciones de dominio tipadas: `DomainException`, `NotFoundException`, `ValidationException`
+77. ✅ En Blazor: `ErrorBoundary` para errores de componentes
 
 ### Validación y Lógica de Negocio
 
-68. ✅ FluentValidation para DTOs de entrada
-69. ✅ Validación en Application layer, NO en Web
-70. ✅ Mappers manuales en `Application/Mapping/` (conversiones string→Guid, string→DateTime, int→enum)
-71. ✅ TODO peso almacenado SIEMPRE en **kg** (conversión a lb solo en display)
+78. ✅ FluentValidation para DTOs de entrada
+79. ✅ Validación en Application layer, NO en Web
+80. ✅ Mappers manuales en `Application/Mapping/` (conversiones string→Guid, string→DateTime, int→enum)
+81. ✅ TODO peso almacenado SIEMPRE en **kg** (conversión a lb solo en display)
 
 ### Testing
 
-72. ✅ xUnit + Moq/NSubstitute
-73. ✅ Proyecto de test separado por capa (`*.Tests`)
-74. ✅ Nombre de tests: `WhenConditionThenExpectedBehavior` o `Metodo_Escenario_ResultadoEsperado`
-75. ✅ Patrón AAA (Arrange-Act-Assert)
-76. ✅ NO branching/conditionals en tests
-77. ✅ Tests deben poder correr en cualquier orden o en paralelo
+82. ✅ xUnit + Moq/NSubstitute
+83. ✅ Proyecto de test separado por capa (`*.Tests`)
+84. ✅ Nombre de tests: `WhenConditionThenExpectedBehavior` o `Metodo_Escenario_ResultadoEsperado`
+85. ✅ Patrón AAA (Arrange-Act-Assert)
+86. ✅ NO branching/conditionals en tests
+87. ✅ Tests deben poder correr en cualquier orden o en paralelo
 
 ### NuGet y Versiones
 
-78. ✅ Central Package Management (`Directory.Packages.props`)
-79. ✅ NO especificar `Version` en `PackageReference` de .csproj
-80. ✅ Versiones exactas en `Directory.Packages.props`
+88. ✅ Central Package Management (`Directory.Packages.props`)
+89. ✅ NO especificar `Version` en `PackageReference` de .csproj
+90. ✅ Versiones exactas en `Directory.Packages.props`
 
 ### Git y Documentación
 
-81. ❌ PROHIBIDO commits directos a `main` o `develop`
-82. ✅ Git Flow: `main` → `develop` → `feature/*`
-83. ✅ PR obligatorio con CI verde
-84. ✅ Plan `ControlPeso/docs/Plan_ControlPeso_Thiscloud_v1_0.md` es contractual → actualizar ANTES de marcar tareas "Done"
+91. ❌ PROHIBIDO commits directos a `main` o `develop`
+92. ✅ Git Flow: `main` → `develop` → `feature/*`
+93. ✅ PR obligatorio con CI verde
+94. ✅ Plan `ControlPeso/docs/Plan_ControlPeso_Thiscloud_v1_0.md` es contractual → actualizar ANTES de marcar tareas "Done"
 
 ---
 
@@ -837,6 +934,123 @@ dotnet ef dbcontext scaffold "Data Source=../../controlpeso.db" \
 
 ---
 
+## Git Flow ControlPeso.Thiscloud (MANDATORIO)
+
+### Ramas Principales
+
+- **`main`** - Rama principal (producción). PROTEGIDA. Solo recibe merges desde `develop`.
+- **`develop`** - Rama de integración/desarrollo. PROTEGIDA. Recibe merges desde `feature/*`.
+- **`feature/*`** - Ramas de trabajo (ej: `feature/fase-2`, `feature/fase-3`). Se crean desde `develop`.
+
+### Flujo Completo
+
+```
+1. Crear feature desde develop actualizado:
+   git checkout develop
+   git pull origin develop
+   git checkout -b feature/fase-X
+
+2. Trabajar en la fase:
+   - Hacer commits POR TAREA completada (no por archivo)
+   - Ejemplo: "feat(fase-2): complete P2.1 - create service interfaces"
+   - Cada commit debe representar una tarea del plan terminada
+
+3. Finalizar fase completa:
+   - Verificar que TODAS las tareas de la fase están ✅
+   - git push origin feature/fase-X
+   - Crear PR: feature/fase-X → develop
+
+4. Aprobar PR:
+   - Review + CI verde
+   - Merge a develop (create merge commit, NO squash)
+   - Eliminar rama feature/fase-X
+
+5. Integrar a main (solo cuando develop está estable):
+   - PR: develop → main
+   - NUNCA directamente desde feature/* a main
+   - Solo cuando múltiples fases están completas y estables
+
+6. Siguiente fase:
+   - git checkout develop
+   - git pull origin develop
+   - git checkout -b feature/fase-Y
+   - Repetir desde paso 2
+
+7. Release final (al completar TODO el plan):
+   - Todas las fases P0-P8 completas en develop
+   - PR final: develop → main
+   - Merge a main
+   - Crear tag: git tag v1.0.0
+   - git push origin v1.0.0
+```
+
+### Reglas Obligatorias
+
+- ❌ **PROHIBIDO** commits directos a `main` o `develop`
+- ❌ **PROHIBIDO** PR directo de `feature/*` a `main` (siempre pasar por `develop`)
+- ❌ **PROHIBIDO** squash commits (usar "Create a merge commit")
+- ✅ **OBLIGATORIO** PR con CI verde antes de merge
+- ✅ **OBLIGATORIO** commits descriptivos por tarea completada
+- ✅ **OBLIGATORIO** actualizar plan ANTES de marcar tarea "Done"
+- ✅ **OBLIGATORIO** eliminar rama feature/* después de merge
+- ✅ **OBLIGATORIO** pull de develop antes de crear nueva feature
+
+### Estructura de Commits
+
+```
+Formato: <tipo>(scope): <descripción>
+
+Tipos:
+- feat: Nueva funcionalidad (ej: feat(fase-2): add IWeightLogService interface)
+- fix: Corrección de bug
+- docs: Cambios en documentación
+- style: Formato de código (no afecta lógica)
+- refactor: Refactorización sin cambio de funcionalidad
+- test: Agregar o modificar tests
+- chore: Tareas de mantenimiento (build, CI, deps)
+- ci: Cambios en CI/CD workflows
+
+Ejemplos:
+✅ feat(fase-2): complete P2.1 - create service interfaces
+✅ feat(fase-2): complete P2.2 - create DTOs with validation
+✅ test(application): add unit tests for WeightLogService
+✅ docs: update plan - mark P2.1-P2.4 as completed
+✅ ci: fix build workflow for .NET 10
+
+❌ "update files"
+❌ "WIP"
+❌ "fix stuff"
+```
+
+### Workflow de Desarrollo
+
+```
+main (producción - solo releases)
+  ↓
+develop (integración - fases completas)
+  ↓
+feature/fase-2 (trabajo actual)
+  ↓ commits por tarea
+  ↓ P2.1 ✅ → commit
+  ↓ P2.2 ✅ → commit
+  ↓ P2.3 ✅ → commit
+  ↓ ... (todas las tareas de fase 2)
+  ↓ Fase 2 completa
+  PR → develop (CI verde)
+       ↓ merge
+    develop (actualizado)
+       ↓
+    feature/fase-3 (nueva rama)
+       ↓ ... (repetir)
+       ↓ Todas las fases completas
+       PR → main
+            ↓ merge
+         main (v1.0.0)
+            ↓ tag release
+```
+
+---
+
 ## Checklist Antes de Commit
 
 - [ ] Código compila sin warnings (`dotnet build`)
@@ -859,9 +1073,11 @@ dotnet ef dbcontext scaffold "Data Source=../../controlpeso.db" \
 
 - **Plan del Proyecto**: `ControlPeso/docs/Plan_ControlPeso_Thiscloud_v1_0.md`
 - **Schema SQL**: `docs/schema/schema_v1.sql`
-- **Tema MudBlazor**: `src/ControlPeso.Web/Theme/ControlPesoTheme.cs`
+- **MudBlazor Components API**: https://mudblazor.com/api#components
+- **MudBlazor ThemeManager**: https://github.com/MudBlazor/ThemeManager
 - **CPM**: `Directory.Packages.props`
 - **CI Workflow**: `.github/workflows/ci.yml`
+- **Framework Integration**: `docs/THISCLOUD_FRAMEWORK_INTEGRATION.md`
 
 ---
 
@@ -891,6 +1107,15 @@ A: ✅ FluentValidation en Application layer (`Application/Validators/`).
 **Q: ¿Cómo registro un nuevo servicio?**  
 A: ✅ Interface en `Application/Interfaces/`, implementación en `Application/Services/`, registro en `Application/Extensions/ServiceCollectionExtensions.cs`.
 
+**Q: ¿Debo usar ThisCloud.Framework?**  
+A: ✅ SÍ para Loggings (Serilog estructurado + redaction + correlation). Ver `docs/THISCLOUD_FRAMEWORK_INTEGRATION.md` para análisis completo. NO para Web (Blazor Server no usa Minimal APIs). Requiere actualizar target a .NET 10.
+
+**Q: ¿Cómo controlo los themes (dark/light)?**  
+A: ✅ Usar **MudBlazor ThemeManager** (https://github.com/MudBlazor/ThemeManager). MudBlazor incluye theme dark **predeterminado** (no crear custom desde cero). ThemeManager provee: toggle Dark/Light, customización de paleta, ajustes de tipografía, y preview en tiempo real. Agregar `MudThemeManagerButton` en layout para acceso rápido.
+
+**Q: ¿Qué componentes MudBlazor debo usar?**  
+A: ✅ **TODOS** los componentes disponibles en https://mudblazor.com/api#components para conseguir **pixel perfect**. Explorar la API completa ANTES de implementar UI. Si existe un componente nativo para el caso de uso, DEBE usarse (no reinventar). Ejemplos: `MudChip`, `MudBadge`, `MudAvatar`, `MudTimeline`, `MudCarousel`, `MudSkeleton`, etc.
+
 ---
 
-**Última actualización**: 2026-02-15
+**Última actualización**: 2026-02-17 (Pre-Fase 2)

@@ -1,0 +1,291 @@
+@page "/admin"
+@attribute [Authorize(Roles = "Administrator")]
+@using Microsoft.AspNetCore.Authorization
+@using ControlPeso.Application.DTOs
+@using ControlPeso.Domain.Enums
+@using ControlPeso.Web.Components.Shared
+@using MudBlazor
+
+<PageTitle>Panel de Administración - Control Peso Thiscloud</PageTitle>
+
+<HeadContent>
+    <meta name="description" content="Panel de administración de Control Peso Thiscloud. Gestiona usuarios, cambia roles y estados, visualiza estadísticas y exporta datos. Acceso solo para administradores." />
+    <meta name="keywords" content="panel administración, gestión usuarios, cambio roles, estadísticas usuarios, exportar datos, admin" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="canonical" href="https://controlpeso.thiscloud.com.ar/admin" />
+
+    @* Open Graph *@
+    <meta property="og:title" content="Panel de Administración - Control Peso Thiscloud" />
+    <meta property="og:description" content="Panel de administración para gestión de usuarios y estadísticas del sistema." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://controlpeso.thiscloud.com.ar/admin" />
+    <meta property="og:image" content="https://controlpeso.thiscloud.com.ar/images/og-image.png" />
+</HeadContent>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-4">
+        <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Class="mr-2" />
+        Panel de Administración
+    </MudText>
+
+    @if (_isLoadingDashboard)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    }
+    else if (_dashboard is null)
+    {
+        <MudAlert Severity="Severity.Error">Error al cargar el dashboard</MudAlert>
+    }
+    else
+    {
+        <!-- Dashboard Statistics -->
+        <MudGrid Spacing="3" Class="mb-6">
+            <!-- Total Users -->
+            <MudItem xs="12" sm="6" md="3">
+                <StatsCard 
+                    Title="Total Usuarios"
+                    Value="@((decimal)_dashboard.TotalUsers)"
+                    Icon="@Icons.Material.Filled.People"
+                    Color="Color.Primary" />
+            </MudItem>
+
+            <!-- Active Users -->
+            <MudItem xs="12" sm="6" md="3">
+                <StatsCard 
+                    Title="Usuarios Activos"
+                    Value="@((decimal)_dashboard.ActiveUsers)"
+                    Icon="@Icons.Material.Filled.CheckCircle"
+                    Color="Color.Success" />
+            </MudItem>
+
+            <!-- Pending Users -->
+            <MudItem xs="12" sm="6" md="3">
+                <StatsCard 
+                    Title="Usuarios Pendientes"
+                    Value="@((decimal)_dashboard.PendingUsers)"
+                    Icon="@Icons.Material.Filled.HourglassEmpty"
+                    Color="Color.Warning" />
+            </MudItem>
+
+            <!-- Inactive Users -->
+            <MudItem xs="12" sm="6" md="3">
+                <StatsCard 
+                    Title="Usuarios Inactivos"
+                    Value="@((decimal)_dashboard.InactiveUsers)"
+                    Icon="@Icons.Material.Filled.Block"
+                    Color="Color.Error" />
+            </MudItem>
+
+            <!-- Total Weight Logs -->
+            <MudItem xs="12" sm="6" md="4">
+                <StatsCard 
+                    Title="Registros Totales"
+                    Value="@((decimal)_dashboard.TotalWeightLogs)"
+                    Icon="@Icons.Material.Filled.FitnessCenter"
+                    Color="Color.Info" />
+            </MudItem>
+
+            <!-- Weight Logs Last Week -->
+            <MudItem xs="12" sm="6" md="4">
+                <StatsCard 
+                    Title="Últimos 7 días"
+                    Value="@((decimal)_dashboard.WeightLogsLastWeek)"
+                    Icon="@Icons.Material.Filled.CalendarToday"
+                    Color="Color.Secondary" />
+            </MudItem>
+
+            <!-- Weight Logs Last Month -->
+            <MudItem xs="12" sm="6" md="4">
+                <StatsCard 
+                    Title="Últimos 30 días"
+                    Value="@((decimal)_dashboard.WeightLogsLastMonth)"
+                    Icon="@Icons.Material.Filled.DateRange"
+                    Color="Color.Tertiary" />
+            </MudItem>
+
+            <!-- Latest Registration -->
+            @if (_dashboard.LatestUserRegistration.HasValue)
+            {
+                <MudItem xs="12">
+                    <MudCard Elevation="2">
+                        <MudCardContent>
+                            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                                <MudStack Spacing="1">
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                        Último registro
+                                    </MudText>
+                                    <MudText Typo="Typo.h6">
+                                        @_dashboard.LatestUserRegistration.Value.ToString("dd/MM/yyyy HH:mm")
+                                    </MudText>
+                                </MudStack>
+                                <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Size="Size.Large" Color="Color.Primary" />
+                            </MudStack>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+
+        <!-- Users Table -->
+        <MudCard Elevation="2">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">
+                        <MudIcon Icon="@Icons.Material.Filled.TableChart" Class="mr-2" />
+                        Gestión de Usuarios
+                    </MudText>
+                </CardHeaderContent>
+                <CardHeaderActions>
+                    <MudButton 
+                        Variant="Variant.Outlined" 
+                        Color="Color.Primary" 
+                        StartIcon="@Icons.Material.Filled.FileDownload"
+                        OnClick="@ExportToCSV"
+                        Disabled="@_isExporting">
+                        @if (_isExporting)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                        }
+                        else
+                        {
+                            <MudText>Exportar CSV</MudText>
+                        }
+                    </MudButton>
+                </CardHeaderActions>
+            </MudCardHeader>
+            <MudCardContent>
+                <!-- Filters -->
+                <MudPaper Elevation="0" Class="mb-4 pa-4" Style="background-color: var(--mud-palette-background-grey);">
+                    <MudGrid Spacing="2">
+                        <MudItem xs="12" md="4">
+                            <MudTextField 
+                                @bind-Value="_searchTerm"
+                                Label="Buscar por nombre o email"
+                                Variant="Variant.Outlined"
+                                Adornment="Adornment.Start"
+                                AdornmentIcon="@Icons.Material.Filled.Search"
+                                Immediate="false"
+                                DebounceInterval="500"
+                                OnDebounceIntervalElapsed="@OnSearchChanged" />
+                        </MudItem>
+                        <MudItem xs="12" md="3">
+                            <MudSelect 
+                                T="UserRole?"
+                                @bind-Value="_filterRole"
+                                Label="Filtrar por Rol"
+                                Variant="Variant.Outlined"
+                                Clearable="true"
+                                OnClearButtonClick="@(() => { _filterRole = null; _grid?.ReloadServerData(); })">
+                                <MudSelectItem T="UserRole?" Value="@UserRole.User">Usuario</MudSelectItem>
+                                <MudSelectItem T="UserRole?" Value="@UserRole.Administrator">Administrador</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" md="3">
+                            <MudSelect 
+                                T="UserStatus?"
+                                @bind-Value="_filterStatus"
+                                Label="Filtrar por Estado"
+                                Variant="Variant.Outlined"
+                                Clearable="true"
+                                OnClearButtonClick="@(() => { _filterStatus = null; _grid?.ReloadServerData(); })">
+                                <MudSelectItem T="UserStatus?" Value="@UserStatus.Active">Activo</MudSelectItem>
+                                <MudSelectItem T="UserStatus?" Value="@UserStatus.Inactive">Inactivo</MudSelectItem>
+                                <MudSelectItem T="UserStatus?" Value="@UserStatus.Pending">Pendiente</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" md="2">
+                            <MudButton 
+                                Variant="Variant.Filled" 
+                                Color="Color.Default"
+                                StartIcon="@Icons.Material.Filled.Clear"
+                                FullWidth="true"
+                                OnClick="@ClearFilters">
+                                Limpiar
+                            </MudButton>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+
+                <!-- DataGrid -->
+                <MudDataGrid 
+                    @ref="_grid"
+                    T="UserDto" 
+                    ServerData="LoadServerData"
+                    Dense="true"
+                    Hover="true"
+                    Striped="true"
+                    Loading="@_isLoadingGrid">
+                    <Columns>
+                        <PropertyColumn Property="x => x.AvatarUrl" Title="Avatar" Sortable="false">
+                            <CellTemplate>
+                                @if (!string.IsNullOrEmpty(context.Item.AvatarUrl))
+                                {
+                                    <MudAvatar src="@context.Item.AvatarUrl" Size="Size.Small" />
+                                }
+                                else
+                                {
+                                    <MudAvatar Color="Color.Primary" Size="Size.Small">
+                                        @context.Item.Name[0]
+                                    </MudAvatar>
+                                }
+                            </CellTemplate>
+                        </PropertyColumn>
+
+                        <PropertyColumn Property="x => x.Name" Title="Nombre" />
+
+                        <PropertyColumn Property="x => x.Email" Title="Email" />
+
+                        <PropertyColumn Property="x => x.Role" Title="Rol">
+                            <CellTemplate>
+                                <MudChip 
+                                    Size="Size.Small" 
+                                    Color="@GetRoleColor(context.Item.Role)">
+                                    @(context.Item.Role == UserRole.Administrator ? "Admin" : "Usuario")
+                                </MudChip>
+                            </CellTemplate>
+                        </PropertyColumn>
+
+                        <PropertyColumn Property="x => x.Status" Title="Estado">
+                            <CellTemplate>
+                                <MudChip 
+                                    Size="Size.Small" 
+                                    Color="@GetStatusColor(context.Item.Status)">
+                                    @GetStatusText(context.Item.Status)
+                                </MudChip>
+                            </CellTemplate>
+                        </PropertyColumn>
+
+                        <PropertyColumn Property="x => x.MemberSince" Title="Registro" Format="dd/MM/yyyy" />
+
+                        <TemplateColumn Title="Acciones" Sortable="false">
+                            <CellTemplate>
+                                <MudStack Row="true" Spacing="1">
+                                    <MudIconButton 
+                                        Icon="@Icons.Material.Filled.Security" 
+                                        Size="Size.Small" 
+                                        Color="Color.Primary"
+                                        OnClick="@(() => OpenChangeRoleDialog(context.Item))"
+                                        title="Cambiar Rol" />
+                                    <MudIconButton 
+                                        Icon="@Icons.Material.Filled.ToggleOn" 
+                                        Size="Size.Small" 
+                                        Color="Color.Secondary"
+                                        OnClick="@(() => OpenChangeStatusDialog(context.Item))"
+                                        title="Cambiar Estado" />
+                                </MudStack>
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager T="UserDto" PageSizeOptions="@(new[] { 10, 20, 50, 100 })" />
+                    </PagerContent>
+                    <NoRecordsContent>
+                        <MudText Typo="Typo.body1" Color="Color.Secondary" Align="Align.Center" Class="pa-4">
+                            No se encontraron usuarios
+                        </MudText>
+                    </NoRecordsContent>
+                </MudDataGrid>
+            </MudCardContent>
+        </MudCard>
+    }
+</MudContainer>
