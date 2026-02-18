@@ -4,8 +4,8 @@
 - Rama: `main` → `develop` → `feature/*`
 - Versión: **1.0.0**
 - Fecha inicio: **2026-02-15**
-- Última actualización: **2026-02-17 23:55**
-- Estado global: 🟢 **EN PROGRESO** — Fase 0 ✅ | Fase 1 ✅ | Fase 1.5 ✅ | Fase 2 ✅ | Fase 3 ✅ | Fase 4 ⏳ (4/8 tareas) | Fase 5 ⏳ | Fase 6 ⏳ | Fase 7 ⏳ | Fase 8 ⏳ (38/63 tareas = **60.3%** ejecutado)
+- Última actualización: **2026-02-18 00:10**
+- Estado global: 🟢 **EN PROGRESO** — Fase 0 ✅ | Fase 1 ✅ | Fase 1.5 ✅ | Fase 2 ✅ | Fase 3 ✅ | Fase 4 ⏳ (5/8 tareas) | Fase 5 ⏳ | Fase 6 ⏳ | Fase 7 ⏳ | Fase 8 ⏳ (39/63 tareas = **61.9%** ejecutado)
 
 ## Objetivo
 
@@ -1042,7 +1042,7 @@ Criterios de aceptación:
 | P4.1  | 4 | Google OAuth + LinkedIn OAuth config | 100% | ✅ |
 | P4.2  | 4 | AuthenticationExtensions (Google + LinkedIn) | 100% | ✅ |
 | P4.3  | 4 | Callback crear/actualizar user (ambos providers) | 100% | ✅ |
-| P4.4  | 4 | Login.razor (Google + LinkedIn buttons) | 0% | ⏳ |
+| P4.4  | 4 | Login.razor (Google + LinkedIn buttons) | 100% | ✅ |
 | P4.5  | 4 | Cookie segura | 100% | ✅ |
 | P4.6  | 4 | Logout | 0% | ⏳ |
 | P4.7  | 4 | [Authorize] en rutas | 0% | ⏳ |
