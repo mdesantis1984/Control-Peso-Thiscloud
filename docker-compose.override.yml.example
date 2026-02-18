@@ -25,7 +25,7 @@ services:
       #   - http://localhost:8080/signin-google
       #   - http://localhost:8080/auth/callback/google
       - Authentication__Google__ClientId=YOUR_GOOGLE_CLIENT_ID_HERE.apps.googleusercontent.com
-      - Authentication__Google__ClientSecret=GOCSPX-YOUR_GOOGLE_CLIENT_SECRET_HERE
+      - Authentication__Google__ClientSecret=YOUR_GOOGLE_CLIENT_SECRET_HERE
       
       # ============================================
       # LinkedIn OAuth (OBLIGATORIO)

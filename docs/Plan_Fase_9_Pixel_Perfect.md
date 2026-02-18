@@ -332,6 +332,54 @@ El proyecto tiene **backend 100% completo** (arquitectura, lógica de negocio, t
 
 ---
 
+## Tabla de Progreso (por tarea)
+
+| ID     | Fase | Tarea | % | Estado |
+|-------:|:----:|-------|---:|:------|
+| P9.1.1 | 9.1 | Capturar screenshots prototipo (6 páginas) | 0% | ⏳ |
+| P9.1.2 | 9.1 | Capturar screenshots actuales (3 viewports) | 0% | ⏳ |
+| P9.1.3 | 9.1 | Crear UI_DISCREPANCIES.md comparativo | 0% | ⏳ |
+| P9.2.1 | 9.2 | Definir sistema tipografía en ControlPesoTheme | 0% | ⏳ |
+| P9.2.2 | 9.2 | Aplicar tipografía consistente (6 componentes) | 0% | ⏳ |
+| P9.2.3 | 9.2 | Configurar font weights correctos | 0% | ⏳ |
+| P9.2.4 | 9.2 | Ajustar line-heights y letter-spacing | 0% | ⏳ |
+| P9.3.1 | 9.3 | Definir sistema espaciados (8pt grid) | 0% | ⏳ |
+| P9.3.2 | 9.3 | Auditar y corregir paddings | 0% | ⏳ |
+| P9.3.3 | 9.3 | Auditar y corregir margins entre secciones | 0% | ⏳ |
+| P9.3.4 | 9.3 | Configurar gaps en layouts flexbox/grid | 0% | ⏳ |
+| P9.3.5 | 9.3 | Responsive spacing adjustments | 0% | ⏳ |
+| P9.4.1 | 9.4 | Extraer paleta exacta prototipo (eyedropper) | 0% | ⏳ |
+| P9.4.2 | 9.4 | Actualizar ControlPesoTheme con paleta exacta | 0% | ⏳ |
+| P9.4.3 | 9.4 | Revisar contraste WCAG AA (WebAIM Checker) | 0% | ⏳ |
+| P9.4.4 | 9.4 | Aplicar estados hover/active/disabled | 0% | ⏳ |
+| P9.5.1 | 9.5 | Refinar MainLayout.razor (AppBar + Drawer) | 0% | ⏳ |
+| P9.5.2 | 9.5 | Refinar Dashboard.razor (Grid + FAB) | 0% | ⏳ |
+| P9.5.3 | 9.5 | Refinar StatsCard.razor (padding + icon + fonts) | 0% | ⏳ |
+| P9.5.4 | 9.5 | Refinar WeightChart.razor (MudChart config) | 0% | ⏳ |
+| P9.5.5 | 9.5 | Refinar AddWeightDialog.razor (Dialog MaxWidth) | 0% | ⏳ |
+| P9.5.6 | 9.5 | Refinar History.razor (MudDataGrid rows/cells) | 0% | ⏳ |
+| P9.5.7 | 9.5 | Refinar Profile.razor (Avatar + form layout) | 0% | ⏳ |
+| P9.5.8 | 9.5 | Refinar Admin.razor (Stats grid + table) | 0% | ⏳ |
+| P9.6.1 | 9.6 | Auditar todos los iconos usados | 0% | ⏳ |
+| P9.6.2 | 9.6 | Alinear iconografía con prototipo | 0% | ⏳ |
+| P9.6.3 | 9.6 | Configurar icon buttons y FABs | 0% | ⏳ |
+| P9.7.1 | 9.7 | Configurar transiciones MudBlazor (300ms) | 0% | ⏳ |
+| P9.7.2 | 9.7 | Configurar page transitions (fade 150ms) | 0% | ⏳ |
+| P9.7.3 | 9.7 | Configurar skeleton loaders (4 páginas) | 0% | ⏳ |
+| P9.7.4 | 9.7 | Configurar loading indicators (global + local) | 0% | ⏳ |
+| P9.8.1 | 9.8 | Definir breakpoints en ControlPesoTheme | 0% | ⏳ |
+| P9.8.2 | 9.8 | Optimizar Desktop (LG, XL) | 0% | ⏳ |
+| P9.8.3 | 9.8 | Optimizar Tablet (SM, MD) | 0% | ⏳ |
+| P9.8.4 | 9.8 | Optimizar Mobile (XS) | 0% | ⏳ |
+| P9.9.1 | 9.9 | Optimizar render performance (@key, virtualize) | 0% | ⏳ |
+| P9.9.2 | 9.9 | Optimizar asset loading (lazy, preload) | 0% | ⏳ |
+| P9.9.3 | 9.9 | Run Lighthouse audit (90+ target) | 0% | ⏳ |
+| P9.9.4 | 9.9 | Optimizar bundle size (tree-shaking, compress) | 0% | ⏳ |
+
+**Progreso Total Fase 9**: 0/35 tareas (0%)
+
+---
+
 ## Estimación
 
 - **Tiempo estimado**: 30-40 horas
