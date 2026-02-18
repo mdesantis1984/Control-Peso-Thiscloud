@@ -58,6 +58,27 @@ app.UseAuthorization();
 
 app.UseAntiforgery();
 
+// OAuth Challenge endpoints
+app.MapGet("/api/auth/login/google", (string? returnUrl) =>
+{
+    var properties = new Microsoft.AspNetCore.Authentication.AuthenticationProperties
+    {
+        RedirectUri = returnUrl ?? "/"
+    };
+    return Results.Challenge(properties, ["Google"]);
+})
+.AllowAnonymous();
+
+app.MapGet("/api/auth/login/linkedin", (string? returnUrl) =>
+{
+    var properties = new Microsoft.AspNetCore.Authentication.AuthenticationProperties
+    {
+        RedirectUri = returnUrl ?? "/"
+    };
+    return Results.Challenge(properties, ["LinkedIn"]);
+})
+.AllowAnonymous();
+
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
