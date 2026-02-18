@@ -44,8 +44,8 @@ public static class EndpointExtensions
         })
         .WithName("LoginLinkedIn");
 
-        // Logout endpoint (POST para seguridad anti-CSRF)
-        authGroup.MapPost("/logout", async (HttpContext context, string? returnUrl) =>
+        // Logout endpoint (GET para compatibilidad con Blazor NavigationManager)
+        authGroup.MapGet("/logout", async (HttpContext context, string? returnUrl) =>
         {
             await context.SignOutAsync();
             return Results.Redirect(returnUrl ?? "/login");
