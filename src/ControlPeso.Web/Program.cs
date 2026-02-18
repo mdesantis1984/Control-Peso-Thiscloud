@@ -1,6 +1,7 @@
 using ControlPeso.Application.Extensions;
 using ControlPeso.Infrastructure.Extensions;
 using ControlPeso.Web.Components;
+using ControlPeso.Web.Extensions;
 using MudBlazor.Services;
 using ThisCloud.Framework.Loggings.Serilog;
 
@@ -29,49 +30,8 @@ builder.Services.AddRazorComponents()
 // 6. Add MudBlazor services
 builder.Services.AddMudServices();
 
-// 7. Add Authentication & Authorization
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultScheme = "Cookies";
-    options.DefaultChallengeScheme = "Google";
-})
-.AddCookie("Cookies", options =>
-{
-    options.LoginPath = "/login";
-    options.LogoutPath = "/logout";
-    options.AccessDeniedPath = "/access-denied";
-    options.Cookie.HttpOnly = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    options.Cookie.SameSite = SameSiteMode.Lax;
-    options.ExpireTimeSpan = TimeSpan.FromDays(30);
-    options.SlidingExpiration = true;
-})
-.AddGoogle("Google", options =>
-{
-    var googleConfig = builder.Configuration.GetSection("Authentication:Google");
-    options.ClientId = googleConfig["ClientId"] ?? throw new InvalidOperationException("Google ClientId not configured");
-    options.ClientSecret = googleConfig["ClientSecret"] ?? throw new InvalidOperationException("Google ClientSecret not configured");
-    options.SaveTokens = true;
-
-    // Scopes para obtener información del usuario
-    options.Scope.Add("profile");
-    options.Scope.Add("email");
-})
-.AddLinkedIn(options =>
-{
-    var linkedInConfig = builder.Configuration.GetSection("Authentication:LinkedIn");
-    options.ClientId = linkedInConfig["ClientId"] ?? throw new InvalidOperationException("LinkedIn ClientId not configured");
-    options.ClientSecret = linkedInConfig["ClientSecret"] ?? throw new InvalidOperationException("LinkedIn ClientSecret not configured");
-    options.SaveTokens = true;
-
-    // Scopes para obtener información del usuario de LinkedIn
-    options.Scope.Add("openid");
-    options.Scope.Add("profile");
-    options.Scope.Add("email");
-});
-
-builder.Services.AddAuthorization();
-builder.Services.AddCascadingAuthenticationState();
+// 7. Add Authentication & Authorization (Google OAuth + LinkedIn OAuth)
+builder.Services.AddOAuthAuthentication(builder.Configuration);
 
 var app = builder.Build();
 
