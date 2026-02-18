@@ -1,30 +1,65 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">ControlPeso.Web</a>
+@namespace ControlPeso.Web.Components.Layout
+
+<MudNavMenu>
+    <MudText Typo="Typo.h6" Class="px-4 py-4">Navegación</MudText>
+    <MudDivider Class="mb-2" />
+
+    <AuthorizeView>
+        <Authorized>
+            <MudNavLink Href="/dashboard" 
+                        Icon="@Icons.Material.Filled.Dashboard" 
+                        Match="NavLinkMatch.All">
+                Dashboard
+            </MudNavLink>
+
+            <MudNavLink Href="/history" 
+                        Icon="@Icons.Material.Filled.History">
+                Historial
+            </MudNavLink>
+
+            <MudNavLink Href="/trends" 
+                        Icon="@Icons.Material.Filled.TrendingUp">
+                Tendencias
+            </MudNavLink>
+
+            <MudNavLink Href="/profile" 
+                        Icon="@Icons.Material.Filled.Person">
+                Perfil
+            </MudNavLink>
+
+            @if (_isAdmin)
+            {
+                <MudDivider Class="my-4" />
+                <MudText Typo="Typo.caption" Class="px-4 mud-text-secondary">Administración</MudText>
+
+                <MudNavLink Href="/admin" 
+                            Icon="@Icons.Material.Filled.AdminPanelSettings"
+                            IconColor="Color.Warning">
+                    Panel Admin
+                </MudNavLink>
+            }
+        </Authorized>
+        <NotAuthorized>
+            <MudNavLink Href="/" 
+                        Icon="@Icons.Material.Filled.Home" 
+                        Match="NavLinkMatch.All">
+                Inicio
+            </MudNavLink>
+
+            <MudNavLink Href="/login" 
+                        Icon="@Icons.Material.Filled.Login">
+                Iniciar Sesión
+            </MudNavLink>
+        </NotAuthorized>
+    </AuthorizeView>
+
+    <MudSpacer />
+
+    <div class="px-4 py-4">
+        <MudText Typo="Typo.caption" Class="mud-text-secondary">
+            Control Peso Thiscloud v1.0
+        </MudText>
     </div>
-</div>
+</MudNavMenu>
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
-
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
-    </nav>
-</div>
 
