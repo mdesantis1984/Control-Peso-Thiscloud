@@ -1,5 +1,7 @@
+using ControlPeso.Application.DTOs;
+using ControlPeso.Application.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.OAuth.Claims;
+using Microsoft.AspNetCore.Authentication.OAuth;
 
 namespace ControlPeso.Web.Extensions;
 
@@ -80,6 +82,45 @@ public static class AuthenticationExtensions
         // Scopes para obtener información del usuario
         options.Scope.Add("profile");
         options.Scope.Add("email");
+
+        // Event handler: callback después de autenticación exitosa
+        options.Events = new OAuthEvents
+        {
+            OnCreatingTicket = async context =>
+            {
+                // Obtener servicio de usuario desde DI
+                var userService = context.HttpContext.RequestServices
+                    .GetRequiredService<IUserService>();
+
+                // Extraer claims del proveedor OAuth (Google)
+                var externalId = context.Principal?.FindFirst("sub")?.Value
+                    ?? throw new InvalidOperationException("Google 'sub' claim is missing");
+
+                var name = context.Principal?.FindFirst("name")?.Value
+                    ?? string.Empty;
+
+                var email = context.Principal?.FindFirst("email")?.Value
+                    ?? throw new InvalidOperationException("Google 'email' claim is missing");
+
+                var avatarUrl = context.Principal?.FindFirst("picture")?.Value;
+
+                // Crear DTO genérico de OAuth
+                var oauthInfo = new OAuthUserInfo
+                {
+                    Provider = "Google",
+                    ExternalId = externalId,
+                    Name = name,
+                    Email = email,
+                    AvatarUrl = avatarUrl
+                };
+
+                // Crear o actualizar usuario en DB
+                var user = await userService.CreateOrUpdateFromOAuthAsync(oauthInfo);
+
+                // Aquí se pueden agregar claims personalizados si es necesario
+                // context.Identity.AddClaim(new Claim("UserId", user.Id.ToString()));
+            }
+        };
     }
 
     /// <summary>
@@ -103,5 +144,44 @@ public static class AuthenticationExtensions
         options.Scope.Add("openid");
         options.Scope.Add("profile");
         options.Scope.Add("email");
+
+        // Event handler: callback después de autenticación exitosa
+        options.Events = new OAuthEvents
+        {
+            OnCreatingTicket = async context =>
+            {
+                // Obtener servicio de usuario desde DI
+                var userService = context.HttpContext.RequestServices
+                    .GetRequiredService<IUserService>();
+
+                // Extraer claims del proveedor OAuth (LinkedIn)
+                var externalId = context.Principal?.FindFirst("sub")?.Value
+                    ?? throw new InvalidOperationException("LinkedIn 'sub' claim is missing");
+
+                var name = context.Principal?.FindFirst("name")?.Value
+                    ?? string.Empty;
+
+                var email = context.Principal?.FindFirst("email")?.Value
+                    ?? throw new InvalidOperationException("LinkedIn 'email' claim is missing");
+
+                var avatarUrl = context.Principal?.FindFirst("picture")?.Value;
+
+                // Crear DTO genérico de OAuth
+                var oauthInfo = new OAuthUserInfo
+                {
+                    Provider = "LinkedIn",
+                    ExternalId = externalId,
+                    Name = name,
+                    Email = email,
+                    AvatarUrl = avatarUrl
+                };
+
+                // Crear o actualizar usuario en DB
+                var user = await userService.CreateOrUpdateFromOAuthAsync(oauthInfo);
+
+                // Aquí se pueden agregar claims personalizados si es necesario
+                // context.Identity.AddClaim(new Claim("UserId", user.Id.ToString()));
+            }
+        };
     }
 }

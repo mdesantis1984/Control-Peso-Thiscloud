@@ -92,6 +92,41 @@ public sealed class UserService : IUserService
     }
 
     /// <summary>
+    /// Obtiene un usuario por su LinkedIn ID.
+    /// Nota: Requiere P4.8 (agregar columna LinkedInId a Users table).
+    /// </summary>
+    public async Task<UserDto?> GetByLinkedInIdAsync(string linkedInId, CancellationToken ct = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(linkedInId);
+
+        _logger.LogInformation("Getting user by LinkedIn ID: {LinkedInId}", linkedInId);
+
+        try
+        {
+            // Nota: LinkedInId column no existe aún (P4.8 pending)
+            // Esta query fallará hasta que se agregue la columna en schema SQL y re-scaffold
+            var user = await _context.Set<Users>()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => EF.Property<string>(u, "LinkedInId") == linkedInId, ct);
+
+            if (user is null)
+            {
+                _logger.LogWarning("User not found with LinkedIn ID: {LinkedInId}", linkedInId);
+                return null;
+            }
+
+            var dto = UserMapper.ToDto(user);
+            _logger.LogInformation("User retrieved by LinkedIn ID: {UserId}, Email: {Email}", dto.Id, dto.Email);
+            return dto;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting user by LinkedIn ID: {LinkedInId}", linkedInId);
+            throw;
+        }
+    }
+
+    /// <summary>
     /// Crea o actualiza un usuario desde información de Google OAuth.
     /// Si el usuario existe (por GoogleId), actualiza Name, Email, AvatarUrl.
     /// Si no existe, crea uno nuevo con status Active y role User.
@@ -155,6 +190,97 @@ public sealed class UserService : IUserService
             _logger.LogError(ex,
                 "Unexpected error creating/updating user from Google OAuth - GoogleId: {GoogleId}, Email: {Email}",
                 googleInfo.GoogleId, googleInfo.Email);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Crea o actualiza un usuario desde información de OAuth genérico (Google o LinkedIn).
+    /// Query por provider-specific ID (GoogleId o LinkedInId).
+    /// Si existe, actualiza Name, Email, AvatarUrl.
+    /// Si no existe, crea uno nuevo con status Active y role User.
+    /// Nota: LinkedIn requiere P4.8 (columna LinkedInId).
+    /// </summary>
+    public async Task<UserDto> CreateOrUpdateFromOAuthAsync(OAuthUserInfo oauthInfo, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(oauthInfo);
+        ArgumentException.ThrowIfNullOrWhiteSpace(oauthInfo.Provider);
+        ArgumentException.ThrowIfNullOrWhiteSpace(oauthInfo.ExternalId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(oauthInfo.Email);
+        ArgumentException.ThrowIfNullOrWhiteSpace(oauthInfo.Name);
+
+        _logger.LogInformation(
+            "Creating or updating user from OAuth - Provider: {Provider}, ExternalId: {ExternalId}, Email: {Email}, Name: {Name}",
+            oauthInfo.Provider, oauthInfo.ExternalId, oauthInfo.Email, oauthInfo.Name);
+
+        try
+        {
+            // Query by provider-specific ID
+            Users? existingUser = oauthInfo.Provider switch
+            {
+                "Google" => await _context.Set<Users>()
+                    .FirstOrDefaultAsync(u => u.GoogleId == oauthInfo.ExternalId, ct),
+
+                "LinkedIn" => await _context.Set<Users>()
+                    .FirstOrDefaultAsync(u => EF.Property<string>(u, "LinkedInId") == oauthInfo.ExternalId, ct),
+
+                _ => throw new NotSupportedException($"OAuth provider '{oauthInfo.Provider}' is not supported. Supported providers: Google, LinkedIn")
+            };
+
+            if (existingUser is not null)
+            {
+                // Update existing user
+                _logger.LogInformation(
+                    "User exists, updating: {UserId} - Provider: {Provider}",
+                    existingUser.Id, oauthInfo.Provider);
+
+                UserMapper.UpdateFromOAuth(existingUser, oauthInfo);
+
+                await _context.SaveChangesAsync(ct);
+
+                var updatedDto = UserMapper.ToDto(existingUser);
+                _logger.LogInformation(
+                    "User updated from {Provider} OAuth: {UserId}, Email: {Email}, AvatarUrl: {HasAvatar}",
+                    oauthInfo.Provider, updatedDto.Id, updatedDto.Email, updatedDto.AvatarUrl is not null);
+
+                return updatedDto;
+            }
+
+            // Create new user
+            _logger.LogInformation(
+                "User does not exist, creating new user - Provider: {Provider}",
+                oauthInfo.Provider);
+
+            var newUser = UserMapper.ToEntity(oauthInfo);
+            _context.Set<Users>().Add(newUser);
+            await _context.SaveChangesAsync(ct);
+
+            var createdDto = UserMapper.ToDto(newUser);
+            _logger.LogInformation(
+                "User created from {Provider} OAuth: {UserId}, Email: {Email}, Role: {Role}, Status: {Status}",
+                oauthInfo.Provider, createdDto.Id, createdDto.Email, createdDto.Role, createdDto.Status);
+
+            return createdDto;
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogError(ex,
+                "Database error creating/updating user from {Provider} OAuth - ExternalId: {ExternalId}, Email: {Email}",
+                oauthInfo.Provider, oauthInfo.ExternalId, oauthInfo.Email);
+            throw;
+        }
+        catch (NotSupportedException ex)
+        {
+            _logger.LogError(ex,
+                "Unsupported OAuth provider: {Provider}",
+                oauthInfo.Provider);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Unexpected error creating/updating user from {Provider} OAuth - ExternalId: {ExternalId}, Email: {Email}",
+                oauthInfo.Provider, oauthInfo.ExternalId, oauthInfo.Email);
             throw;
         }
     }
