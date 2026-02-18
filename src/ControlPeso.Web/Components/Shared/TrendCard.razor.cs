@@ -13,7 +13,7 @@ public partial class TrendCard
     [Parameter] public Color IconColor { get; set; } = Color.Primary;
     [Parameter] public bool ShowChange { get; set; } = true;
     [Parameter] public int DecimalPlaces { get; set; } = 1;
-    
+
     /// <summary>
     /// Para peso: true = menor es mejor (verde cuando baja)
     /// Para otras métricas: false = mayor es mejor (verde cuando sube)
@@ -24,7 +24,8 @@ public partial class TrendCard
     {
         get
         {
-            if (PreviousValue is null || PreviousValue == 0) return null;
+            if (PreviousValue is null || PreviousValue == 0)
+                return null;
             return ((CurrentValue - PreviousValue.Value) / PreviousValue.Value) * 100;
         }
     }
@@ -33,10 +34,11 @@ public partial class TrendCard
 
     private Color GetChangeColor()
     {
-        if (PercentageChange is null) return Color.Default;
-        
+        if (PercentageChange is null)
+            return Color.Default;
+
         var isIncrease = PercentageChange > 0;
-        
+
         // Si LowerIsBetter (peso): verde cuando baja (negative %), rojo cuando sube (positive %)
         // Si !LowerIsBetter (otros): verde cuando sube (positive %), rojo cuando baja (negative %)
         if (LowerIsBetter)
@@ -51,19 +53,21 @@ public partial class TrendCard
 
     private string GetChangeIcon()
     {
-        if (PercentageChange is null) return Icons.Material.Filled.TrendingFlat;
-        return PercentageChange > 0 
-            ? Icons.Material.Filled.TrendingUp 
+        if (PercentageChange is null)
+            return Icons.Material.Filled.TrendingFlat;
+        return PercentageChange > 0
+            ? Icons.Material.Filled.TrendingUp
             : Icons.Material.Filled.TrendingDown;
     }
 
     private string GetChangeText()
     {
-        if (PercentageChange is null) return "Sin datos previos";
-        
+        if (PercentageChange is null)
+            return "Sin datos previos";
+
         var absChange = Math.Abs(PercentageChange.Value);
         var direction = PercentageChange > 0 ? "↑" : "↓";
-        
+
         return $"{direction} {absChange:F1}%";
     }
 }

@@ -1,8 +1,5 @@
-using ControlPeso.Infrastructure;
 using ControlPeso.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ControlPeso.Infrastructure.Tests.Helpers;
 

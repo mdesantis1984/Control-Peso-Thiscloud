@@ -28,12 +28,12 @@
 
             <MudNumericField @bind-Value="_weight"
                              Label="Peso"
-                             Suffix="kg"
+                             Adornment="Adornment.End"
+                             AdornmentText="kg"
                              Required="true"
                              Min="20"
                              Max="500"
                              Step="0.1M"
-                             Color="Color.Primary"
                              Variant="Variant.Outlined"
                              Class="mb-4"
                              HelperText="Ingrese su peso en kilogramos" />

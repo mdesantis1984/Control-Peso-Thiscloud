@@ -9,16 +9,16 @@ namespace ControlPeso.Application.DTOs;
 public sealed record UpdateUserProfileDto
 {
     public required string Name { get; init; }
-    
+
     /// <summary>
     /// Altura en centímetros (siempre cm).
     /// </summary>
     public required decimal Height { get; init; }
-    
+
     public required UnitSystem UnitSystem { get; init; }
     public DateOnly? DateOfBirth { get; init; }
     public required string Language { get; init; }
-    
+
     /// <summary>
     /// Peso objetivo en kilogramos (siempre kg).
     /// </summary>

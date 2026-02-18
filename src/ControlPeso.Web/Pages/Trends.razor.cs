@@ -97,7 +97,8 @@ public partial class Trends
 
     private void CalculateMetrics()
     {
-        if (_logs.Count == 0) return;
+        if (_logs.Count == 0)
+            return;
 
         // Métricas básicas
         _currentWeight = _logs.Last().Weight;
@@ -108,7 +109,7 @@ public partial class Trends
 
         // Últimos 7 días vs anteriores 7 días
         var last7Days = _logs.Where(x => x.Date >= DateOnly.FromDateTime(DateTime.Today.AddDays(-7))).ToList();
-        var previous7Days = _logs.Where(x => x.Date >= DateOnly.FromDateTime(DateTime.Today.AddDays(-14)) 
+        var previous7Days = _logs.Where(x => x.Date >= DateOnly.FromDateTime(DateTime.Today.AddDays(-14))
                                             && x.Date < DateOnly.FromDateTime(DateTime.Today.AddDays(-7))).ToList();
 
         _last7DaysAvg = last7Days.Count > 0 ? last7Days.Average(x => x.Weight) : _currentWeight;
@@ -116,7 +117,7 @@ public partial class Trends
 
         // Últimos 30 días vs anteriores 30 días
         var last30Days = _logs.Where(x => x.Date >= DateOnly.FromDateTime(DateTime.Today.AddDays(-30))).ToList();
-        var previous30Days = _logs.Where(x => x.Date >= DateOnly.FromDateTime(DateTime.Today.AddDays(-60)) 
+        var previous30Days = _logs.Where(x => x.Date >= DateOnly.FromDateTime(DateTime.Today.AddDays(-60))
                                              && x.Date < DateOnly.FromDateTime(DateTime.Today.AddDays(-30))).ToList();
 
         _last30DaysAvg = last30Days.Count > 0 ? last30Days.Average(x => x.Weight) : _currentWeight;
@@ -135,13 +136,14 @@ public partial class Trends
             }
         }
 
-        Logger.LogDebug("Metrics calculated - Current: {Current}kg, Avg: {Avg}kg, Projection: {Proj}kg", 
+        Logger.LogDebug("Metrics calculated - Current: {Current}kg, Avg: {Avg}kg, Projection: {Proj}kg",
             _currentWeight, _overallAverage, _projectedWeight);
     }
 
     private Color GetProjectionColor()
     {
-        if (!_projectedWeight.HasValue) return Color.Default;
+        if (!_projectedWeight.HasValue)
+            return Color.Default;
 
         // Verde si la proyección es menor que el peso actual (bajando)
         // Naranja si es mayor (subiendo)

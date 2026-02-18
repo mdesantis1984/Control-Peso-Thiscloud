@@ -3,7 +3,6 @@ using ControlPeso.Application.Filters;
 using ControlPeso.Application.Interfaces;
 using ControlPeso.Application.Mapping;
 using ControlPeso.Domain.Entities;
-using ControlPeso.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -352,7 +351,7 @@ public sealed class UserService : IUserService
             {
                 var searchLower = filter.SearchTerm.ToLowerInvariant();
                 query = query.Where(u =>
-                    u.Name.ToLower().Contains(searchLower) ||
+                    u.Name.Contains(searchLower, StringComparison.CurrentCultureIgnoreCase) ||
                     u.Email.ToLower().Contains(searchLower));
             }
 

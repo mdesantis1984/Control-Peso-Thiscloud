@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using MudBlazor;
 
 namespace ControlPeso.Web.Components.Layout;
 
@@ -30,10 +29,10 @@ public partial class MainLayout
     {
         _isDarkMode = !_isDarkMode;
         Logger.LogInformation("MainLayout: Dark mode toggled - DarkMode: {IsDarkMode}", _isDarkMode);
-        
+
         // TODO: P5.8 - Guardar preferencia en UserPreferences cuando se implemente
         // await UserPreferencesService.UpdateDarkModeAsync(_isDarkMode);
-        
+
         StateHasChanged();
     }
 

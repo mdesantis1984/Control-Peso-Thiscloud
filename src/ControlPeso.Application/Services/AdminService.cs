@@ -2,7 +2,6 @@ using System.Text.Json;
 using ControlPeso.Application.DTOs;
 using ControlPeso.Application.Filters;
 using ControlPeso.Application.Interfaces;
-using ControlPeso.Application.Mapping;
 using ControlPeso.Domain.Entities;
 using ControlPeso.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -145,7 +144,7 @@ public sealed class AdminService : IAdminService
             }
 
             var oldRole = (UserRole)user.Role;
-            
+
             if (oldRole == role)
             {
                 _logger.LogInformation("User role already set to {Role}, no update needed: {UserId}", role, userId);
@@ -217,7 +216,7 @@ public sealed class AdminService : IAdminService
             }
 
             var oldStatus = (UserStatus)user.Status;
-            
+
             if (oldStatus == status)
             {
                 _logger.LogInformation("User status already set to {Status}, no update needed: {UserId}", status, userId);

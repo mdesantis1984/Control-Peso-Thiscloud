@@ -201,7 +201,7 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
         // Assert
         Assert.NotNull(stats);
         Assert.True(stats.TotalRecords > 0);
-        
+
         if (stats.AverageWeight.HasValue && stats.MinWeight.HasValue && stats.MaxWeight.HasValue)
         {
             Assert.True(stats.AverageWeight.Value > 0);

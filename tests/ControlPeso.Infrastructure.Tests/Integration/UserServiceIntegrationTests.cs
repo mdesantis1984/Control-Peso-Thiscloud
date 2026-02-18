@@ -51,7 +51,7 @@ public sealed class UserServiceIntegrationTests : IDisposable
         var existingUser = await _context.Users.FirstAsync();
 
         // Act
-        var result = await service.GetByGoogleIdAsync(existingUser.GoogleId);
+        var result = await service.GetByGoogleIdAsync(existingUser.GoogleId!);
 
         // Assert
         Assert.NotNull(result);
@@ -104,7 +104,7 @@ public sealed class UserServiceIntegrationTests : IDisposable
 
         var googleInfo = new GoogleUserInfo
         {
-            GoogleId = existingUser.GoogleId,
+            GoogleId = existingUser.GoogleId!,
             Name = "Updated Name From Google",
             Email = existingUser.Email,
             AvatarUrl = "https://new-avatar-url.com/updated.jpg"

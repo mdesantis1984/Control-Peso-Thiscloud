@@ -1,4 +1,3 @@
-using ControlPeso.Application.DTOs;
 using ControlPeso.Application.Filters;
 using ControlPeso.Application.Services;
 using ControlPeso.Domain.Entities;
@@ -21,7 +20,7 @@ public sealed class TrendServiceTests : IDisposable
         var options = new DbContextOptionsBuilder<DbContext>()
             .UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}")
             .Options;
-        
+
         _context = new TestDbContext(options);
         _loggerMock = new Mock<ILogger<TrendService>>();
         _service = new TrendService(_context, _loggerMock.Object);
@@ -263,7 +262,7 @@ public sealed class TrendServiceTests : IDisposable
         // Crear registros con tendencia lineal descendente (75kg → 70kg en 30 días)
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var thirtyDaysAgo = today.AddDays(-30);
-        
+
         var logs = new List<WeightLogs>
         {
             CreateWeightLog(userId, thirtyDaysAgo, 75.0),
@@ -295,7 +294,7 @@ public sealed class TrendServiceTests : IDisposable
         // Crear registros con tendencia fuerte hacia el objetivo
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var thirtyDaysAgo = today.AddDays(-30);
-        
+
         var logs = new List<WeightLogs>
         {
             CreateWeightLog(userId, thirtyDaysAgo, 75.0),
@@ -325,7 +324,7 @@ public sealed class TrendServiceTests : IDisposable
         // Crear registros con tendencia ascendente (opuesta al objetivo)
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var thirtyDaysAgo = today.AddDays(-30);
-        
+
         var logs = new List<WeightLogs>
         {
             CreateWeightLog(userId, thirtyDaysAgo, 70.0),
@@ -355,7 +354,7 @@ public sealed class TrendServiceTests : IDisposable
         // Crear registros con tendencia
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var thirtyDaysAgo = today.AddDays(-30);
-        
+
         var logs = new List<WeightLogs>
         {
             CreateWeightLog(userId, thirtyDaysAgo, 75.0),
@@ -391,7 +390,7 @@ public sealed class TrendServiceTests : IDisposable
 
     #region Helper Methods
 
-    private Users CreateUserEntity(Guid id)
+    private static Users CreateUserEntity(Guid id)
     {
         return new Users
         {
@@ -410,7 +409,7 @@ public sealed class TrendServiceTests : IDisposable
         };
     }
 
-    private WeightLogs CreateWeightLog(Guid userId, DateOnly date, double weight)
+    private static WeightLogs CreateWeightLog(Guid userId, DateOnly date, double weight)
     {
         return new WeightLogs
         {

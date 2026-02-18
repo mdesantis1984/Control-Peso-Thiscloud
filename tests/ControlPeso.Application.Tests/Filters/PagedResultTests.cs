@@ -16,14 +16,14 @@ public sealed class PagedResultTests
             PageSize = 2,
             TotalCount = 10
         };
-        
+
         // Act
         var totalPages = result.TotalPages;
-        
+
         // Assert
         totalPages.Should().Be(5); // 10 / 2 = 5
     }
-    
+
     [Fact]
     public void TotalPages_WithRemainder_RoundsUp()
     {
@@ -35,14 +35,14 @@ public sealed class PagedResultTests
             PageSize = 3,
             TotalCount = 10
         };
-        
+
         // Act
         var totalPages = result.TotalPages;
-        
+
         // Assert
         totalPages.Should().Be(4); // Ceiling(10 / 3) = 4
     }
-    
+
     [Fact]
     public void TotalPages_WithZeroItems_ReturnsZero()
     {
@@ -54,14 +54,14 @@ public sealed class PagedResultTests
             PageSize = 10,
             TotalCount = 0
         };
-        
+
         // Act
         var totalPages = result.TotalPages;
-        
+
         // Assert
         totalPages.Should().Be(0);
     }
-    
+
     [Fact]
     public void HasPreviousPage_WhenOnFirstPage_ReturnsFalse()
     {
@@ -73,11 +73,11 @@ public sealed class PagedResultTests
             PageSize = 10,
             TotalCount = 50
         };
-        
+
         // Act & Assert
         result.HasPreviousPage.Should().BeFalse();
     }
-    
+
     [Fact]
     public void HasPreviousPage_WhenOnSecondPage_ReturnsTrue()
     {
@@ -89,11 +89,11 @@ public sealed class PagedResultTests
             PageSize = 10,
             TotalCount = 50
         };
-        
+
         // Act & Assert
         result.HasPreviousPage.Should().BeTrue();
     }
-    
+
     [Fact]
     public void HasNextPage_WhenOnLastPage_ReturnsFalse()
     {
@@ -105,11 +105,11 @@ public sealed class PagedResultTests
             PageSize = 10,
             TotalCount = 50
         };
-        
+
         // Act & Assert
         result.HasNextPage.Should().BeFalse();
     }
-    
+
     [Fact]
     public void HasNextPage_WhenNotOnLastPage_ReturnsTrue()
     {
@@ -121,11 +121,11 @@ public sealed class PagedResultTests
             PageSize = 10,
             TotalCount = 50
         };
-        
+
         // Act & Assert
         result.HasNextPage.Should().BeTrue();
     }
-    
+
     [Fact]
     public void PagedResult_WithSingleItem_ReturnsCorrectProperties()
     {
@@ -137,7 +137,7 @@ public sealed class PagedResultTests
             PageSize = 1,
             TotalCount = 1
         };
-        
+
         // Assert
         result.Items.Should().ContainSingle().Which.Should().Be(42);
         result.Page.Should().Be(1);
