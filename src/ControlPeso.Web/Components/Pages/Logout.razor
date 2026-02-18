@@ -1,0 +1,37 @@
+@page "/logout"
+@layout MainLayout
+@attribute [Authorize]
+
+<PageTitle>Cerrar Sesión - Control Peso Thiscloud</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center justify-center" Style="min-height: 100vh;">
+    <MudPaper Elevation="4" Class="pa-8" Style="width: 100%; max-width: 450px;">
+        <MudStack Spacing="4" AlignItems="AlignItems.Center">
+            <MudIcon Icon="@Icons.Material.Filled.Logout" Size="Size.Large" Color="Color.Warning" />
+            <MudText Typo="Typo.h5" Align="Align.Center">Cerrar Sesión</MudText>
+            <MudText Typo="Typo.body1" Align="Align.Center" Color="Color.Secondary">
+                ¿Estás seguro de que deseas cerrar sesión?
+            </MudText>
+
+            <MudStack Spacing="2" Style="width: 100%;">
+                <MudButton 
+                    Variant="Variant.Filled" 
+                    Color="Color.Primary"
+                    Size="Size.Large"
+                    FullWidth="true"
+                    OnClick="ConfirmLogout">
+                    Sí, cerrar sesión
+                </MudButton>
+
+                <MudButton 
+                    Variant="Variant.Outlined" 
+                    Color="Color.Default"
+                    Size="Size.Large"
+                    FullWidth="true"
+                    OnClick="Cancel">
+                    Cancelar
+                </MudButton>
+            </MudStack>
+        </MudStack>
+    </MudPaper>
+</MudContainer>
