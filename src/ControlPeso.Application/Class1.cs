@@ -1,4 +1,4 @@
-﻿namespace ControlPeso.Application;
+namespace ControlPeso.Application;
 
 public class Class1
 {

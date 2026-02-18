@@ -1,4 +1,4 @@
-﻿namespace ControlPeso.Domain.Tests;
+namespace ControlPeso.Domain.Tests;
 
 public class UnitTest1
 {
