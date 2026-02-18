@@ -1,0 +1,24 @@
+@using MudBlazor
+
+<MudCard Elevation="2">
+    <MudCardContent>
+        <MudStack Spacing="2">
+            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                <MudText Typo="Typo.body2" Color="Color.Secondary">@Title</MudText>
+                <MudIcon Icon="@Icon" Color="@IconColor" Size="Size.Large" />
+            </MudStack>
+
+            <MudText Typo="Typo.h4">@FormattedValue</MudText>
+
+            @if (ShowChange && PercentageChange.HasValue)
+            {
+                <MudChip T="string" 
+                         Color="@GetChangeColor()" 
+                         Size="Size.Small" 
+                         Icon="@GetChangeIcon()">
+                    @GetChangeText()
+                </MudChip>
+            }
+        </MudStack>
+    </MudCardContent>
+</MudCard>

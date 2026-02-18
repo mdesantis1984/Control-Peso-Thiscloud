@@ -1,0 +1,163 @@
+@page "/history"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
+@using ControlPeso.Application.DTOs
+@using ControlPeso.Domain.Enums
+@using MudBlazor
+
+<PageTitle>Historial - Control Peso</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-4">Historial de Registros</MudText>
+
+    <!-- Barra de búsqueda y filtros -->
+    <MudPaper Elevation="2" Class="pa-4 mb-4">
+        <MudGrid>
+            <MudItem xs="12" md="4">
+                <MudTextField T="string"
+                              Value="@_searchText"
+                              ValueChanged="@((string v) => OnSearchChanged(v))"
+                              Label="Buscar"
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              Immediate="false"
+                              DebounceInterval="500" />
+            </MudItem>
+
+            <MudItem xs="12" md="3">
+                <MudDatePicker Label="Desde"
+                               Date="@_dateFrom"
+                               DateChanged="@((DateTime? v) => OnDateFromChanged(v))"
+                               Variant="Variant.Outlined"
+                               MaxDate="DateTime.Today" />
+            </MudItem>
+
+            <MudItem xs="12" md="3">
+                <MudDatePicker Label="Hasta"
+                               Date="@_dateTo"
+                               DateChanged="@((DateTime? v) => OnDateToChanged(v))"
+                               Variant="Variant.Outlined"
+                               MaxDate="DateTime.Today" />
+            </MudItem>
+
+            <MudItem xs="12" md="2">
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Secondary"
+                           OnClick="ClearFilters"
+                           FullWidth="true"
+                           StartIcon="@Icons.Material.Filled.Clear">
+                    Limpiar
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    <!-- DataGrid -->
+    <MudDataGrid T="WeightLogDto"
+                 ServerData="LoadServerData"
+                 @ref="_grid"
+                 Dense="true"
+                 Hover="true"
+                 Striped="true"
+                 Elevation="2"
+                 Loading="@_isLoading"
+                 LoadingProgressColor="Color.Primary">
+        <Columns>
+            <PropertyColumn Property="x => x.Date" Title="Fecha" Format="dd/MM/yyyy">
+                <CellTemplate>
+                    <MudText Typo="Typo.body2">@context.Item.Date.ToString("dd/MM/yyyy")</MudText>
+                </CellTemplate>
+            </PropertyColumn>
+
+            <PropertyColumn Property="x => x.Time" Title="Hora" Format="HH:mm">
+                <CellTemplate>
+                    <MudText Typo="Typo.body2">@context.Item.Time.ToString("HH:mm")</MudText>
+                </CellTemplate>
+            </PropertyColumn>
+
+            <PropertyColumn Property="x => x.Weight" Title="Peso">
+                <CellTemplate>
+                    <MudText Typo="Typo.body2">
+                        @context.Item.Weight.ToString("F1") kg
+                    </MudText>
+                </CellTemplate>
+            </PropertyColumn>
+
+            <PropertyColumn Property="x => x.Trend" Title="Tendencia">
+                <CellTemplate>
+                    @{
+                        var (icon, color) = GetTrendIconAndColor(context.Item.Trend);
+                    }
+                    <MudIcon Icon="@icon" Color="@color" Size="Size.Small" />
+                </CellTemplate>
+            </PropertyColumn>
+
+            <PropertyColumn Property="x => x.Note" Title="Nota">
+                <CellTemplate>
+                    @if (!string.IsNullOrWhiteSpace(context.Item.Note))
+                    {
+                        <MudText Typo="Typo.body2" Class="text-truncate" Style="max-width: 200px;">
+                            @context.Item.Note
+                        </MudText>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">-</MudText>
+                    }
+                </CellTemplate>
+            </PropertyColumn>
+
+            <TemplateColumn Title="Acciones" Sortable="false">
+                <CellTemplate>
+                    <MudStack Row="true" Spacing="1">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                       Color="Color.Primary"
+                                       Size="Size.Small"
+                                       OnClick="@(() => EditWeight(context.Item))"
+                                       aria-label="Editar" />
+
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       Color="Color.Error"
+                                       Size="Size.Small"
+                                       OnClick="@(() => DeleteWeight(context.Item))"
+                                       aria-label="Eliminar" />
+                    </MudStack>
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+
+        <PagerContent>
+            <MudDataGridPager T="WeightLogDto" />
+        </PagerContent>
+
+        <NoRecordsContent>
+            <MudText Typo="Typo.body1" Align="Align.Center" Class="pa-4">
+                No se encontraron registros
+            </MudText>
+        </NoRecordsContent>
+    </MudDataGrid>
+
+    <!-- Stats rápidos -->
+    <MudPaper Elevation="2" Class="pa-4 mt-4">
+        <MudText Typo="Typo.h6" Class="mb-2">Estadísticas</MudText>
+        <MudGrid>
+            <MudItem xs="6" md="3">
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Total de registros</MudText>
+                <MudText Typo="Typo.h6">@_totalRecords</MudText>
+            </MudItem>
+            <MudItem xs="6" md="3">
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Peso promedio</MudText>
+                <MudText Typo="Typo.h6">@(_averageWeight?.ToString("F1") ?? "-") kg</MudText>
+            </MudItem>
+            <MudItem xs="6" md="3">
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Peso mínimo</MudText>
+                <MudText Typo="Typo.h6">@(_minWeight?.ToString("F1") ?? "-") kg</MudText>
+            </MudItem>
+            <MudItem xs="6" md="3">
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Peso máximo</MudText>
+                <MudText Typo="Typo.h6">@(_maxWeight?.ToString("F1") ?? "-") kg</MudText>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+</MudContainer>

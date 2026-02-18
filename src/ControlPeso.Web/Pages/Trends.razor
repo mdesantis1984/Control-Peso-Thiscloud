@@ -1,0 +1,155 @@
+@page "/trends"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
+@using ControlPeso.Application.DTOs
+@using ControlPeso.Web.Components.Shared
+@using MudBlazor
+
+<PageTitle>Tendencias - Control Peso</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-4">Análisis de Tendencias</MudText>
+
+    @if (_isLoading)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    }
+    else if (_logs.Count == 0)
+    {
+        <MudAlert Severity="Severity.Info">
+            No hay suficientes datos para mostrar tendencias. Registra algunos pesos para comenzar.
+        </MudAlert>
+    }
+    else
+    {
+        <MudGrid>
+            <!-- Tarjetas de tendencias -->
+            <MudItem xs="12" sm="6" md="3">
+                <TrendCard Title="Últimos 7 días"
+                           CurrentValue="@_last7DaysAvg"
+                           PreviousValue="@_previous7DaysAvg"
+                           Unit="kg"
+                           Icon="@Icons.Material.Filled.CalendarToday"
+                           IconColor="Color.Primary"
+                           LowerIsBetter="true" />
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="3">
+                <TrendCard Title="Últimos 30 días"
+                           CurrentValue="@_last30DaysAvg"
+                           PreviousValue="@_previous30DaysAvg"
+                           Unit="kg"
+                           Icon="@Icons.Material.Filled.CalendarMonth"
+                           IconColor="Color.Secondary"
+                           LowerIsBetter="true" />
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="3">
+                <TrendCard Title="Cambio total"
+                           CurrentValue="@_totalChange"
+                           PreviousValue="0"
+                           Unit="kg"
+                           Icon="@Icons.Material.Filled.ShowChart"
+                           IconColor="Color.Tertiary"
+                           ShowChange="false" />
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="3">
+                <TrendCard Title="Promedio General"
+                           CurrentValue="@_overallAverage"
+                           PreviousValue="@_startingWeight"
+                           Unit="kg"
+                           Icon="@Icons.Material.Filled.Analytics"
+                           IconColor="Color.Info"
+                           LowerIsBetter="true" />
+            </MudItem>
+
+            <!-- Gráfico de evolución -->
+            <MudItem xs="12">
+                <MudCard Elevation="2">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Evolución del Peso (Últimos 90 días)</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <WeightChart Data="@_logs" Title="Evolución" />
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+
+            <!-- Estadísticas detalladas -->
+            <MudItem xs="12" md="6">
+                <MudCard Elevation="2">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Estadísticas</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudSimpleTable Dense="true">
+                            <tbody>
+                                <tr>
+                                    <td><MudText Typo="Typo.body2">Peso actual</MudText></td>
+                                    <td><MudText Typo="Typo.body2"><strong>@_currentWeight.ToString("F1") kg</strong></MudText></td>
+                                </tr>
+                                <tr>
+                                    <td><MudText Typo="Typo.body2">Peso inicial</MudText></td>
+                                    <td><MudText Typo="Typo.body2">@_startingWeight?.ToString("F1") kg</MudText></td>
+                                </tr>
+                                <tr>
+                                    <td><MudText Typo="Typo.body2">Peso mínimo</MudText></td>
+                                    <td><MudText Typo="Typo.body2" Color="Color.Success">@_minWeight.ToString("F1") kg</MudText></td>
+                                </tr>
+                                <tr>
+                                    <td><MudText Typo="Typo.body2">Peso máximo</MudText></td>
+                                    <td><MudText Typo="Typo.body2" Color="Color.Warning">@_maxWeight.ToString("F1") kg</MudText></td>
+                                </tr>
+                                <tr>
+                                    <td><MudText Typo="Typo.body2">Promedio general</MudText></td>
+                                    <td><MudText Typo="Typo.body2">@_overallAverage.ToString("F1") kg</MudText></td>
+                                </tr>
+                                <tr>
+                                    <td><MudText Typo="Typo.body2">Total de registros</MudText></td>
+                                    <td><MudText Typo="Typo.body2">@_logs.Count</MudText></td>
+                                </tr>
+                            </tbody>
+                        </MudSimpleTable>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+
+            <!-- Proyección simple -->
+            <MudItem xs="12" md="6">
+                <MudCard Elevation="2">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Proyección (30 días)</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        @if (_projectedWeight.HasValue)
+                        {
+                            <MudText Typo="Typo.body1" Class="mb-2">
+                                Basado en tu tendencia actual, en 30 días podrías estar en:
+                            </MudText>
+                            <MudText Typo="Typo.h4" Color="@GetProjectionColor()">
+                                @_projectedWeight.Value.ToString("F1") kg
+                            </MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                                (Cambio estimado: @_projectedChange.ToString("F1") kg)
+                            </MudText>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                No hay suficientes datos para calcular una proyección.
+                                Registra pesos durante varios días para ver una estimación.
+                            </MudText>
+                        }
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+    }
+</MudContainer>
