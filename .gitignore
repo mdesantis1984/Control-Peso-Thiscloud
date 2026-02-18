@@ -393,3 +393,13 @@ coverage/
 
 # VS Code
 .vscode/
+
+# Docker
+.env
+.env.*
+!.env.example
+docker-data/
+docker-logs/
+backup-*.db
+*-backup/
+*.tar.gz

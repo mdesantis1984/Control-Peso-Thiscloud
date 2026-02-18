@@ -4,12 +4,13 @@
 ![Blazor Server](https://img.shields.io/badge/Blazor-Server-512BD4?logo=blazor)
 ![MudBlazor](https://img.shields.io/badge/MudBlazor-8.0.0-594AE2)
 ![License](https://img.shields.io/badge/License-MIT-green)
-![Progress](https://img.shields.io/badge/Progress-53.2%25-brightgreen)
+![Progress](https://img.shields.io/badge/Progress-100%25-brightgreen)
 
 Aplicación web minimalista de control de peso corporal construida con **Blazor Server (.NET 10)** y **MudBlazor**.
 
-> **Estado del proyecto**: 🟢 **EN DESARROLLO** — Fase 3/8 (53.2% completado)  
-> **Última actualización**: 2026-02-17
+> **Estado del proyecto**: 🟢 **COMPLETADO** — 100% (63/63 tareas)  
+> **Última actualización**: 2026-02-18  
+> **Release**: [v1.0.0](https://github.com/mdesantis1984/Control-Peso-Thiscloud/releases/tag/v1.0.0)
 
 ## ✨ Características
 
@@ -110,6 +111,37 @@ dotnet run
 ```
 
 Abre tu navegador en `https://localhost:5001`
+
+## 🐳 Docker Deployment
+
+Despliegue local con **Docker Compose** (recomendado para producción):
+
+```bash
+# 1. Copiar archivo de configuración
+cp .env.example .env
+
+# 2. Editar .env con tus credenciales OAuth
+nano .env  # o notepad .env en Windows
+
+# 3. Construir y ejecutar
+docker-compose up -d --build
+
+# 4. Acceder a la aplicación
+# http://localhost:8080
+```
+
+### Scripts de ayuda
+
+```bash
+# Linux/macOS
+chmod +x docker-helper.sh
+./docker-helper.sh
+
+# Windows PowerShell
+.\docker-helper.ps1
+```
+
+Ver [docs/DOCKER.md](docs/DOCKER.md) para documentación completa de Docker.
 
 ## 🗄️ Base de datos (Database First)
 
