@@ -15,24 +15,10 @@ services:
       # ASP.NET Core Configuration
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
-      
+
       # Database Connection (SQLite file-based)
       - ConnectionStrings__DefaultConnection=Data Source=/app/data/controlpeso.db
-      
-      # Google OAuth (set in .env file)
-      - Authentication__Google__ClientId=${GOOGLE_CLIENT_ID}
-      - Authentication__Google__ClientSecret=${GOOGLE_CLIENT_SECRET}
-      
-      # LinkedIn OAuth (set in .env file)
-      - Authentication__LinkedIn__ClientId=${LINKEDIN_CLIENT_ID}
-      - Authentication__LinkedIn__ClientSecret=${LINKEDIN_CLIENT_SECRET}
-      
-      # Google Analytics (set in .env file)
-      - GoogleAnalytics__MeasurementId=${GOOGLE_ANALYTICS_MEASUREMENT_ID}
-      
-      # Cloudflare Analytics (set in .env file)
-      - CloudflareAnalytics__Token=${CLOUDFLARE_ANALYTICS_TOKEN}
-      
+
       # Logging Configuration (ThisCloud.Framework)
       - ThisCloud__Loggings__IsEnabled=true
       - ThisCloud__Loggings__MinimumLevel=Information
@@ -45,9 +31,12 @@ services:
       - ThisCloud__Loggings__Redaction__Enabled=true
       - ThisCloud__Loggings__Correlation__HeaderName=X-Correlation-Id
       - ThisCloud__Loggings__Correlation__GenerateIfMissing=true
-      
+
       # AllowedHosts
       - AllowedHosts=*
+
+      # ⚠️ SECRETS: Configure in docker-compose.override.yml (NOT in Git)
+      # DO NOT add sensitive values here - this file is tracked by Git
     
     volumes:
       # Persist SQLite database

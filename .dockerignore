@@ -1,7 +1,8 @@
-# Docker Deployment Files
+# Docker Deployment Files - Secrets Management
 .env
 .env.*
 !.env.example
+docker-compose.override.yml
 
 # Docker local data
 docker-data/

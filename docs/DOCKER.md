@@ -22,37 +22,48 @@ git clone https://github.com/mdesantis1984/Control-Peso-Thiscloud.git
 cd Control-Peso-Thiscloud
 ```
 
-### 2. Configurar variables de entorno
+### 2. Configurar credenciales OAuth (CRÍTICO)
 
-Copia el archivo de ejemplo y edita con tus credenciales:
+⚠️ **IMPORTANTE**: Las credenciales sensibles NO están en el repositorio por seguridad.
+
+Copia el archivo de ejemplo y edita con **tus credenciales reales**:
 
 ```bash
 # Windows PowerShell
-Copy-Item .env.example .env
+Copy-Item docker-compose.override.yml.example docker-compose.override.yml
 
 # Linux/macOS
-cp .env.example .env
+cp docker-compose.override.yml.example docker-compose.override.yml
 ```
 
-Edita `.env` con tus credenciales OAuth:
+Edita `docker-compose.override.yml` con tus credenciales:
 
-```env
-# Google OAuth (OBLIGATORIO)
-GOOGLE_CLIENT_ID=123456789-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=CHANGE_ME
+```yaml
+services:
+  controlpeso-web:
+    environment:
+      # Google OAuth (OBLIGATORIO)
+      - Authentication__Google__ClientId=YOUR_REAL_CLIENT_ID.apps.googleusercontent.com
+      - Authentication__Google__ClientSecret=CHANGE_ME
 
-# LinkedIn OAuth (OBLIGATORIO)
-LINKEDIN_CLIENT_ID=CHANGE_ME
-LINKEDIN_CLIENT_SECRET=abcdefghijklmnopqrstuvwxyz
+      # LinkedIn OAuth (OBLIGATORIO)
+      - Authentication__LinkedIn__ClientId=YOUR_REAL_LINKEDIN_CLIENT_ID
+      - Authentication__LinkedIn__ClientSecret=YOUR_REAL_LINKEDIN_SECRET
 
-# Google Analytics 4 (OPCIONAL)
-GOOGLE_ANALYTICS_MEASUREMENT_ID=G-XXXXXXXXXX
+      # Google Analytics 4 (OPCIONAL)
+      - GoogleAnalytics__MeasurementId=G-XXXXXXXXXX
 
-# Cloudflare Analytics (OPCIONAL)
-CLOUDFLARE_ANALYTICS_TOKEN=your_token_here
+      # Cloudflare Analytics (OPCIONAL)
+      - CloudflareAnalytics__Token=your_token_here
 ```
+
+⚠️ **NUNCA commitees `docker-compose.override.yml` al repositorio Git** (ya está en `.gitignore`)
 
 ### 3. Construir y ejecutar
+
+Docker Compose automáticamente combina:
+- `docker-compose.yml` (configuración base)
+- `docker-compose.override.yml` (tus credenciales)
 
 ```bash
 # Construir imagen y levantar contenedor
@@ -82,7 +93,7 @@ Abre tu navegador en:
 6. URIs de redirección autorizadas:
    - `http://localhost:8080/signin-google`
    - `http://localhost:8080/auth/callback/google`
-7. Copia el **Client ID** y **Client Secret** al archivo `.env`
+7. Copia el **Client ID** y **Client Secret** a `docker-compose.override.yml`
 
 ### LinkedIn OAuth
 
@@ -93,7 +104,7 @@ Abre tu navegador en:
    - `http://localhost:8080/signin-linkedin`
    - `http://localhost:8080/auth/callback/linkedin`
 5. Permisos requeridos: `openid`, `profile`, `email`
-6. Copia el **Client ID** y **Client Secret** al archivo `.env`
+6. Copia el **Client ID** y **Client Secret** a `docker-compose.override.yml`
 
 ---
 
@@ -208,31 +219,81 @@ docker system prune -a --volumes
 
 ## 🔒 Seguridad
 
-### Secrets Management
+### Secrets Management (CRÍTICO)
 
-⚠️ **NUNCA** commitees el archivo `.env` al repositorio Git.
+⚠️ **NUNCA commitees credenciales sensibles al repositorio Git.**
+
+El proyecto usa **dos capas de seguridad**:
+
+#### 1. docker-compose.override.yml (Secrets reales - NO en Git)
+
+```yaml
+# Este archivo contiene TUS credenciales reales
+# ⚠️ NUNCA lo commitees al repositorio
+services:
+  controlpeso-web:
+    environment:
+      - Authentication__Google__ClientId=TUS_CREDENCIALES_REALES
+      - Authentication__Google__ClientSecret=TUS_CREDENCIALES_REALES
+      # ...
+```
 
 El `.gitignore` ya incluye:
 
 ```gitignore
+# Docker - Secrets Management
+docker-compose.override.yml  # ← TUS CREDENCIALES (NO va a Git)
 .env
 .env.*
 !.env.example
+```
+
+#### 2. docker-compose.override.yml.example (Template - SÍ en Git)
+
+```yaml
+# Este archivo es un TEMPLATE (valores de ejemplo)
+# ✅ SÍ va al repositorio como guía
+services:
+  controlpeso-web:
+    environment:
+      - Authentication__Google__ClientId=YOUR_CLIENT_ID_HERE
+      - Authentication__Google__ClientSecret=YOUR_SECRET_HERE
+      # ...
+```
+
+### Flujo de Trabajo Seguro
+
+```bash
+# 1. Clonar repositorio (NO contiene credenciales)
+git clone https://github.com/mdesantis1984/Control-Peso-Thiscloud.git
+
+# 2. Copiar template y agregar TUS credenciales
+cp docker-compose.override.yml.example docker-compose.override.yml
+
+# 3. Editar con credenciales REALES
+nano docker-compose.override.yml  # o notepad en Windows
+
+# 4. Docker Compose combina automáticamente ambos archivos
+docker-compose up -d
+# → docker-compose.yml (base) + docker-compose.override.yml (secrets)
 ```
 
 ### Variables Sensibles
 
 Las siguientes variables contienen información sensible:
 
-- `GOOGLE_CLIENT_SECRET`
-- `LINKEDIN_CLIENT_SECRET`
-- `CLOUDFLARE_ANALYTICS_TOKEN` (opcional)
+- `Authentication__Google__ClientSecret` (⚠️ CRÍTICO)
+- `Authentication__LinkedIn__ClientSecret` (⚠️ CRÍTICO)
+- `Authentication__Google__ClientId` (sensible pero no crítico)
+- `Authentication__LinkedIn__ClientId` (sensible pero no crítico)
+- `CloudflareAnalytics__Token` (opcional, sensible)
 
-En **producción**, usa:
+En **producción**, usa servicios especializados:
 
 - **Azure**: Key Vault
 - **AWS**: Secrets Manager
 - **Docker Swarm/Kubernetes**: Secrets
+- **HashiCorp Vault**: Enterprise secrets management
 
 ### Headers de Seguridad
 
