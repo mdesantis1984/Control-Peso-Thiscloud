@@ -1,0 +1,24 @@
+@namespace ControlPeso.Web.Components.Shared
+
+@if (_isLoading)
+{
+    <div class="d-flex justify-center align-center" style="height: 350px;">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    </div>
+}
+else if (_series.Count == 0)
+{
+    <div class="d-flex flex-column justify-center align-center" style="height: 350px;">
+        <MudIcon Icon="@Icons.Material.Filled.ShowChart" Size="Size.Large" Color="Color.Default" />
+        <MudText Typo="Typo.body1" Class="mt-2">No hay datos disponibles</MudText>
+    </div>
+}
+else
+{
+    <MudChart ChartType="ChartType.Line"
+              ChartSeries="@_series"
+              XAxisLabels="@_labels"
+              ChartOptions="@_options"
+              Width="100%"
+              Height="350px" />
+}

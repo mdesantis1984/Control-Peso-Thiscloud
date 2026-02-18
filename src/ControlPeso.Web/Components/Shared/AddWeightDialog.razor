@@ -1,0 +1,66 @@
+@namespace ControlPeso.Web.Components.Shared
+@using MudBlazor
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.MonitorWeight" Class="mr-2" />
+            Registrar Peso
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="@_isValid">
+            <MudDatePicker Label="Fecha"
+                           @bind-Date="_date"
+                           Required="true"
+                           MaxDate="DateTime.Today"
+                           Color="Color.Primary"
+                           Variant="Variant.Outlined"
+                           Class="mb-4" />
+
+            <MudTimePicker Label="Hora"
+                           @bind-Time="_time"
+                           Required="true"
+                           Color="Color.Primary"
+                           Variant="Variant.Outlined"
+                           Class="mb-4"
+                           AmPm="false" />
+
+            <MudNumericField @bind-Value="_weight"
+                             Label="Peso"
+                             Suffix="kg"
+                             Required="true"
+                             Min="20"
+                             Max="500"
+                             Step="0.1M"
+                             Color="Color.Primary"
+                             Variant="Variant.Outlined"
+                             Class="mb-4"
+                             HelperText="Ingrese su peso en kilogramos" />
+
+            <MudTextField @bind-Value="_note"
+                          Label="Nota (opcional)"
+                          Lines="3"
+                          MaxLength="500"
+                          Variant="Variant.Outlined"
+                          Counter="500"
+                          HelperText="Agregue una nota sobre su registro" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" 
+                   Variant="Variant.Text">
+            Cancelar
+        </MudButton>
+        <MudButton Color="Color.Primary" 
+                   Variant="Variant.Filled" 
+                   OnClick="Submit"
+                   Disabled="@(!_isValid || _isSubmitting)">
+            @if (_isSubmitting)
+            {
+                <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
+            }
+            Guardar
+        </MudButton>
+    </DialogActions>
+</MudDialog>
