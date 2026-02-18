@@ -1,0 +1,13 @@
+# Docker Deployment Files
+.env
+.env.*
+!.env.example
+
+# Docker local data
+docker-data/
+docker-logs/
+
+# Backup files
+backup-*.db
+*-backup/
+*.tar.gz
