@@ -30,7 +30,7 @@
                         <CardHeaderActions>
                             @if (!string.IsNullOrWhiteSpace(_user.AvatarUrl))
                             {
-                                <MudAvatar Image="@_user.AvatarUrl" Size="Size.Large" />
+                                <MudAvatar src="@_user.AvatarUrl" Size="Size.Large" />
                             }
                             else
                             {
@@ -175,12 +175,12 @@
                     <MudCardContent>
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-3">
                             <MudText>Modo Oscuro</MudText>
-                            <MudSwitch T="bool" Checked="@_darkMode" CheckedChanged="@((bool v) => _darkMode = v)" Color="Color.Primary" />
+                            <MudSwitch T="bool" @bind-Value="_darkMode" Color="Color.Primary" />
                         </MudStack>
 
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
                             <MudText>Notificaciones</MudText>
-                            <MudSwitch T="bool" Checked="@_notificationsEnabled" CheckedChanged="@((bool v) => _notificationsEnabled = v)" Color="Color.Primary" />
+                            <MudSwitch T="bool" @bind-Value="_notificationsEnabled" Color="Color.Primary" />
                         </MudStack>
                     </MudCardContent>
                     <MudCardActions>

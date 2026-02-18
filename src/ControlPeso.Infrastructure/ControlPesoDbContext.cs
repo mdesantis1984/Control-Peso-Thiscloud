@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using ControlPeso.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,20 +14,20 @@ public partial class ControlPesoDbContext : DbContext
     {
     }
 
-    public virtual DbSet<AuditLog> AuditLog { get; set; }
+    public virtual DbSet<AuditLog> AuditLog { get; set; } = null!;
 
-    public virtual DbSet<UserPreferences> UserPreferences { get; set; }
+    public virtual DbSet<UserPreferences> UserPreferences { get; set; } = null!;
 
-    public virtual DbSet<Users> Users { get; set; }
+    public virtual DbSet<Users> Users { get; set; } = null!;
 
-    public virtual DbSet<WeightLogs> WeightLogs { get; set; }
+    public virtual DbSet<WeightLogs> WeightLogs { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         // Solo configurar SQLite si no hay provider ya configurado (permite InMemory en tests)
         if (!optionsBuilder.IsConfigured)
         {
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+            // Connection string fallback for development - production uses DI configuration
             optionsBuilder.UseSqlite("Data Source=../../controlpeso.db");
         }
     }

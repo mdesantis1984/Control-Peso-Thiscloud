@@ -1,9 +1,9 @@
+using ControlPeso.Application.DTOs;
+using ControlPeso.Application.Interfaces;
+using ControlPeso.Domain.Enums;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
-using ControlPeso.Application.Interfaces;
-using ControlPeso.Application.DTOs;
-using ControlPeso.Domain.Enums;
 
 namespace ControlPeso.Web.Components.Shared;
 
@@ -74,7 +74,7 @@ public partial class AddWeightDialog
                 Note = string.IsNullOrWhiteSpace(_note) ? null : _note.Trim()
             };
 
-            Logger.LogInformation("AddWeightDialog: Creating weight log - User: {UserId}, Date: {Date}, Weight: {Weight}kg", 
+            Logger.LogInformation("AddWeightDialog: Creating weight log - User: {UserId}, Date: {Date}, Weight: {Weight}kg",
                 userId, dto.Date, dto.Weight);
 
             await WeightLogService.CreateAsync(dto);

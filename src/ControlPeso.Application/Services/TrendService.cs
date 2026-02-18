@@ -16,7 +16,7 @@ public sealed class TrendService : ITrendService
 {
     private readonly DbContext _context;
     private readonly ILogger<TrendService> _logger;
-    
+
     // Constantes para cálculos
     private const decimal WeightThreshold = 0.1m; // 100g de tolerancia para considerar "neutral"
     private const int DefaultProjectionDays = 30; // Proyección por defecto a 30 días
@@ -185,7 +185,7 @@ public sealed class TrendService : ITrendService
             // Calcular regresión lineal simple: y = mx + b
             // Donde x = días desde el primer registro, y = peso
             var firstDate = DateOnly.Parse(logs.First().Date);
-            
+
             var dataPoints = logs
                 .Select(log => new
                 {

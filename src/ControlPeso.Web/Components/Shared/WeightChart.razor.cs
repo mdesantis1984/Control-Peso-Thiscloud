@@ -1,6 +1,6 @@
-using MudBlazor;
-using Microsoft.AspNetCore.Components;
 using ControlPeso.Application.DTOs;
+using Microsoft.AspNetCore.Components;
+using MudBlazor;
 
 namespace ControlPeso.Web.Components.Shared;
 
@@ -79,7 +79,7 @@ public partial class WeightChart
                 ChartPalette = new[] { "#2196F3" } // Color azul principal del tema
             };
 
-            Logger.LogDebug("WeightChart: Chart configured - Labels: {LabelCount}, Series: {SeriesCount}", 
+            Logger.LogDebug("WeightChart: Chart configured - Labels: {LabelCount}, Series: {SeriesCount}",
                 _labels.Length, _series.Count);
         }
         catch (Exception ex)
