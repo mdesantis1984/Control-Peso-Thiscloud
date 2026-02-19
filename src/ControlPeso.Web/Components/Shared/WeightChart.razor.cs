@@ -82,9 +82,6 @@ public partial class WeightChart
                 XAxisLines = false,
                 YAxisFormat = "{0:F1} kg",
 
-                // Diseño responsivo
-                DisableLegend = false,
-
                 // Paleta de colores (Primary theme color)
                 ChartPalette = new[] { "#2196F3" }
             };
