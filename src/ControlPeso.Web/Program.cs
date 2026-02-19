@@ -3,6 +3,7 @@ using ControlPeso.Infrastructure.Extensions;
 using ControlPeso.Web.Components;
 using ControlPeso.Web.Extensions;
 using ControlPeso.Web.Middleware;
+using Microsoft.AspNetCore.Authentication;
 using MudBlazor.Services;
 using System.Threading.RateLimiting;
 using ThisCloud.Framework.Loggings.Serilog;
@@ -35,7 +36,10 @@ builder.Services.AddMudServices();
 // 7. Add Authentication & Authorization (Google OAuth + LinkedIn OAuth)
 builder.Services.AddOAuthAuthentication(builder.Configuration);
 
-// 8. Add Rate Limiting (protection against brute force attacks)
+// 8. Add Claims Transformation (populate custom claims from DB after OAuth login)
+builder.Services.AddScoped<IClaimsTransformation, ControlPeso.Web.Services.UserClaimsTransformation>();
+
+// 9. Add Rate Limiting (protection against brute force attacks)
 builder.Services.AddRateLimiter(options =>
 {
     // Fixed window policy: 10 requests per minute per IP

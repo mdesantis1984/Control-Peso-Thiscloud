@@ -1,5 +1,8 @@
 # Control Peso Thiscloud - Docker Deployment
 
+> **Última Actualización**: 2026-02-19  
+> **OAuth Status**: ✅ Google OAuth 2.0 FUNCIONAL | LinkedIn UI Removida (Backend Preservado)
+
 Este documento describe cómo desplegar **Control Peso Thiscloud** localmente usando **Docker Compose**.
 
 ---
@@ -9,7 +12,7 @@ Este documento describe cómo desplegar **Control Peso Thiscloud** localmente us
 - **Docker** 20.10+ instalado ([Descargar Docker](https://www.docker.com/products/docker-desktop))
 - **Docker Compose** v2.0+ (incluido con Docker Desktop)
 - **Git** para clonar el repositorio
-- **Credenciales OAuth** de Google y/o LinkedIn
+- **Credenciales OAuth de Google** (obligatorio)
 
 ---
 
@@ -26,7 +29,7 @@ cd Control-Peso-Thiscloud
 
 ⚠️ **IMPORTANTE**: Las credenciales sensibles NO están en el repositorio por seguridad.
 
-Copia el archivo de ejemplo y edita con **tus credenciales reales**:
+Crea el archivo `docker-compose.override.yml` (NO commitear a Git):
 
 ```bash
 # Windows PowerShell
@@ -36,34 +39,39 @@ Copy-Item docker-compose.override.yml.example docker-compose.override.yml
 cp docker-compose.override.yml.example docker-compose.override.yml
 ```
 
-Edita `docker-compose.override.yml` con tus credenciales:
+Edita `docker-compose.override.yml` con **tus credenciales reales de Google**:
 
 ```yaml
+version: '3.8'
 services:
   controlpeso-web:
     environment:
-      # Google OAuth (OBLIGATORIO)
-      - Authentication__Google__ClientId=YOUR_REAL_CLIENT_ID.apps.googleusercontent.com
-      - Authentication__Google__ClientSecret=GOCSPX-YOUR_REAL_CLIENT_SECRET
+      # ✅ OBLIGATORIO: Google OAuth 2.0
+      - Authentication__Google__ClientId=180510012560-EXAMPLE.apps.googleusercontent.com
+      - Authentication__Google__ClientSecret=GOCSPX-EXAMPLE_SECRET
 
-      # LinkedIn OAuth (OBLIGATORIO)
-      - Authentication__LinkedIn__ClientId=YOUR_REAL_LINKEDIN_CLIENT_ID
-      - Authentication__LinkedIn__ClientSecret=YOUR_REAL_LINKEDIN_SECRET
+      # ⚠️ OPCIONAL: LinkedIn OAuth (UI removida, backend preservado)
+      - Authentication__LinkedIn__ClientId=YOUR_LINKEDIN_CLIENT_ID
+      - Authentication__LinkedIn__ClientSecret=YOUR_LINKEDIN_CLIENT_SECRET
 
-      # Google Analytics 4 (OPCIONAL)
+      # 📊 OPCIONAL: Google Analytics 4
       - GoogleAnalytics__MeasurementId=G-XXXXXXXXXX
 
-      # Cloudflare Analytics (OPCIONAL)
+      # 📊 OPCIONAL: Cloudflare Analytics
       - CloudflareAnalytics__Token=your_token_here
 ```
 
-⚠️ **NUNCA commitees `docker-compose.override.yml` al repositorio Git** (ya está en `.gitignore`)
+🔒 **SEGURIDAD**:
+- ✅ `docker-compose.override.yml` está en `.gitignore` (línea 408)
+- ✅ El archivo `.example` tiene placeholders (seguro para Git)
+- ❌ **NUNCA commitees `docker-compose.override.yml` al repositorio Git**
+- ✅ El archivo persiste localmente (no se borra entre reinicios de Docker)
 
 ### 3. Construir y ejecutar
 
 Docker Compose automáticamente combina:
-- `docker-compose.yml` (configuración base)
-- `docker-compose.override.yml` (tus credenciales)
+- `docker-compose.yml` (configuración base pública)
+- `docker-compose.override.yml` (tus credenciales privadas)
 
 ```bash
 # Construir imagen y levantar contenedor
@@ -73,7 +81,33 @@ docker-compose up -d --build
 docker-compose logs -f controlpeso-web
 ```
 
-### 4. Acceder a la aplicación
+### 4. Verificar despliegue
+
+```bash
+# 1. Verificar estado del contenedor
+docker ps | grep controlpeso
+
+# 2. Verificar credenciales OAuth dentro del contenedor
+docker exec controlpeso-web printenv | grep Authentication__Google
+
+# Deberías ver:
+# Authentication__Google__ClientId=180510012560-...
+# Authentication__Google__ClientSecret=GOCSPX-...
+
+# 3. Verificar health endpoint
+curl http://localhost:8080/health
+
+# Respuesta esperada:
+# {"status":"healthy","timestamp":"2026-02-19T...","version":"1.0.0"}
+
+# 4. Probar login OAuth
+# - Abrir http://localhost:8080/login
+# - Clic en "Continuar con Google"
+# - Autenticar con cuenta Google
+# - Debería redirigir a http://localhost:8080/ (Dashboard)
+```
+
+### 5. Acceder a la aplicación
 
 Abre tu navegador en:
 
@@ -83,28 +117,55 @@ Abre tu navegador en:
 
 ## 🔑 Obtener Credenciales OAuth
 
-### Google OAuth 2.0
+### Google OAuth 2.0 (OBLIGATORIO)
 
 1. Ve a [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
-2. Crea un nuevo proyecto (o selecciona uno existente)
-3. Habilita **Google+ API**
+2. Crea un nuevo proyecto: `control-peso-thiscloud`
+3. Habilita APIs:
+   - **Google+ API**
+   - **Google Identity Toolkit API**
 4. Crea credenciales → **OAuth 2.0 Client ID**
 5. Tipo de aplicación: **Aplicación web**
-6. URIs de redirección autorizadas:
-   - `http://localhost:8080/signin-google`
-   - `http://localhost:8080/auth/callback/google`
-7. Copia el **Client ID** y **Client Secret** a `docker-compose.override.yml`
+6. Nombre: `Control Peso Thiscloud (Development)`
+7. URIs de redirección autorizadas:
+   - **Desarrollo**: `http://localhost:8080/signin-google`
+   - **Producción**: `https://controlpeso.thiscloud.com.ar/signin-google`
+8. Copia el **Client ID** y **Client Secret** a `docker-compose.override.yml`
+9. Configura la pantalla de consentimiento:
+   - Nombre de la app: `Control Peso Thiscloud`
+   - Email de soporte: `support@thiscloud.com.ar`
+   - Contacto del desarrollador: `marco.alejandro.desantis@gmail.com`
+   - Scopes: `openid`, `profile`, `email`
 
-### LinkedIn OAuth
+**Archivo JSON de Credenciales** (descargable desde Google Cloud Console):
+```json
+{
+  "web": {
+    "client_id": "180510012560-EXAMPLE.apps.googleusercontent.com",
+    "client_secret": "GOCSPX-EXAMPLE_SECRET",
+    "redirect_uris": [
+      "http://localhost:8080/signin-google",
+      "https://controlpeso.thiscloud.com.ar/signin-google"
+    ]
+  }
+}
+```
+
+### LinkedIn OAuth (OPCIONAL - UI Removida)
+
+⚠️ **NOTA**: La UI del botón de LinkedIn fue removida de la página de login, pero el backend OAuth está **preservado** para uso futuro.
+
+Si deseas habilitar LinkedIn:
 
 1. Ve a [LinkedIn Developers](https://www.linkedin.com/developers/apps)
 2. Crea una nueva aplicación
 3. En **Auth** → **OAuth 2.0 settings**
 4. Redirect URLs:
    - `http://localhost:8080/signin-linkedin`
-   - `http://localhost:8080/auth/callback/linkedin`
+   - `https://controlpeso.thiscloud.com.ar/signin-linkedin`
 5. Permisos requeridos: `openid`, `profile`, `email`
 6. Copia el **Client ID** y **Client Secret** a `docker-compose.override.yml`
+7. Agrega el botón de LinkedIn en `src/ControlPeso.Web/Components/Pages/Login.razor`
 
 ---
 

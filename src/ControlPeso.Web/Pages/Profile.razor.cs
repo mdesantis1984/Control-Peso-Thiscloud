@@ -39,11 +39,11 @@ public partial class Profile
         try
         {
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-            var userIdClaim = authState.User.FindFirst("sub")?.Value;
+            var userIdClaim = authState.User.FindFirst("UserId")?.Value;
 
             if (string.IsNullOrWhiteSpace(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
             {
-                Logger.LogWarning("User ID claim not found or invalid");
+                Logger.LogWarning("User ID claim not found or invalid - Claim value: {UserIdClaim}", userIdClaim ?? "null");
                 Snackbar.Add("No se pudo identificar al usuario", Severity.Error);
                 return;
             }
