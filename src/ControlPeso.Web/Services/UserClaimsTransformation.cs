@@ -38,8 +38,8 @@ internal sealed class UserClaimsTransformation : IClaimsTransformation
             return principal;
         }
 
-        // Si ya tiene el claim de UserId, no transformar de nuevo (evitar queries redundantes)
-        if (principal.HasClaim(c => c.Type == "UserId"))
+        // Si ya transformamos este principal, skip (evitar queries redundantes y loops)
+        if (principal.HasClaim(c => c.Type == "claims_transformed"))
         {
             return principal;
         }
@@ -62,11 +62,24 @@ internal sealed class UserClaimsTransformation : IClaimsTransformation
                 return principal;
             }
 
-            // Agregar claims personalizados
-            identity.AddClaim(new Claim("UserId", user.Id.ToString()));
+            // CRÍTICO: REMOVER claim NameIdentifier existente (GoogleId/LinkedInId del proveedor OAuth)
+            var existingNameIdentifier = identity.FindFirst(ClaimTypes.NameIdentifier);
+            if (existingNameIdentifier != null)
+            {
+                identity.RemoveClaim(existingNameIdentifier);
+                _logger.LogDebug("Removed existing NameIdentifier claim: {Value}", existingNameIdentifier.Value);
+            }
+
+            // Agregar claim NameIdentifier con UserId GUID del sistema (este es el que buscan las páginas)
+            identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
+
+            // Agregar claims adicionales personalizados
             identity.AddClaim(new Claim(ClaimTypes.Role, user.Role.ToString()));
             identity.AddClaim(new Claim("UserStatus", user.Status.ToString()));
             identity.AddClaim(new Claim("Language", user.Language));
+
+            // Marcar como transformado para evitar re-transformaciones
+            identity.AddClaim(new Claim("claims_transformed", "true"));
 
             _logger.LogInformation(
                 "Claims transformed successfully - UserId: {UserId}, Email: {Email}, Role: {Role}",

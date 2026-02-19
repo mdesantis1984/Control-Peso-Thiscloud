@@ -39,34 +39,11 @@ public partial class History
         try
         {
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-
-            // Log all claims for debugging
-            var claims = authState.User.Claims.Select(c => $"{c.Type}={c.Value}").ToList();
-            Logger.LogDebug("User claims: {Claims}", string.Join(", ", claims));
-
             var userIdClaim = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (string.IsNullOrWhiteSpace(userIdClaim))
+            if (string.IsNullOrWhiteSpace(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
             {
-                Logger.LogWarning("User ID claim (NameIdentifier) not found. Available claims: {Claims}", string.Join(", ", claims));
-
-                // Retry after small delay (claim transformation might be in progress)
-                await Task.Delay(500);
-                authState = await AuthStateProvider.GetAuthenticationStateAsync();
-                userIdClaim = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-                if (string.IsNullOrWhiteSpace(userIdClaim))
-                {
-                    Logger.LogError("User ID claim still not found after retry");
-                    return new GridData<WeightLogDto> { Items = [], TotalItems = 0 };
-                }
-
-                Logger.LogInformation("User ID claim found after retry: {UserId}", userIdClaim);
-            }
-
-            if (!Guid.TryParse(userIdClaim, out var userId))
-            {
-                Logger.LogError("User ID claim found but invalid GUID format: {UserIdClaim}", userIdClaim);
+                Logger.LogError("User ID claim (NameIdentifier) not found or invalid format");
                 return new GridData<WeightLogDto> { Items = [], TotalItems = 0 };
             }
 
