@@ -4,6 +4,7 @@ using ControlPeso.Application.Interfaces;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
+using System.Security.Claims;
 using AppDateRange = ControlPeso.Application.Filters.DateRange;
 
 namespace ControlPeso.Web.Pages;
@@ -44,7 +45,7 @@ public partial class Trends
         try
         {
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-            var userIdClaim = authState.User.FindFirst("sub")?.Value;
+            var userIdClaim = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrWhiteSpace(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
             {
