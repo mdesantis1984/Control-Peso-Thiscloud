@@ -2,6 +2,7 @@ using ControlPeso.Application.DTOs;
 using ControlPeso.Application.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
+using System.Security.Claims;
 
 namespace ControlPeso.Web.Extensions;
 
@@ -93,13 +94,17 @@ public static class AuthenticationExtensions
                     .GetRequiredService<IUserService>();
 
                 // Extraer claims del proveedor OAuth (Google)
-                var externalId = context.Principal?.FindFirst("sub")?.Value
+                // Google mapea 'sub' a ClaimTypes.NameIdentifier automáticamente
+                var externalId = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                    ?? context.Principal?.FindFirst("sub")?.Value
                     ?? throw new InvalidOperationException("Google 'sub' claim is missing");
 
-                var name = context.Principal?.FindFirst("name")?.Value
+                var name = context.Principal?.FindFirst(ClaimTypes.Name)?.Value
+                    ?? context.Principal?.FindFirst("name")?.Value
                     ?? string.Empty;
 
-                var email = context.Principal?.FindFirst("email")?.Value
+                var email = context.Principal?.FindFirst(ClaimTypes.Email)?.Value
+                    ?? context.Principal?.FindFirst("email")?.Value
                     ?? throw new InvalidOperationException("Google 'email' claim is missing");
 
                 var avatarUrl = context.Principal?.FindFirst("picture")?.Value;
@@ -117,8 +122,28 @@ public static class AuthenticationExtensions
                 // Crear o actualizar usuario en DB
                 var user = await userService.CreateOrUpdateFromOAuthAsync(oauthInfo);
 
-                // Aquí se pueden agregar claims personalizados si es necesario
-                // context.Identity.AddClaim(new Claim("UserId", user.Id.ToString()));
+                // Agregar claims personalizados a la identidad del usuario
+                var identity = context.Principal?.Identity as ClaimsIdentity;
+                if (identity != null)
+                {
+                    // Claim del User ID (GUID) - principal para identificar al usuario en la app
+                    identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
+
+                    // Claim del Role (User o Administrator)
+                    identity.AddClaim(new Claim(ClaimTypes.Role, user.Role.ToString()));
+
+                    // Claim del Email (si no existe ya)
+                    if (!identity.HasClaim(c => c.Type == ClaimTypes.Email))
+                    {
+                        identity.AddClaim(new Claim(ClaimTypes.Email, user.Email));
+                    }
+
+                    // Claim del Name (si no existe ya)
+                    if (!identity.HasClaim(c => c.Type == ClaimTypes.Name))
+                    {
+                        identity.AddClaim(new Claim(ClaimTypes.Name, user.Name));
+                    }
+                }
             }
         };
     }
@@ -179,8 +204,28 @@ public static class AuthenticationExtensions
                 // Crear o actualizar usuario en DB
                 var user = await userService.CreateOrUpdateFromOAuthAsync(oauthInfo);
 
-                // Aquí se pueden agregar claims personalizados si es necesario
-                // context.Identity.AddClaim(new Claim("UserId", user.Id.ToString()));
+                // Agregar claims personalizados a la identidad del usuario
+                var identity = context.Principal?.Identity as ClaimsIdentity;
+                if (identity != null)
+                {
+                    // Claim del User ID (GUID) - principal para identificar al usuario en la app
+                    identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
+
+                    // Claim del Role (User o Administrator)
+                    identity.AddClaim(new Claim(ClaimTypes.Role, user.Role.ToString()));
+
+                    // Claim del Email (si no existe ya)
+                    if (!identity.HasClaim(c => c.Type == ClaimTypes.Email))
+                    {
+                        identity.AddClaim(new Claim(ClaimTypes.Email, user.Email));
+                    }
+
+                    // Claim del Name (si no existe ya)
+                    if (!identity.HasClaim(c => c.Type == ClaimTypes.Name))
+                    {
+                        identity.AddClaim(new Claim(ClaimTypes.Name, user.Name));
+                    }
+                }
             }
         };
     }

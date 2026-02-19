@@ -1,5 +1,8 @@
 # Database Documentation - Control Peso Thiscloud
 
+> **Last Updated**: 2026-02-19  
+> **OAuth Implementation**: ✅ GoogleId + LinkedInId (backend preservado, UI Google only)
+
 ## Overview
 
 - **Paradigm**: Database First (SQL schema is source of truth)
@@ -13,15 +16,27 @@
 
 #### Users
 - **Primary Key**: `Id` TEXT (GUID as string)
-- **Unique**: `GoogleId`, `Email`
-- **Columns**: GoogleId, Name, Email, Role (0=User,1=Admin), AvatarUrl, MemberSince, Height, UnitSystem (0=Metric,1=Imperial), DateOfBirth, Language, Status (0=Active,1=Inactive,2=Pending), GoalWeight, StartingWeight, CreatedAt, UpdatedAt
-- **Constraints**: Height CHECK (50-300cm), Role/UnitSystem/Status CHECK (valid enum values)
+- **Unique**: `GoogleId`, `LinkedInId`, `Email`
+- **Columns**: 
+  - `GoogleId` TEXT UNIQUE (nullable - OAuth sub claim from Google)
+  - `LinkedInId` TEXT UNIQUE (nullable - OAuth sub claim from LinkedIn, backend preservado)
+  - `Name`, `Email` (unique), `Role` (0=User, 1=Administrator), `AvatarUrl`, `MemberSince`, `Height`, `UnitSystem` (0=Metric, 1=Imperial), `DateOfBirth`, `Language` (es/en), `Status` (0=Active, 1=Inactive, 2=Pending), `GoalWeight`, `StartingWeight`, `CreatedAt`, `UpdatedAt`
+- **Constraints**: 
+  - Height CHECK (50-300cm)
+  - Role/UnitSystem/Status CHECK (valid enum values)
+  - Email format CHECK (5-320 characters)
+  - GoalWeight/StartingWeight CHECK (20-500kg if not NULL)
+- **OAuth Status**: 
+  - ✅ GoogleId: Activo (UI login button visible)
+  - ⚠️ LinkedInId: Backend preservado, UI removida (botón eliminado de Login.razor)
 
 #### WeightLogs
 - **Primary Key**: `Id` TEXT (GUID)
 - **Foreign Key**: `UserId` → Users(Id) ON DELETE CASCADE
-- **Columns**: UserId, Date (YYYY-MM-DD), Time (HH:MM), Weight REAL (kg), DisplayUnit (0=Kg,1=Lb), Note, Trend (0=Up,1=Down,2=Neutral), CreatedAt
-- **Constraints**: Weight CHECK (20-500kg), Unique(UserId, Date, Time)
+- **Columns**: UserId, Date (YYYY-MM-DD), Time (HH:MM), Weight REAL (kg), DisplayUnit (0=Kg, 1=Lb), Note, Trend (0=Up, 1=Down, 2=Neutral), CreatedAt
+- **Constraints**: 
+  - Weight CHECK (20-500kg)
+  - Unique(UserId, Date, Time) - prevents duplicate entries
 
 #### UserPreferences
 - **Primary Key**: `Id` TEXT
