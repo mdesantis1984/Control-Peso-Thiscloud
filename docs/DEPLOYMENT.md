@@ -1,41 +1,146 @@
 # Deployment Documentation - Control Peso Thiscloud
 
+> **Last Updated**: 2026-02-19  
+> **OAuth Status**: ✅ Google OAuth 2.0 Configured  
+> **Deployment Target**: Azure App Service (Primary) | Docker (Development)
+
 ## Overview
 
-This document covers deployment to **Azure App Service** (recommended) or **IIS** (on-premises), with CI/CD via GitHub Actions.
+This document covers deployment to:
+1. **Docker** (Local Development - READY ✅)
+2. **Azure App Service** (Production - Recommended)
+3. **IIS** (On-Premises Alternative)
 
 ## Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+- Docker Desktop (for local development)
 - Azure subscription OR Windows Server with IIS
 - Domain registered: `controlpeso.thiscloud.com.ar`
 - SSL certificate (Let's Encrypt or commercial)
 - Git repository: GitHub
+- **Google OAuth 2.0 Credentials** (see SECURITY.md)
+
+---
+
+## Local Development (Docker) ✅
+
+### Quick Start
+
+```bash
+# 1. Clone repository
+git clone https://github.com/mdesantis1984/Control-Peso-Thiscloud.git
+cd Control-Peso-Thiscloud
+
+# 2. Create docker-compose.override.yml (GITIGNORED - not committed)
+cp docker-compose.override.yml.example docker-compose.override.yml
+
+# 3. Edit docker-compose.override.yml with your REAL credentials
+# (See Google Cloud Console for ClientId/ClientSecret)
+nano docker-compose.override.yml
+
+# 4. Start container
+docker-compose up -d --build
+
+# 5. Verify health
+curl http://localhost:8080/health
+
+# 6. Open app
+http://localhost:8080
+```
+
+### Docker Secrets Configuration
+
+**File**: `docker-compose.override.yml` (NOT in Git - in .gitignore)
+
+```yaml
+version: '3.8'
+services:
+  controlpeso-web:
+    environment:
+      # ✅ REQUIRED: Google OAuth 2.0
+      - Authentication__Google__ClientId=180510012560-EXAMPLE.apps.googleusercontent.com
+      - Authentication__Google__ClientSecret=GOCSPX-EXAMPLE
+
+      # ⚠️ OPTIONAL: LinkedIn OAuth (UI removed, backend preserved)
+      - Authentication__LinkedIn__ClientId=YOUR_LINKEDIN_CLIENT_ID
+      - Authentication__LinkedIn__ClientSecret=YOUR_LINKEDIN_CLIENT_SECRET
+
+      # 📊 OPTIONAL: Google Analytics 4
+      - GoogleAnalytics__MeasurementId=G-XXXXXXXXXX
+```
+
+**Security Notes**:
+- ✅ `docker-compose.override.yml` is in `.gitignore`
+- ✅ `docker-compose.override.yml.example` has placeholders (safe to commit)
+- ❌ NEVER commit real credentials to Git
+- ✅ File only exists locally (preserved across docker restarts)
+
+### Verify Docker Deployment
+
+```bash
+# Check container status
+docker ps
+
+# View logs
+docker logs -f controlpeso-web
+
+# Check OAuth config inside container
+docker exec controlpeso-web printenv | grep Authentication__Google
+
+# Should show:
+# Authentication__Google__ClientId=180510012560-...
+# Authentication__Google__ClientSecret=GOCSPX-...
+
+# Test health endpoint
+curl http://localhost:8080/health
+# Expected: {"status":"healthy","timestamp":"2026-02-19T...","version":"1.0.0"}
+
+# Test OAuth login
+# 1. Open http://localhost:8080/login
+# 2. Click "Continuar con Google"
+# 3. Authenticate with Google account
+# 4. Should redirect to http://localhost:8080/ (Dashboard)
+```
+
+---
 
 ## Environment Configuration
 
-### Development
+### Development (Local)
+
+**Docker**: Secrets in `docker-compose.override.yml` (see above)
+
+**User Secrets** (alternative to Docker):
+```bash
+# Set via dotnet CLI (stored in user profile, not in project)
+dotnet user-secrets set "Authentication:Google:ClientId" "YOUR_CLIENT_ID"
+dotnet user-secrets set "Authentication:Google:ClientSecret" "YOUR_CLIENT_SECRET"
+dotnet user-secrets set "GoogleAnalytics:MeasurementId" "G-XXXXXXXXX"
+```
+
+**appsettings.Development.json** (empty values - secrets come from override/user secrets):
 ```json
-// appsettings.Development.json
 {
   "ConnectionStrings": {
     "DefaultConnection": "Data Source=controlpeso.db"
   },
   "Authentication": {
     "Google": {
-      "ClientId": "[User Secrets]",
-      "ClientSecret": "[User Secrets]"
+      "ClientId": "",  // ← Empty (read from override.yml or user secrets)
+      "ClientSecret": ""
     }
   }
 }
 ```
 
-### Production
+### Production (Azure/IIS)
+
+**appsettings.Production.json** (NO secrets committed):
 ```json
-// appsettings.Production.json (DO NOT commit secrets)
 {
   "ConnectionStrings": {
-    "DefaultConnection": "[Azure App Settings / Environment Variables]"
+    "DefaultConnection": "[Azure App Settings]"
   },
   "Authentication": {
     "Google": {
@@ -49,6 +154,8 @@ This document covers deployment to **Azure App Service** (recommended) or **IIS*
 }
 ```
 
+---
+
 ## Azure App Service Deployment
 
 ### 1. Create App Service
@@ -61,32 +168,77 @@ az appservice plan create --name asp-controlpeso --resource-group rg-controlpeso
 az webapp create --name controlpeso --resource-group rg-controlpeso --plan asp-controlpeso --runtime "DOTNETCORE:10.0"
 ```
 
-### 2. Configure App Settings
+### 2. Configure App Settings (CRITICAL - OAuth Secrets)
 
 ```bash
-# Connection String (SQL Server)
+# ✅ Google OAuth Credentials (REQUIRED)
+az webapp config appsettings set --name controlpeso --resource-group rg-controlpeso \
+  --settings \
+  Authentication__Google__ClientId="180510012560-EXAMPLE.apps.googleusercontent.com" \
+  Authentication__Google__ClientSecret="GOCSPX-EXAMPLE_SECRET"
+
+# ✅ Connection String (Upgrade to Azure SQL Database)
 az webapp config connection-string set --name controlpeso --resource-group rg-controlpeso \
   --connection-string-type SQLServer \
   --settings DefaultConnection="Server=tcp:controlpeso.database.windows.net,1433;Database=ControlPeso;User Id=admin;Password=***;Encrypt=true;"
 
-# Authentication Secrets
+# 📊 Google Analytics (Optional)
 az webapp config appsettings set --name controlpeso --resource-group rg-controlpeso \
-  --settings \
-  Authentication__Google__ClientId="YOUR_CLIENT_ID" \
-  Authentication__Google__ClientSecret="YOUR_CLIENT_SECRET" \
-  GoogleAnalytics__MeasurementId="G-XXXXXXXXX"
+  --settings GoogleAnalytics__MeasurementId="G-XXXXXXXXX"
+
+# 🔒 HTTPS Only (Force HTTPS redirection)
+az webapp update --name controlpeso --resource-group rg-controlpeso --https-only true
 ```
+
+**IMPORTANT**: Update Google Cloud Console Redirect URIs:
+- Add production URL: `https://controlpeso.thiscloud.com.ar/signin-google`
+- Keep development URL: `http://localhost:8080/signin-google`
 
 ### 3. Deploy Code
 
-**Option A: Azure CLI**
+**Option A: GitHub Actions (Recommended - CI/CD)**
+
+Create `.github/workflows/azure-deploy.yml`:
+```yaml
+name: Deploy to Azure App Service
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build
+        run: dotnet build src/ControlPeso.Web/ControlPeso.Web.csproj -c Release
+
+      - name: Publish
+        run: dotnet publish src/ControlPeso.Web/ControlPeso.Web.csproj -c Release -o ./publish
+
+      - name: Deploy to Azure
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: controlpeso
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ./publish
+```
+
+**Option B: Azure CLI**
 ```bash
 cd src/ControlPeso.Web
 dotnet publish -c Release -o ./publish
 az webapp deployment source config-zip --resource-group rg-controlpeso --name controlpeso --src publish.zip
 ```
 
-**Option B: Visual Studio**
+**Option C: Visual Studio**
 1. Right-click `ControlPeso.Web` → Publish
 2. Select Azure → App Service (Linux)
 3. Sign in to Azure

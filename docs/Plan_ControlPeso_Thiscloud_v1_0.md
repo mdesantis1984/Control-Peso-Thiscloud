@@ -4,8 +4,10 @@
 - Rama: `main` → `develop` → `feature/*`
 - Versión: **1.0.0**
 - Fecha inicio: **2026-02-15**
-- Última actualización: **2026-02-18 21:00**
+- Última actualización: **2026-02-19 16:00**
 - Estado global: 🟢 **COMPLETADO** — Fase 0 ✅ | Fase 1 ✅ | Fase 1.5 ✅ | Fase 2 ✅ | Fase 3 ✅ | Fase 4 ✅ | Fase 5 ✅ | Fase 6 ✅ | Fase 7 ✅ | Fase 8 ✅ (63/63 tareas = **100%** ejecutado)
+
+**🆕 ACTUALIZACIÓN 2026-02-19**: Google OAuth 2.0 completamente funcional con Claims Transformation + Rendermode global configurado en App.razor + LinkedIn UI removida (backend preservado) + Docker deployment ready + Documentación actualizada (SECURITY.md, DEPLOYMENT.md, DOCKER.md, ARCHITECTURE.md).
 
 ## Objetivo
 
@@ -911,24 +913,59 @@ Criterios de aceptación:
 
 ### Fase 4 — Autenticación OAuth 2.0 (Google + LinkedIn)
 
+**Estado**: ✅ **COMPLETADA** (2026-02-19)
+
+**Contexto**: Implementación completa de Google OAuth 2.0 con ASP.NET Core Identity, Cookie authentication, Claims Transformation pattern para claims custom (UserId, Role, UserStatus, Language), y rendermode global configurado en App.razor. LinkedIn backend preservado (UI removida del login).
+
+**Hitos Técnicos Logrados**:
+- ✅ **Google OAuth 2.0 E2E**: Authorization Code Flow con PKCE, redirect URIs configurados (dev + prod)
+- ✅ **Claims Transformation**: IClaimsTransformation service con cache optimization (evita queries DB repetidas)
+- ✅ **Custom Claims**: UserId (GUID), Role (User/Administrator), UserStatus (Active/Inactive/Pending), Language (es/en)
+- ✅ **Rendermode Global**: @rendermode="InteractiveServer" en App.razor (<Routes />) - single source of truth
+- ✅ **Docker Secrets**: docker-compose.override.yml para credenciales OAuth (gitignored)
+- ✅ **Cookie Segura**: HttpOnly + Secure + SameSite=Lax, 30 días sliding expiration
+- ✅ **Profile Integration**: UserId claim lookup working, perfil de usuario carga correctamente
+- ✅ **LinkedIn UI Removida**: Botón eliminado de Login.razor, backend OAuth preservado en AuthenticationExtensions.cs
+- ✅ **Documentación Completa**: SECURITY.md, DEPLOYMENT.md, DOCKER.md, ARCHITECTURE.md actualizados
+
+**Arquitectura Claims Transformation**:
+```
+OAuth Callback → Cookie Auth → IClaimsTransformation.TransformAsync() →
+  → Check cache (if "UserId" exists, return) →
+  → Extract email from ClaimTypes.Email →
+  → GetByEmailAsync(email) →
+  → Add custom claims (UserId, Role, UserStatus, Language) →
+  → Return enriched ClaimsPrincipal
+```
+
+**Git Flow**: Feature branch `test/prueba_login` pushed to origin (2 commits ahead of develop)
+
 Tareas:
 - ✅ P4.1 Configurar Google OAuth + LinkedIn OAuth en ASP.NET Core. **100%**
-- P4.2 Implementar AuthenticationExtensions (Google + LinkedIn providers).
-- P4.3 Implementar callback que crea/actualiza usuario en DB (para ambos providers).
-- P4.4 Crear página Login.razor con botones "Continuar con Google" y "Continuar con LinkedIn" (MudButton).
-- P4.5 Configurar cookie segura (HttpOnly, Secure, SameSite). ✅ Completado en P4.1
-- P4.6 Implementar logout.
-- P4.7 Proteger rutas con [Authorize].
-- P4.8 Actualizar modelo de datos: agregar LinkedInId a tabla Users (opcional, permite vincular ambas cuentas).
+- ✅ P4.2 Implementar AuthenticationExtensions (Google + LinkedIn providers). **100%**
+- ✅ P4.3 Implementar callback que crea/actualiza usuario en DB (OnCreatingTicket). **100%**
+- ✅ P4.4 Crear página Login.razor con botón "Continuar con Google" (LinkedIn UI removida). **100%**
+- ✅ P4.5 Configurar cookie segura (HttpOnly, Secure, SameSite). **100%**
+- ✅ P4.6 Implementar logout. **100%**
+- ✅ P4.7 Proteger rutas con [Authorize]. **100%**
+- ✅ P4.8 Actualizar modelo de datos: LinkedInId en tabla Users. **100%**
+- ✅ **BONUS** P4.9 Implementar Claims Transformation (IClaimsTransformation pattern). **100%**
+- ✅ **BONUS** P4.10 Configurar rendermode global en App.razor (evitar repetición + serialization errors). **100%**
+- ✅ **BONUS** P4.11 Configurar Docker secrets (docker-compose.override.yml gitignored). **100%**
 
 Criterios de aceptación:
-- Login con Google funciona E2E.
-- Login con LinkedIn funciona E2E.
-- Usuario se crea en DB al primer login (desde cualquier provider).
-- Usuario puede vincular ambas cuentas (GoogleId + LinkedInId en mismo registro).
-- Logout limpia sesión correctamente.
-- Rutas protegidas redirigen a Login.
-- Cookie configurada de forma segura (HttpOnly, Secure, SameSite=Lax).
+- ✅ Login con Google funciona E2E (Challenge → OAuth Provider → Callback → ClaimsTransformation → Dashboard).
+- ✅ Claims Transformation agrega custom claims (UserId, Role, UserStatus, Language) DESPUÉS de cookie authentication.
+- ✅ Profile page accede a UserId claim correctamente (sin errores "User ID claim not found").
+- ✅ Usuario se crea/actualiza en DB al primer login con Google (GoogleId, Email, Name, AvatarUrl).
+- ✅ Logout limpia sesión correctamente.
+- ✅ Rutas protegidas redirigen a Login cuando no autenticado.
+- ✅ Cookie configurada de forma segura (HttpOnly, Secure, SameSite=Lax, 30 días).
+- ✅ LinkedIn backend OAuth preservado (AuthenticationExtensions.cs intacto), UI removida (Login.razor).
+- ✅ Docker deployment funcional con secrets en docker-compose.override.yml (gitignored).
+- ✅ Rendermode global configurado en App.razor (<Routes @rendermode="InteractiveServer" />).
+- ✅ GetByEmailAsync() agregado a IUserService/UserService para Claims Transformation.
+- ✅ Documentación completa: SECURITY.md (OAuth flow + Claims Transformation), DEPLOYMENT.md (Docker + Azure), DOCKER.md (OAuth setup), ARCHITECTURE.md (Claims Transformation pattern + Global Rendermode).
 
 ### Fase 5 — UI Core (Layout + Dashboard + AddWeight)
 
