@@ -1,44 +1,174 @@
 # Security Documentation - Control Peso Thiscloud
 
+> **Last Updated**: 2026-02-19  
+> **Status**: OAuth 2.0 Google Authentication ✅ IMPLEMENTED
+
 ## Overview
 
-Security-first design with OAuth 2.0, HTTPS enforcement, CSP headers, rate limiting, and structured logging with PII redaction.
+Security-first design with **Google OAuth 2.0**, HTTPS enforcement, CSP headers, rate limiting, and structured logging with PII redaction.
 
 ## Authentication & Authorization
 
-### OAuth 2.0 (Google + LinkedIn)
+### OAuth 2.0 Authentication
 
-- **Cookie-based**: `HttpOnly`, `Secure`, `SameSite=Lax`
-- **Expiration**: 30 days sliding
-- **NO passwords stored**: External OAuth providers only
+**Implemented**: ✅ Google OAuth 2.0 (LinkedIn UI removed, backend preserved)
 
-**OAuth Flow**:
-1. User clicks "Login with Google/LinkedIn"
-2. App redirects to OAuth provider
-3. User authenticates (Google/LinkedIn handles credentials)
-4. OAuth provider redirects to callback `/signin-google` or `/signin-linkedin`
-5. `OnCreatingTicket` event: Create/update user in DB
-6. Issue authentication cookie
-7. Redirect to Dashboard
+#### Authentication Flow
 
-**Authorization**:
-- `[Authorize]` attribute: Requires authenticated user
-- `[Authorize(Roles="Administrator")]`: Admin-only pages
+1. **User Navigation**: User clicks "Continuar con Google" on `/login`
+2. **OAuth Challenge**: App redirects to Google OAuth (`/api/auth/login/google`)
+3. **User Consent**: User authenticates at Google (credentials handled by Google)
+4. **OAuth Callback**: Google redirects to `/signin-google` with authorization code
+5. **Token Exchange**: App exchanges code for access token (server-side)
+6. **User Creation/Update**: `OnCreatingTicket` event extracts claims and creates/updates user in SQLite
+7. **Claims Transformation**: `UserClaimsTransformation` service adds custom claims:
+   - `UserId` (GUID from database)
+   - `ClaimTypes.Role` (User/Administrator enum)
+   - `UserStatus` (Active/Inactive/Pending)
+   - `Language` (es/en for localization)
+8. **Cookie Issuance**: Secure authentication cookie issued (`HttpOnly + Secure + SameSite=Lax`)
+9. **Redirect**: User redirected to Dashboard
+
+#### Cookie Configuration
+
+```csharp
+options.Cookie.Name = ".AspNetCore.Cookies";
+options.Cookie.HttpOnly = true;   // JavaScript cannot access
+options.Cookie.SecurePolicy = CookieSecurePolicy.Always;  // HTTPS only
+options.Cookie.SameSite = SameSiteMode.Lax;  // CSRF protection
+options.ExpireTimeSpan = TimeSpan.FromDays(30);  // 30-day expiration
+options.SlidingExpiration = true;  // Renew on each request
+```
+
+#### Authorization Attributes
+
+- **`[Authorize]`**: Requires authenticated user (any role)
+- **`[Authorize(Roles="Administrator")]`**: Admin-only pages (Admin panel)
+- **Anonymous**: Home page, Login page (no attribute)
+
+#### Claims Transformation
+
+Custom claims are added post-authentication via `IClaimsTransformation`:
+
+```csharp
+// UserClaimsTransformation.cs
+public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
+{
+    if (!principal.Identity?.IsAuthenticated ?? false)
+        return principal;
+
+    // Check cache (if UserId already exists, skip DB query)
+    if (principal.HasClaim(c => c.Type == "UserId"))
+        return principal;
+
+    // Fetch user from DB by email
+    var email = principal.FindFirst(ClaimTypes.Email)?.Value;
+    var user = await _userService.GetByEmailAsync(email!);
+
+    if (user is null)
+        return principal;
+
+    // Add custom claims
+    var claims = new List<Claim>
+    {
+        new("UserId", user.Id.ToString()),
+        new(ClaimTypes.Role, user.Role.ToString()),
+        new("UserStatus", ((int)user.Status).ToString()),
+        new("Language", user.Language)
+    };
+
+    var claimsIdentity = new ClaimsIdentity(claims);
+    principal.AddIdentity(claimsIdentity);
+
+    return principal;
+}
+```
+
+**Benefits**:
+- Custom claims available throughout app via `ClaimsPrincipal`
+- Cached per request (no repeated DB queries)
+- Clean separation: OAuth handles authentication, ClaimsTransformation handles app-specific claims
 
 ### Secrets Management
 
-**Development**:
+#### Development (Local)
+
+**Docker**: Secrets in `docker-compose.override.yml` (gitignored)
+
+```yaml
+# docker-compose.override.yml (NOT in Git - in .gitignore)
+version: '3.8'
+services:
+  controlpeso-web:
+    environment:
+      - Authentication__Google__ClientId=YOUR_REAL_CLIENT_ID
+      - Authentication__Google__ClientSecret=YOUR_REAL_CLIENT_SECRET
+      - GoogleAnalytics__MeasurementId=G-XXXXXXXXXX
+```
+
+**User Secrets** (Visual Studio / dotnet CLI):
 ```bash
-# User Secrets (NOT in Git)
+# Alternative for non-Docker development
 dotnet user-secrets set "Authentication:Google:ClientId" "YOUR_CLIENT_ID"
 dotnet user-secrets set "Authentication:Google:ClientSecret" "YOUR_CLIENT_SECRET"
 dotnet user-secrets set "GoogleAnalytics:MeasurementId" "G-XXXXXXXXX"
 ```
 
-**Production**:
-- Azure App Service: Application Settings (encrypted)
-- IIS: Environment Variables
-- **NEVER commit secrets to Git**
+**Storage Locations**:
+- Windows: `%APPDATA%\Microsoft\UserSecrets\<user_secrets_id>\secrets.json`
+- Linux/macOS: `~/.microsoft/usersecrets/<user_secrets_id>/secrets.json`
+- Docker: Environment variables via `docker-compose.override.yml`
+
+#### Production
+
+**Azure App Service**:
+```bash
+# Set via Azure Portal → Configuration → Application Settings
+Authentication__Google__ClientId = "YOUR_PROD_CLIENT_ID"
+Authentication__Google__ClientSecret = "YOUR_PROD_CLIENT_SECRET"
+```
+
+**Azure Key Vault** (recommended for production):
+```csharp
+// Program.cs
+builder.Configuration.AddAzureKeyVault(
+    new Uri("https://controlpeso-keyvault.vault.azure.net/"),
+    new DefaultAzureCredential());
+```
+
+**IIS / On-Premise**:
+- Set environment variables in `web.config` or machine-level environment variables
+- Use `<environmentVariables>` section in `web.config`
+
+**NEVER**:
+- ❌ Commit secrets to Git
+- ❌ Hardcode secrets in `appsettings.json`
+- ❌ Store secrets in plain text files
+- ❌ Share secrets via email/Slack/Teams
+
+### OAuth Provider Configuration
+
+**Google Cloud Console** (https://console.cloud.google.com):
+
+1. **Create Project**: `control-peso-thiscloud`
+2. **Enable APIs**: Google+ API, Google Identity Toolkit API
+3. **Create OAuth Client ID**:
+   - Application type: Web application
+   - Name: Control Peso Thiscloud (Production/Development)
+   - Authorized redirect URIs:
+     - Development: `http://localhost:8080/signin-google`
+     - Production: `https://controlpeso.thiscloud.com.ar/signin-google`
+4. **Obtain Credentials**: Download JSON with `client_id` and `client_secret`
+5. **Configure Consent Screen**:
+   - App name: Control Peso Thiscloud
+   - User support email: support@thiscloud.com.ar
+   - Developer contact: marco.alejandro.desantis@gmail.com
+   - Scopes: `openid`, `profile`, `email`
+
+**Scopes Requested**:
+- `openid`: OpenID Connect authentication
+- `profile`: Name, profile picture
+- `email`: Email address (used as unique identifier)
 
 ## Security Headers (SecurityHeadersMiddleware)
 
