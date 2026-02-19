@@ -943,10 +943,321 @@ authGroup.MapGet("/login/google", ...).RequireRateLimiting("oauth");
 - [ ] **Test coverage**: Unit tests for services, integration tests for DB access
 - [ ] **Document decisions**: Update architecture docs when making significant changes
 
+---
+
+## 🆕 Claims Transformation Pattern (OAuth Integration)
+
+### Overview
+
+Control Peso implements the **Claims Transformation** pattern to enrich user identity with custom application-specific claims after OAuth authentication succeeds.
+
+### Problem
+
+Google/LinkedIn OAuth providers return standard claims (`sub`, `email`, `name`, `picture`), but the application needs:
+- Internal GUID `UserId` (from database)
+- `Role` (User/Administrator enum)
+- `UserStatus` (Active/Inactive/Pending)
+- `Language` preference (es/en)
+
+**Challenge**: Claims added in `OnCreatingTicket` event don't persist to the authentication cookie.
+
+### Solution: IClaimsTransformation
+
+Implement `IClaimsTransformation` interface to add custom claims **after** cookie authentication middleware executes.
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 1. OAuth Callback (/signin-google)                         │
+│    - Exchange authorization code for access token           │
+│    - OnCreatingTicket: Create/update user in database       │
+│    - Issue authentication cookie (standard claims only)     │
+└───────────────────────┬─────────────────────────────────────┘
+                        │
+                        ↓
+┌─────────────────────────────────────────────────────────────┐
+│ 2. Cookie Authentication Middleware                         │
+│    - Read encrypted cookie                                  │
+│    - Validate cookie signature + expiration                 │
+│    - Deserialize ClaimsPrincipal (standard OAuth claims)    │
+└───────────────────────┬─────────────────────────────────────┘
+                        │
+                        ↓
+┌─────────────────────────────────────────────────────────────┐
+│ 3. Claims Transformation Middleware                         │
+│    - IClaimsTransformation.TransformAsync()                 │
+│    - UserClaimsTransformation.cs (Web/Services)             │
+│    - Check cache: if "UserId" claim exists, skip DB query   │
+│    - Extract email from ClaimTypes.Email                    │
+│    - Call IUserService.GetByEmailAsync(email)               │
+│    - Add custom claims: UserId, Role, UserStatus, Language  │
+│    - Return enriched ClaimsPrincipal                        │
+└───────────────────────┬─────────────────────────────────────┘
+                        │
+                        ↓
+┌─────────────────────────────────────────────────────────────┐
+│ 4. Authorization Middleware                                 │
+│    - Evaluate [Authorize] attributes with enriched claims   │
+│    - [Authorize(Roles="Administrator")] checks Role claim   │
+└───────────────────────┬─────────────────────────────────────┘
+                        │
+                        ↓
+┌─────────────────────────────────────────────────────────────┐
+│ 5. Blazor Component Access                                  │
+│    - @inject AuthenticationStateProvider AuthStateProvider  │
+│    - var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+│    - var userId = authState.User.FindFirst("UserId")?.Value;│
+│    - Custom claims available throughout application         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Implementation
+
+**Step 1: Create Claims Transformation Service**
+
+```csharp
+// Web/Services/UserClaimsTransformation.cs
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using ControlPeso.Application.Interfaces;
+
+namespace ControlPeso.Web.Services;
+
+internal sealed class UserClaimsTransformation : IClaimsTransformation
+{
+    private readonly IUserService _userService;
+    private readonly ILogger<UserClaimsTransformation> _logger;
+
+    public UserClaimsTransformation(
+        IUserService userService,
+        ILogger<UserClaimsTransformation> logger)
+    {
+        ArgumentNullException.ThrowIfNull(userService);
+        ArgumentNullException.ThrowIfNull(logger);
+
+        _userService = userService;
+        _logger = logger;
+    }
+
+    public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
+    {
+        // 1. Validate authenticated
+        if (!principal.Identity?.IsAuthenticated ?? false)
+            return principal;
+
+        // 2. Cache check: if UserId already exists, skip DB query
+        if (principal.HasClaim(c => c.Type == "UserId"))
+            return principal;
+
+        // 3. Extract email from OAuth claims
+        var email = principal.FindFirst(ClaimTypes.Email)?.Value;
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            _logger.LogWarning("Claims transformation skipped - email claim not found");
+            return principal;
+        }
+
+        // 4. Fetch user from database
+        var user = await _userService.GetByEmailAsync(email!, CancellationToken.None);
+        if (user is null)
+        {
+            _logger.LogWarning("Claims transformation skipped - user not found for email {Email}", email);
+            return principal;
+        }
+
+        // 5. Create custom claims
+        var claims = new List<Claim>
+        {
+            new("UserId", user.Id.ToString()),              // Internal GUID
+            new(ClaimTypes.Role, user.Role.ToString()),     // User/Administrator
+            new("UserStatus", ((int)user.Status).ToString()), // Active/Inactive/Pending
+            new("Language", user.Language)                   // es/en
+        };
+
+        // 6. Add claims to new identity and attach to principal
+        var claimsIdentity = new ClaimsIdentity(claims);
+        principal.AddIdentity(claimsIdentity);
+
+        _logger.LogInformation(
+            "Claims transformed successfully - UserId: {UserId}, Email: {Email}, Role: {Role}",
+            user.Id, email, user.Role);
+
+        return principal;
+    }
+}
+```
+
+**Step 2: Register in DI Container**
+
+```csharp
+// Program.cs (Web/Program.cs)
+builder.Services.AddScoped<IClaimsTransformation, UserClaimsTransformation>();
+```
+
+**Step 3: Add GetByEmailAsync to UserService**
+
+```csharp
+// Application/Interfaces/IUserService.cs
+public interface IUserService
+{
+    Task<UserDto?> GetByEmailAsync(string email, CancellationToken ct = default);
+    // ... other methods
+}
+
+// Application/Services/UserService.cs
+public async Task<UserDto?> GetByEmailAsync(string email, CancellationToken ct = default)
+{
+    _logger.LogInformation("Fetching user by email: {Email}", email);
+
+    var user = await _context.Users
+        .AsNoTracking()
+        .FirstOrDefaultAsync(u => u.Email == email, ct);
+
+    return user is null ? null : UserMapper.ToDto(user);
+}
+```
+
+### Benefits
+
+✅ **Persistent**: Custom claims persist in cookie, available on every request
+✅ **Cached**: Cache check (`if (principal.HasClaim("UserId"))`) prevents repeated DB queries
+✅ **Centralized**: All custom claims logic in one service
+✅ **Separation**: OAuth logic (OnCreatingTicket) separate from app-specific claims
+✅ **Flexible**: Easy to add more claims without touching OAuth config
+
+### Execution Flow Log Example
+
+```
+[2026-02-19 15:30:45] [INF] OAuth callback received - sub: 108732892831748372819
+[2026-02-19 15:30:45] [INF] User created/updated - Email: user@example.com, GoogleId: 108732...
+[2026-02-19 15:30:45] [INF] Authentication cookie issued
+[2026-02-19 15:30:45] [INF] Claims transformation executed - Email: user@example.com
+[2026-02-19 15:30:45] [INF] Claims transformed successfully - UserId: 8a9b1c2d-..., Role: User
+[2026-02-19 15:30:46] [INF] User profile loaded - UserId: 8a9b1c2d-..., Name: John Doe
+```
+
+---
+
+## 🆕 Global Rendermode Configuration (Blazor Server)
+
+### Problem
+
+Blazor .NET 8+ requires **explicit rendermode** for interactive components (button clicks, form submissions, etc.).
+
+**Initial Attempts**:
+1. ❌ `@rendermode` on `RouteView` in `Routes.razor` → ERROR: "Serialization of System.Type not supported"
+2. ❌ `@rendermode` on `MainLayout.razor` → ERROR: "Cannot pass Body parameter with rendermode" (RenderFragment not serializable)
+3. ⚠️ `@rendermode` on each individual page → WORKS but repetitive (must add to Dashboard.razor, Profile.razor, History.razor, Trends.razor, Admin.razor, etc.)
+
+### Solution: Global Rendermode in App.razor
+
+**BEST PRACTICE**: Configure rendermode ONCE in `App.razor` on the `<Routes />` component.
+
+### Implementation
+
+```razor
+<!-- Web/Components/App.razor -->
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <link rel="stylesheet" href="ControlPeso.Web.styles.css" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+    <HeadOutlet @rendermode="InteractiveServer" />
+</head>
+
+<body>
+    <!-- ✅ GLOBAL RENDERMODE: Applied to entire routing tree -->
+    <Routes @rendermode="InteractiveServer" />
+
+    <script src="_framework/blazor.web.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+</body>
+
+</html>
+```
+
+### Architecture Diagram
+
+```
+App.razor (Root Component)
+└── <Routes @rendermode="InteractiveServer" />  ← SINGLE SOURCE OF TRUTH
+    ├── Routes.razor
+    │   └── <RouteView>  ← NO @rendermode (inherits from parent)
+    │       └── MainLayout.razor  ← NO @rendermode (inherits)
+    │           ├── NavMenu.razor  ← Inherits interactivity
+    │           └── @Body (Page Content)
+    │               ├── Dashboard.razor  ← Inherits interactivity
+    │               │   ├── StatsCard.razor  ← Inherits interactivity
+    │               │   ├── WeightChart.razor  ← Inherits interactivity
+    │               │   └── AddWeightDialog.razor  ← Inherits interactivity
+    │               ├── Profile.razor  ← Inherits interactivity
+    │               ├── History.razor  ← Inherits interactivity
+    │               ├── Trends.razor  ← Inherits interactivity
+    │               └── Admin.razor  ← Inherits interactivity
+    └── Login.razor  ← Inherits interactivity (no @layout, uses default)
+```
+
+### Benefits
+
+✅ **DRY (Don't Repeat Yourself)**: One line configures entire app
+✅ **No Serialization Errors**: Avoids System.Type and RenderFragment serialization issues
+✅ **Maintainable**: Change rendermode strategy in one place
+✅ **Inherited**: All routed pages and child components automatically interactive
+✅ **Performance**: No overhead (same as individual page rendermodes)
+✅ **Future-Proof**: Easy to switch to InteractiveWebAssembly or InteractiveAuto
+
+### Alternative Rendermode Strategies
+
+```razor
+<!-- Server-side rendering (SSR) only - no interactivity -->
+<Routes />  
+
+<!-- Interactive server (SignalR WebSocket) - CURRENT CHOICE -->
+<Routes @rendermode="InteractiveServer" />
+
+<!-- Interactive WebAssembly (client-side .NET in browser) -->
+<Routes @rendermode="InteractiveWebAssembly" />
+
+<!-- Auto: Server for initial load, then WebAssembly when downloaded -->
+<Routes @rendermode="InteractiveAuto" />
+```
+
+### Why InteractiveServer?
+
+**Decision Rationale**:
+- ✅ **Stateful**: User authentication state persists on server
+- ✅ **Secure**: Business logic never exposed to client (no WASM download)
+- ✅ **Fast Initial Load**: No .NET runtime download required
+- ✅ **Database Access**: Direct DbContext access (no API layer needed)
+- ⚠️ **Requires WebSocket**: Users must have persistent connection (SignalR)
+- ⚠️ **Scalability**: Each user = active server connection (consider SignalR scale-out for production)
+
+### Troubleshooting
+
+**Problem**: Buttons not clickable, forms not submitting
+**Solution**: Ensure `@rendermode="InteractiveServer"` on `<Routes />` in `App.razor`
+
+**Problem**: "Serialization of System.Type not supported"
+**Solution**: Remove `@rendermode` from `RouteView` in `Routes.razor`, apply to `<Routes />` in `App.razor`
+
+**Problem**: "Cannot pass Body parameter with rendermode"
+**Solution**: Remove `@rendermode` from `MainLayout.razor`, apply to `<Routes />` in `App.razor`
+
+---
+
 ## References
 
 - [Clean Architecture (Uncle Bob)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
 - [Onion Architecture](https://jeffreypalermo.com/2008/07/the-onion-architecture-part-1/)
 - [Blazor Architecture](https://docs.microsoft.com/en-us/dotnet/architecture/blazor/)
+- [Blazor Render Modes (.NET 8+)](https://learn.microsoft.com/en-us/aspnet/core/blazor/components/render-modes)
+- [ASP.NET Core Claims Transformation](https://learn.microsoft.com/en-us/aspnet/core/security/authentication/claims)
 - [MudBlazor Documentation](https://mudblazor.com/)
 - [Entity Framework Core Best Practices](https://docs.microsoft.com/en-us/ef/core/)
+

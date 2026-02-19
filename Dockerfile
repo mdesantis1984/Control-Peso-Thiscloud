@@ -35,13 +35,13 @@ RUN dotnet publish "ControlPeso.Web.csproj" -c Release -o /app/publish /p:UseApp
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
-# Install SQLite (for Database First workflow)
+# Install SQLite (for Database First workflow) and curl (for health checks)
 RUN apt-get update && \
-    apt-get install -y sqlite3 && \
+    apt-get install -y sqlite3 curl && \
     rm -rf /var/lib/apt/lists/*
 
 # Create directories for database and logs
-RUN mkdir -p /app/data /app/logs
+RUN mkdir -p /app/data /app/logs /root/.aspnet/DataProtection-Keys
 
 # Copy published application
 COPY --from=publish /app/publish .
