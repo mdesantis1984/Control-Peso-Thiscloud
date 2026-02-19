@@ -16,6 +16,9 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
 
+      # Data Protection keys path (for antiforgery tokens and auth cookies persistence)
+      - ASPNETCORE_DataProtection__Path=/root/.aspnet/DataProtection-Keys
+
       # Database Connection (SQLite file-based)
       - ConnectionStrings__DefaultConnection=Data Source=/app/data/controlpeso.db
 
@@ -41,9 +44,12 @@ services:
     volumes:
       # Persist SQLite database
       - controlpeso-data:/app/data
-      
+
       # Persist logs
       - controlpeso-logs:/app/logs
+
+      # Persist Data Protection keys (antiforgery tokens, authentication cookies)
+      - controlpeso-keys:/root/.aspnet/DataProtection-Keys
     
     networks:
       - controlpeso-network
@@ -77,8 +83,13 @@ volumes:
   controlpeso-data:
     driver: local
     name: controlpeso-data
-  
+
   # Logs persistence
   controlpeso-logs:
     driver: local
     name: controlpeso-logs
+
+  # Data Protection keys persistence (antiforgery, auth cookies)
+  controlpeso-keys:
+    driver: local
+    name: controlpeso-keys
