@@ -123,6 +123,38 @@ public sealed class UserService : IUserService
     }
 
     /// <summary>
+    /// Obtiene un usuario por su email.
+    /// </summary>
+    public async Task<UserDto?> GetByEmailAsync(string email, CancellationToken ct = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(email);
+
+        _logger.LogInformation("Getting user by email: {Email}", email);
+
+        try
+        {
+            var user = await _context.Set<Users>()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Email == email, ct);
+
+            if (user is null)
+            {
+                _logger.LogWarning("User not found with email: {Email}", email);
+                return null;
+            }
+
+            var dto = UserMapper.ToDto(user);
+            _logger.LogInformation("User retrieved by email: {UserId}, Email: {Email}", dto.Id, dto.Email);
+            return dto;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting user by email: {Email}", email);
+            throw;
+        }
+    }
+
+    /// <summary>
     /// Crea o actualiza un usuario desde información de Google OAuth.
     /// Si el usuario existe (por GoogleId), actualiza Name, Email, AvatarUrl.
     /// Si no existe, crea uno nuevo con status Active y role User.

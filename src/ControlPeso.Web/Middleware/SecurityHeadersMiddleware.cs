@@ -84,9 +84,9 @@ public sealed class SecurityHeadersMiddleware
             // connect-src: Conexiones AJAX/WebSocket permitidas
             // 'self': Conexiones al mismo origen
             // wss:: WebSocket (requerido por Blazor Server SignalR)
-            // https://www.google-analytics.com: Google Analytics
+            // https://*.google-analytics.com: Google Analytics (incluye region1, region2, etc.)
             // https://cloudflareinsights.com: Cloudflare Analytics
-            "connect-src 'self' wss: https://www.google-analytics.com https://cloudflareinsights.com",
+            "connect-src 'self' wss: https://*.google-analytics.com https://cloudflareinsights.com",
 
             // frame-ancestors: Quién puede embeber esta página en iframe
             // 'none': Nadie puede embeber (equivalente a X-Frame-Options: DENY)
