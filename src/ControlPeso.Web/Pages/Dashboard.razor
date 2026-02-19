@@ -29,7 +29,7 @@
 }
 else
 {
-    <MudText Typo="Typo.h4" Class="mb-4">Dashboard</MudText>
+    <MudText Typo="Typo.h4" Class="mb-6">Dashboard</MudText>
 
     <MudGrid>
         <MudItem xs="12" sm="6" md="3">
@@ -83,7 +83,7 @@ else
                                        aria-label="Refresh data" />
                     </CardHeaderActions>
                 </MudCardHeader>
-                <MudCardContent>
+                <MudCardContent Class="pa-4">
                     <WeightChart Data="@_weightLogs" />
                 </MudCardContent>
             </MudCard>
@@ -216,8 +216,9 @@ else
 
     <MudFab Color="Color.Primary"
             StartIcon="@Icons.Material.Filled.Add"
+            Size="Size.Large"
             Label="Agregar Peso"
             OnClick="@OpenAddWeightDialog"
-            Style="position: fixed; bottom: 24px; right: 24px;"
-            aria-label="Add weight" />
+            Style="position: fixed; bottom: 24px; right: 24px; z-index: 1000;"
+            aria-label="Agregar nuevo registro de peso" />
 }

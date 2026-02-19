@@ -68,6 +68,8 @@ public partial class StatsCard
 
     private string GetTrendIcon()
     {
-        return TrendValue < 0 ? "▼" : "▲";
+        return TrendValue < 0 
+            ? Icons.Material.Filled.ArrowDownward 
+            : Icons.Material.Filled.ArrowUpward;
     }
 }

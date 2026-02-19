@@ -70,13 +70,23 @@ public partial class WeightChart
             // Configurar opciones del gráfico
             _options = new ChartOptions
             {
+                // Interpolación suave para línea más fluida
+                InterpolationOption = InterpolationOption.NaturalSpline,
+
+                // Línea principal
+                LineStrokeWidth = 3,
+
+                // Ejes
                 YAxisTicks = 10,
                 YAxisLines = true,
                 XAxisLines = false,
-                LineStrokeWidth = 3,
-                InterpolationOption = InterpolationOption.Straight,
                 YAxisFormat = "{0:F1} kg",
-                ChartPalette = new[] { "#2196F3" } // Color azul principal del tema
+
+                // Diseño responsivo
+                DisableLegend = false,
+
+                // Paleta de colores (Primary theme color)
+                ChartPalette = new[] { "#2196F3" }
             };
 
             Logger.LogDebug("WeightChart: Chart configured - Labels: {LabelCount}, Series: {SeriesCount}",
