@@ -77,9 +77,10 @@ public sealed class WeightLogService : IWeightLogService
                 var startDateStr = filter.DateRange.StartDate.ToString("yyyy-MM-dd");
                 var endDateStr = filter.DateRange.EndDate.ToString("yyyy-MM-dd");
 
+                // Direct string comparison works correctly with ISO 8601 format (YYYY-MM-DD) in SQLite
                 query = query.Where(w =>
-                    string.Compare(w.Date, startDateStr, StringComparison.Ordinal) >= 0
-                    && string.Compare(w.Date, endDateStr, StringComparison.Ordinal) <= 0);
+                    w.Date.CompareTo(startDateStr) >= 0
+                    && w.Date.CompareTo(endDateStr) <= 0);
             }
 
             // Apply sorting
