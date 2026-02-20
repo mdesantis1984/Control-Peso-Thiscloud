@@ -48,12 +48,14 @@ public partial class AddWeightDialog
         try
         {
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-            var userIdClaim = authState.User.FindFirst("sub")?.Value;
+
+            // CORRECCIÓN: Usar ClaimTypes.NameIdentifier (contiene UserId GUID después de UserClaimsTransformation)
+            var userIdClaim = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
             {
-                Logger.LogWarning("AddWeightDialog: Invalid user ID");
-                Snackbar.Add("Error: Usuario no válido", Severity.Error);
+                Logger.LogWarning("AddWeightDialog: Invalid user ID - Claim value: {UserIdClaim}", userIdClaim ?? "(null)");
+                Snackbar.Add("Error: Usuario no válido. Por favor, recarga la página.", Severity.Error);
                 return;
             }
 

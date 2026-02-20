@@ -11,6 +11,7 @@ public partial class Profile
 {
     [Inject] private IUserService UserService { get; set; } = null!;
     [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
+    [Inject] private NavigationManager Navigation { get; set; } = null!;
     [Inject] private ILogger<Profile> Logger { get; set; } = null!;
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
 
@@ -39,12 +40,22 @@ public partial class Profile
         try
         {
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-            var userIdClaim = authState.User.FindFirst("UserId")?.Value;
+
+            // Verificar si el usuario está autenticado
+            if (!authState.User.Identity?.IsAuthenticated ?? true)
+            {
+                Logger.LogWarning("User is not authenticated - Redirecting to login");
+                Navigation.NavigateTo("/login", forceLoad: true);
+                return;
+            }
+
+            // CORRECCIÓN: Usar ClaimTypes.NameIdentifier (contiene el UserId GUID después de UserClaimsTransformation)
+            var userIdClaim = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrWhiteSpace(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
             {
-                Logger.LogWarning("User ID claim not found or invalid - Claim value: {UserIdClaim}", userIdClaim ?? "null");
-                Snackbar.Add("No se pudo identificar al usuario", Severity.Error);
+                Logger.LogWarning("User ID claim not found or invalid - Claim value: {UserIdClaim} - Redirecting to login", userIdClaim ?? "null");
+                Navigation.NavigateTo("/login", forceLoad: true);
                 return;
             }
 
@@ -54,7 +65,7 @@ public partial class Profile
             if (_user is null)
             {
                 Logger.LogWarning("User {UserId} not found in database", userId);
-                Snackbar.Add("Usuario no encontrado", Severity.Error);
+                Snackbar.Add("Usuario no encontrado en la base de datos", Severity.Error);
                 return;
             }
 
@@ -66,12 +77,14 @@ public partial class Profile
             _unitSystem = _user.UnitSystem;
             _language = _user.Language;
 
-            Logger.LogInformation("User profile loaded successfully - UserId: {UserId}, Name: {Name}", userId, _user.Name);
+            Logger.LogInformation(
+                "User profile loaded successfully - UserId: {UserId}, Name: {Name}, AvatarUrl: {AvatarUrl}",
+                userId, _user.Name, _user.AvatarUrl ?? "(null)");
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error loading user profile");
-            Snackbar.Add("Error al cargar el perfil", Severity.Error);
+            Snackbar.Add("Error al cargar el perfil. Por favor, intenta nuevamente.", Severity.Error);
         }
         finally
         {

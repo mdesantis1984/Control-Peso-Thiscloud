@@ -1,6 +1,19 @@
 <Solution>
   <Folder Name="/docs/">
+    <File Path="docs/ARCHITECTURE.md" />
+    <File Path="docs/CLOUDFLARE_ANALYTICS.md" />
+    <File Path="docs/DATABASE.md" />
+    <File Path="docs/DEPLOYMENT.md" />
+    <File Path="docs/DOCKER.md" />
+    <File Path="docs/LIGHTHOUSE_REPORT.md" />
     <File Path="docs/Plan_ControlPeso_Thiscloud_v1_0.md" />
+    <File Path="docs/Plan_Fase_9_Pixel_Perfect.md" />
+    <File Path="docs/SECURITY.md" />
+    <File Path="docs/SEO.md" />
+    <File Path="docs/THISCLOUD_FRAMEWORK_INTEGRATION.md" />
+    <File Path="docs/UI_DISCREPANCIES.md" />
+    <File Path="docs/VISUAL_ISSUES_CHECKLIST.md" />
+    <File Path="docs/WCAG_AA_AUDIT.md" />
   </Folder>
   <Folder Name="/docs/schema/" />
   <Folder Name="/src/" />

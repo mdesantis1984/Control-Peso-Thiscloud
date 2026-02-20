@@ -42,9 +42,9 @@
                             <MudText Typo="Typo.h6">Información de Cuenta</MudText>
                         </CardHeaderContent>
                         <CardHeaderActions>
-                            @if (!string.IsNullOrWhiteSpace(_user.AvatarUrl))
+                            @if (!string.IsNullOrWhiteSpace(_user.AvatarUrl) && !_user.AvatarUrl.Contains("default-user"))
                             {
-                                <MudAvatar src="@_user.AvatarUrl" Size="Size.Large" />
+                                <MudAvatar Image="@_user.AvatarUrl" Size="Size.Large" Alt="@_user.Name" />
                             }
                             else
                             {

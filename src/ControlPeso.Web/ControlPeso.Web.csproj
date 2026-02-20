@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
     <ProjectReference Include="..\ControlPeso.Application\ControlPeso.Application.csproj" />
@@ -12,6 +12,10 @@
     <PackageReference Include="CsvHelper" />
     <PackageReference Include="ThisCloud.Framework.Loggings.Abstractions" />
     <PackageReference Include="ThisCloud.Framework.Loggings.Serilog" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Theme\" />
   </ItemGroup>
 
   <PropertyGroup>

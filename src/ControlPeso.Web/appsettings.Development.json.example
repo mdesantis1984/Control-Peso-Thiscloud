@@ -14,5 +14,11 @@
       "Default": "Information",
       "Microsoft.AspNetCore": "Warning"
     }
+  },
+  "Telegram": {
+    "Enabled": true,
+    "BotToken": "YOUR_TELEGRAM_BOT_TOKEN_HERE",
+    "ChatId": "YOUR_TELEGRAM_CHAT_ID_HERE",
+    "Environment": "Development"
   }
 }

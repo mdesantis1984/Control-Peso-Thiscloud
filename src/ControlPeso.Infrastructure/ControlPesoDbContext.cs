@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using ControlPeso.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,21 +16,27 @@ public partial class ControlPesoDbContext : DbContext
     {
     }
 
-    public virtual DbSet<AuditLog> AuditLog { get; set; } = null!;
+    public virtual DbSet<AuditLog> AuditLog { get; set; }
 
-    public virtual DbSet<UserPreferences> UserPreferences { get; set; } = null!;
+    public virtual DbSet<UserPreferences> UserPreferences { get; set; }
 
-    public virtual DbSet<Users> Users { get; set; } = null!;
+    public virtual DbSet<Users> Users { get; set; }
 
-    public virtual DbSet<WeightLogs> WeightLogs { get; set; } = null!;
+    public virtual DbSet<WeightLogs> WeightLogs { get; set; }
 
+    // NOTE: OnConfiguring con connection string hardcodeado fue REMOVIDO (generado por scaffold).
+    // El DbContext usa el constructor con DbContextOptions<ControlPesoDbContext>
+    // que recibe configuración desde appsettings.json vía AddInfrastructureServices.
+    // Connection string: configuration.GetConnectionString("DefaultConnection")
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        // Solo configurar SQLite si no hay provider ya configurado (permite InMemory en tests)
+        // Permitir que la configuración venga desde DI (constructor con DbContextOptions)
+        // Solo configurar si NO fue configurado externamente (ej: en tests unitarios sin DI)
         if (!optionsBuilder.IsConfigured)
         {
-            // Connection string fallback for development - production uses DI configuration
-            optionsBuilder.UseSqlite("Data Source=../../controlpeso.db");
+            // Fallback para tests o diseño-time tools (EF Core migrations, scaffolding)
+            // En runtime de aplicación, esto NUNCA se ejecuta porque DI ya configuró el DbContext
+            optionsBuilder.UseSqlite("Data Source=controlpeso.db");
         }
     }
 

@@ -1,46 +1,78 @@
+@using Microsoft.AspNetCore.Components.Web
 @inherits LayoutComponentBase
 @namespace ControlPeso.Web.Components.Layout
+@rendermode InteractiveServer
 
-<MudLayout>
-    <MudAppBar Elevation="1" Dense="false">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" 
-                       Color="Color.Inherit" 
-                       Edge="Edge.Start" 
-                       OnClick="@ToggleDrawer" 
-                       aria-label="Toggle navigation menu" />
+@* MudBlazor Providers - según documentación oficial *@
+<MudThemeProvider @ref="_themeProvider" @bind-IsDarkMode="@_isDarkMode" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
-        <MudText Typo="Typo.h5" Class="ml-3">Control Peso Thiscloud</MudText>
+<CascadingValue Value="@ToggleDarkModeAsync">
+    <MudLayout>
+        <MudAppBar Elevation="1" Dense="false">
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" 
+                           Color="Color.Inherit" 
+                           Edge="Edge.Start" 
+                           OnClick="@ToggleDrawer" 
+                           aria-label="Toggle navigation menu" />
 
-        <MudSpacer />
+            <MudText Typo="Typo.h5" Class="ml-3">Control Peso Thiscloud</MudText>
 
-        <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" 
-                       Color="Color.Inherit" 
-                       OnClick="@ToggleDarkMode"
-                       aria-label="Toggle dark mode" />
+            <MudSpacer />
 
-        <NotificationBell />
+            <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
+                           Color="Color.Inherit"
+                           OnClick="@ToggleDarkModeAsync"
+                           aria-label="Toggle dark mode" />
+
+            <NotificationBell />
 
         <AuthorizeView>
             <Authorized>
-                <MudMenu Icon="@Icons.Material.Filled.AccountCircle" 
-                         Color="Color.Inherit" 
-                         AnchorOrigin="Origin.BottomRight"
-                         TransformOrigin="Origin.TopRight"
-                         aria-label="User menu">
-                    <MudMenuItem Icon="@Icons.Material.Filled.Person" 
-                                 Href="/profile">
-                        Perfil
-                    </MudMenuItem>
-                    <MudMenuItem Icon="@Icons.Material.Filled.Settings" 
-                                 Href="/settings">
-                        Configuración
-                    </MudMenuItem>
-                    <MudDivider />
-                    <MudMenuItem Icon="@Icons.Material.Filled.Logout" 
-                                 Href="/logout">
-                        Cerrar Sesión
-                    </MudMenuItem>
-                </MudMenu>
+                @if (_currentUser != null && !string.IsNullOrWhiteSpace(_currentUser.AvatarUrl) && !_currentUser.AvatarUrl.Contains("default-user"))
+                {
+                    <MudMenu AnchorOrigin="Origin.BottomRight"
+                             TransformOrigin="Origin.TopRight"
+                             aria-label="User menu">
+                        <ActivatorContent>
+                            <MudAvatar Image="@_currentUser.AvatarUrl" 
+                                       Size="Size.Medium" 
+                                       Alt="@_currentUser.Name"
+                                       Style="cursor: pointer;" />
+                        </ActivatorContent>
+                        <ChildContent>
+                            <MudMenuItem Icon="@Icons.Material.Filled.Person" 
+                                         Href="/profile">
+                                Perfil
+                            </MudMenuItem>
+                            <MudDivider />
+                            <MudMenuItem Icon="@Icons.Material.Filled.Logout" 
+                                         Href="/api/auth/logout">
+                                Cerrar Sesión
+                            </MudMenuItem>
+                        </ChildContent>
+                    </MudMenu>
+                }
+                else
+                {
+                    <MudMenu Icon="@Icons.Material.Filled.AccountCircle" 
+                             Color="Color.Inherit" 
+                             AnchorOrigin="Origin.BottomRight"
+                             TransformOrigin="Origin.TopRight"
+                             aria-label="User menu">
+                        <MudMenuItem Icon="@Icons.Material.Filled.Person" 
+                                     Href="/profile">
+                            Perfil
+                        </MudMenuItem>
+                        <MudDivider />
+                        <MudMenuItem Icon="@Icons.Material.Filled.Logout" 
+                                     Href="/api/auth/logout">
+                            Cerrar Sesión
+                        </MudMenuItem>
+                    </MudMenu>
+                }
             </Authorized>
             <NotAuthorized>
                 <MudButton Href="/login" 
@@ -64,6 +96,7 @@
         </MudContainer>
     </MudMainContent>
 </MudLayout>
+</CascadingValue>
 
 <div id="blazor-error-ui" data-nosnippet>
     <MudPaper Elevation="8" Class="pa-4">

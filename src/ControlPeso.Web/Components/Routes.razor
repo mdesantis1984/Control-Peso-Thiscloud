@@ -1,15 +1,6 @@
-<MudThemeProvider Theme="@_theme" DefaultScrollbar="true" />
-<MudPopoverProvider />
-<MudDialogProvider />
-<MudSnackbarProvider />
-
 <Router AppAssembly="typeof(Program).Assembly">
     <Found Context="routeData">
         <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
 </Router>
-
-@code {
-    private MudTheme _theme = ControlPeso.Web.Theme.ControlPesoTheme.DarkTheme;
-}

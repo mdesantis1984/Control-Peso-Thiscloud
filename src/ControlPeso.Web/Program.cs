@@ -30,8 +30,19 @@ builder.Services.AddApplicationServices();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+// 5.5. Add HttpContextAccessor (necesario para cookies en Blazor Server)
+builder.Services.AddHttpContextAccessor();
+
 // 6. Add MudBlazor services
 builder.Services.AddMudServices();
+
+// 6.5. Add Theme Service (gestión de tema con persistencia en cookies)
+builder.Services.AddScoped<ControlPeso.Web.Services.ThemeService>();
+
+// 6.6. Add Notification Services (Telegram)
+builder.Services.AddHttpClient<ControlPeso.Web.Services.INotificationService, ControlPeso.Web.Services.TelegramNotificationService>();
+builder.Services.Configure<ControlPeso.Web.Services.TelegramOptions>(
+    builder.Configuration.GetSection(ControlPeso.Web.Services.TelegramOptions.ConfigSection));
 
 // 7. Add Authentication & Authorization (Google OAuth + LinkedIn OAuth)
 builder.Services.AddOAuthAuthentication(builder.Configuration);
@@ -70,15 +81,35 @@ builder.Services.AddRateLimiter(options =>
 
 var app = builder.Build();
 
-// 1. Global exception handler - MUST BE FIRST middleware to catch all exceptions
+// 1. Global exception handler - catches unhandled exceptions and sends to Telegram
 app.UseGlobalExceptionHandler();
+app.Logger.LogInformation("=== APP BUILT SUCCESSFULLY ===");
 
 // Seed database in Development environment
 if (app.Environment.IsDevelopment())
 {
-    using var scope = app.Services.CreateScope();
-    var seeder = scope.ServiceProvider.GetRequiredService<ControlPeso.Infrastructure.Data.IDbSeeder>();
-    await seeder.SeedAsync();
+    try
+    {
+        using var scope = app.Services.CreateScope();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+        logger.LogInformation("=== DATABASE SEEDING START ===");
+
+        var seeder = scope.ServiceProvider.GetRequiredService<ControlPeso.Infrastructure.Data.IDbSeeder>();
+
+        logger.LogInformation("DbSeeder instance created successfully");
+
+        await seeder.SeedAsync();
+
+        logger.LogInformation("=== DATABASE SEEDING COMPLETED ===");
+    }
+    catch (Exception ex)
+    {
+        // Log the error but DON'T crash the app
+        var logger = app.Services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "=== DATABASE SEEDING FAILED - App will continue without seed data ===");
+        // Continue execution - the app should work even if seeding fails
+    }
 }
 
 // Configure the HTTP request pipeline.

@@ -19,6 +19,7 @@ public partial class Dashboard
     [Inject] private IWeightLogService WeightLogService { get; set; } = null!;
     [Inject] private IUserService UserService { get; set; } = null!;
     [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
+    [Inject] private NavigationManager Navigation { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
     [Inject] private ILogger<Dashboard> Logger { get; set; } = null!;
@@ -42,12 +43,21 @@ public partial class Dashboard
         try
         {
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+
+            // Verificar si el usuario está autenticado
+            if (!authState.User.Identity?.IsAuthenticated ?? true)
+            {
+                Logger.LogWarning("Dashboard: User is not authenticated - Redirecting to login");
+                Navigation.NavigateTo("/login", forceLoad: true);
+                return;
+            }
+
             var userIdClaim = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out _currentUserId))
             {
-                Logger.LogWarning("Dashboard: Invalid or missing user ID claim");
-                Snackbar.Add("Error: Usuario no válido", Severity.Error);
+                Logger.LogWarning("Dashboard: Invalid or missing user ID claim - Redirecting to login");
+                Navigation.NavigateTo("/login", forceLoad: true);
                 return;
             }
 
@@ -57,7 +67,7 @@ public partial class Dashboard
         catch (Exception ex)
         {
             Logger.LogError(ex, "Dashboard: Error initializing");
-            Snackbar.Add($"Error al cargar dashboard: {ex.Message}", Severity.Error);
+            Snackbar.Add("Error al cargar el dashboard. Por favor, intenta nuevamente.", Severity.Error);
         }
         finally
         {

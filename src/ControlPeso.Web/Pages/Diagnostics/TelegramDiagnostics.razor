@@ -1,0 +1,215 @@
+@page "/diagnostics/telegram"
+@attribute [Authorize(Roles = "Administrator")]
+@using ControlPeso.Web.Services
+@using Microsoft.Extensions.Options
+
+<PageTitle>Diagnóstico Telegram - Control Peso</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-4">
+        🔍 Diagnóstico de Configuración Telegram
+    </MudText>
+
+    <MudCard Class="mb-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Estado de Configuración</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            @if (_config != null)
+            {
+                <MudSimpleTable Dense="true" Hover="true">
+                    <tbody>
+                        <tr>
+                            <td><strong>Habilitado:</strong></td>
+                            <td>
+                                @if (_config.Enabled)
+                                {
+                                    <MudChip T="string" Color="Color.Success" Size="Size.Small">✅ SÍ</MudChip>
+                                }
+                                else
+                                {
+                                    <MudChip T="string" Color="Color.Error" Size="Size.Small">❌ NO</MudChip>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Bot Token:</strong></td>
+                            <td>
+                                @if (IsBotTokenConfigured())
+                                {
+                                    <MudChip T="string" Color="Color.Success" Size="Size.Small">✅ Configurado</MudChip>
+                                    <MudText Typo="Typo.caption" Color="Color.Default">
+                                        @GetMaskedToken()
+                                    </MudText>
+                                }
+                                else
+                                {
+                                    <MudChip T="string" Color="Color.Error" Size="Size.Small">❌ NO Configurado</MudChip>
+                                    <MudText Typo="Typo.caption" Color="Color.Error">
+                                        Valor actual: "@(_config.BotToken ?? "null")"
+                                    </MudText>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Chat ID:</strong></td>
+                            <td>
+                                @if (IsChatIdConfigured())
+                                {
+                                    <MudChip T="string" Color="Color.Success" Size="Size.Small">✅ Configurado</MudChip>
+                                    <MudText Typo="Typo.caption" Color="Color.Default">
+                                        Chat ID: @_config.ChatId
+                                    </MudText>
+                                }
+                                else
+                                {
+                                    <MudChip T="string" Color="Color.Error" Size="Size.Small">❌ NO Configurado</MudChip>
+                                    <MudText Typo="Typo.caption" Color="Color.Error">
+                                        Valor actual: "@(_config.ChatId ?? "null")"
+                                    </MudText>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ambiente:</strong></td>
+                            <td>
+                                <MudChip T="string" Color="Color.Info" Size="Size.Small">@_config.Environment</MudChip>
+                            </td>
+                        </tr>
+                    </tbody>
+                </MudSimpleTable>
+            }
+            else
+            {
+                <MudAlert Severity="Severity.Error">
+                    No se pudo cargar la configuración de Telegram
+                </MudAlert>
+            }
+        </MudCardContent>
+    </MudCard>
+
+    <MudCard Class="mb-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Probar Notificación</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.body2" Class="mb-4">
+                Envía un mensaje de prueba para verificar que Telegram está configurado correctamente.
+            </MudText>
+
+            <MudButton 
+                Variant="Variant.Filled" 
+                Color="Color.Primary" 
+                OnClick="SendTestNotification"
+                Disabled="@(!IsFullyConfigured() || _isSending)">
+                @if (_isSending)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                    <span>Enviando...</span>
+                }
+                else
+                {
+                    <span>📤 Enviar Mensaje de Prueba</span>
+                }
+            </MudButton>
+
+            @if (!string.IsNullOrEmpty(_testResult))
+            {
+                <MudAlert Severity="@_testResultSeverity" Class="mt-4">
+                    @_testResult
+                </MudAlert>
+            }
+        </MudCardContent>
+    </MudCard>
+
+    <MudCard Class="mb-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">🛠️ Guía de Configuración</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudAlert Severity="Severity.Info" Dense="true" Class="mb-3">
+                <strong>OPCIÓN 1: Script Automático (Recomendado)</strong>
+                <MudText Typo="Typo.body2" Class="mt-2">
+                    Ejecutar desde la raíz del proyecto:
+                </MudText>
+                <MudPaper Class="pa-2 mt-2" Elevation="0">
+                    <code>.\scripts\configure-telegram.ps1</code>
+                </MudPaper>
+            </MudAlert>
+
+            <MudAlert Severity="Severity.Warning" Dense="true">
+                <strong>OPCIÓN 2: Manual (5 pasos)</strong>
+                <ol style="margin-top: 8px; margin-bottom: 0;">
+                    <li>Telegram → Buscar: <code>@@BotFather</code></li>
+                    <li>Enviar: <code>/newbot</code></li>
+                    <li>Copiar BOT TOKEN</li>
+                    <li>Buscar tu bot → Enviar <code>/start</code></li>
+                    <li>Obtener CHAT ID: <br/>
+                        <code style="font-size: 0.8rem;">
+                            https://api.telegram.org/bot&lt;TOKEN&gt;/getUpdates
+                        </code>
+                    </li>
+                </ol>
+            </MudAlert>
+
+            <MudText Typo="Typo.body2" Class="mt-3">
+                <strong>Editar:</strong> <code>src/ControlPeso.Web/appsettings.Development.json</code>
+            </MudText>
+            <MudPaper Class="pa-3 mt-2" Elevation="0">
+                <pre style="margin: 0; font-size: 0.85rem;">
+"Telegram": {
+  "Enabled": true,
+  "BotToken": "PEGAR_TU_TOKEN_AQUÍ",
+  "ChatId": "PEGAR_TU_CHATID_AQUÍ",
+  "Environment": "Development"
+}</pre>
+            </MudPaper>
+
+            <MudText Typo="Typo.body2" Class="mt-3">
+                📚 Documentación completa: <code>docs/TELEGRAM_QUICKSTART.md</code>
+            </MudText>
+        </MudCardContent>
+    </MudCard>
+
+    <MudCard>
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">⚠️ Errores Comunes</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudList T="string" Dense="true">
+                <MudListItem T="string">
+                    <MudText>
+                        <strong>❌ "Telegram BotToken is not configured"</strong><br/>
+                        <small>→ BotToken sigue siendo "YOUR_TELEGRAM_BOT_TOKEN_HERE"</small>
+                    </MudText>
+                </MudListItem>
+                <MudListItem T="string">
+                    <MudText>
+                        <strong>❌ "Telegram ChatId is not configured"</strong><br/>
+                        <small>→ ChatId sigue siendo "YOUR_TELEGRAM_CHAT_ID_HERE"</small>
+                    </MudText>
+                </MudListItem>
+                <MudListItem T="string">
+                    <MudText>
+                        <strong>❌ "Chat not found"</strong><br/>
+                        <small>→ No enviaste /start al bot antes de obtener el Chat ID</small>
+                    </MudText>
+                </MudListItem>
+                <MudListItem T="string">
+                    <MudText>
+                        <strong>❌ "Unauthorized"</strong><br/>
+                        <small>→ BotToken incorrecto (verifica que copiaste todo)</small>
+                    </MudText>
+                </MudListItem>
+            </MudList>
+        </MudCardContent>
+    </MudCard>
+</MudContainer>

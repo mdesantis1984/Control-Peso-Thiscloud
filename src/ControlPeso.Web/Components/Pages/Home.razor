@@ -20,82 +20,262 @@
     <meta name="twitter:title" content="Control Peso Thiscloud - Seguimiento de Peso Corporal" />
     <meta name="twitter:description" content="Aplicación web gratuita para registrar y analizar tu peso corporal." />
     <meta name="twitter:image" content="https://controlpeso.thiscloud.com.ar/images/og-image.png" />
+
+    <style>
+        /* Hero section - SIMPLIFIED (no complex animations) */
+        .hero-section {
+            background: linear-gradient(135deg, #1e3a8a15 0%, #7e22ce15 100%);
+            border-radius: 16px;
+            padding: 80px 40px;
+            margin-bottom: 48px;
+        }
+
+        .hero-icon {
+            font-size: 64px !important;
+            margin-bottom: 24px;
+            color: var(--mud-palette-primary);
+        }
+
+        .hero-title {
+            font-size: 3rem !important;
+            font-weight: 700 !important;
+            line-height: 1.2 !important;
+            margin-bottom: 16px !important;
+            color: var(--mud-palette-primary);
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem !important;
+            font-weight: 400 !important;
+            opacity: 0.8;
+            margin-bottom: 32px !important;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-cta {
+            padding: 12px 32px !important;
+            font-size: 1rem !important;
+            border-radius: 8px !important;
+        }
+
+        /* Feature cards - SIMPLIFIED */
+        .feature-card {
+            border-radius: 12px !important;
+            padding: 32px 24px !important;
+            height: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 48px !important;
+            margin-bottom: 16px !important;
+        }
+
+        .feature-title {
+            font-size: 1.25rem !important;
+            font-weight: 600 !important;
+            margin-bottom: 12px !important;
+        }
+
+        .feature-description {
+            font-size: 0.95rem !important;
+            line-height: 1.6 !important;
+            opacity: 0.7;
+        }
+
+        /* Stats badge */
+        .stats-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 50px;
+            background: rgba(76, 175, 80, 0.15);
+            color: #4caf50;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-top: 16px;
+        }
+
+        /* Responsive */
+        @@media (max-width: 960px) {
+            .hero-section {
+                padding: 60px 24px;
+            }
+
+            .hero-title {
+                font-size: 2rem !important;
+            }
+
+            .hero-subtitle {
+                font-size: 1.1rem !important;
+            }
+
+            .feature-card {
+                padding: 24px 20px !important;
+            }
+        }
+    </style>
 </HeadContent>
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="mt-8">
-    <MudStack Spacing="6">
-        @* Hero Section *@
-        <MudStack Spacing="3" AlignItems="AlignItems.Center" Class="text-center">
-            <MudIcon Icon="@Icons.Material.Filled.Scale" Size="Size.Large" Color="Color.Primary" Style="font-size: 4rem;" />
-            <MudText Typo="Typo.h2">Control Peso Thiscloud</MudText>
-            <MudText Typo="Typo.h6" Color="Color.Secondary">
-                Lleva un registro simple y efectivo de tu peso corporal
+@* Hero Section *@
+<div class="hero-section">
+    <MudContainer MaxWidth="MaxWidth.Large">
+        <MudStack Spacing="4" AlignItems="AlignItems.Center" Class="text-center">
+            <MudIcon Icon="@Icons.Material.Filled.MonitorWeight" 
+                     Class="hero-icon" />
+
+            <MudText Class="hero-title">
+                Control Peso Thiscloud
+            </MudText>
+
+            <MudText Class="hero-subtitle">
+                Seguimiento inteligente de tu peso corporal con análisis en tiempo real
             </MudText>
 
             <AuthorizeView>
                 <Authorized>
-                    <MudButton 
-                        Variant="Variant.Filled" 
-                        Color="Color.Primary" 
-                        Size="Size.Large"
-                        Href="/dashboard"
-                        StartIcon="@Icons.Material.Filled.Dashboard">
+                    <MudButton Variant="Variant.Filled" 
+                               Color="Color.Primary" 
+                               Size="Size.Large"
+                               Href="/dashboard"
+                               StartIcon="@Icons.Material.Filled.Dashboard"
+                               Class="hero-cta">
                         Ir al Dashboard
                     </MudButton>
                 </Authorized>
                 <NotAuthorized>
-                    <MudButton 
-                        Variant="Variant.Filled" 
-                        Color="Color.Primary" 
-                        Size="Size.Large"
-                        Href="/login"
-                        StartIcon="@Icons.Material.Filled.Login">
-                        Iniciar Sesión
+                    <MudButton Variant="Variant.Filled" 
+                               Color="Color.Primary" 
+                               Size="Size.Large"
+                               Href="/login"
+                               StartIcon="@Icons.Material.Filled.Login"
+                               Class="hero-cta">
+                        Comenzar Ahora
                     </MudButton>
                 </NotAuthorized>
             </AuthorizeView>
+
+            <div class="stats-badge">
+                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" />
+                <span>100% Gratuito · Privado · Seguro</span>
+            </div>
         </MudStack>
+    </MudContainer>
+</div>
 
-        <MudDivider />
+@* Features Section *@
+<MudContainer MaxWidth="MaxWidth.Large" Class="mb-16">
+    <MudGrid Spacing="6">
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Elevation="0" Class="feature-card">
+                <MudStack Spacing="3" AlignItems="AlignItems.Center">
+                    <MudIcon Icon="@Icons.Material.Filled.Speed" 
+                             Color="Color.Success" 
+                             Class="feature-icon" />
+                    <MudText Typo="Typo.h5" Class="feature-title">
+                        Registro Rápido
+                    </MudText>
+                    <MudText Typo="Typo.body1" 
+                             Align="Align.Center" 
+                             Class="feature-description">
+                        Añade tu peso en segundos con una interfaz intuitiva y fluida
+                    </MudText>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
 
-        @* Features Section *@
-        <MudGrid>
-            <MudItem xs="12" md="4">
-                <MudPaper Elevation="2" Class="pa-4">
-                    <MudStack Spacing="2" AlignItems="AlignItems.Center">
-                        <MudIcon Icon="@Icons.Material.Filled.Timeline" Size="Size.Large" Color="Color.Success" />
-                        <MudText Typo="Typo.h6">Seguimiento Simple</MudText>
-                        <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Secondary">
-                            Registra tu peso de forma rápida y sencilla
-                        </MudText>
-                    </MudStack>
-                </MudPaper>
-            </MudItem>
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Elevation="0" Class="feature-card">
+                <MudStack Spacing="3" AlignItems="AlignItems.Center">
+                    <MudIcon Icon="@Icons.Material.Filled.TrendingUp" 
+                             Color="Color.Info" 
+                             Class="feature-icon" />
+                    <MudText Typo="Typo.h5" Class="feature-title">
+                        Análisis Avanzado
+                    </MudText>
+                    <MudText Typo="Typo.body1" 
+                             Align="Align.Center" 
+                             Class="feature-description">
+                        Gráficos interactivos y estadísticas detalladas de tu evolución
+                    </MudText>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
 
-            <MudItem xs="12" md="4">
-                <MudPaper Elevation="2" Class="pa-4">
-                    <MudStack Spacing="2" AlignItems="AlignItems.Center">
-                        <MudIcon Icon="@Icons.Material.Filled.ShowChart" Size="Size.Large" Color="Color.Info" />
-                        <MudText Typo="Typo.h6">Análisis de Tendencias</MudText>
-                        <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Secondary">
-                            Visualiza tu progreso con gráficos y estadísticas
-                        </MudText>
-                    </MudStack>
-                </MudPaper>
-            </MudItem>
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Elevation="0" Class="feature-card">
+                <MudStack Spacing="3" AlignItems="AlignItems.Center">
+                    <MudIcon Icon="@Icons.Material.Filled.Security" 
+                             Color="Color.Warning" 
+                             Class="feature-icon" />
+                    <MudText Typo="Typo.h5" Class="feature-title">
+                        Máxima Privacidad
+                    </MudText>
+                    <MudText Typo="Typo.body1" 
+                             Align="Align.Center" 
+                             Class="feature-description">
+                        Autenticación OAuth segura y cifrado de datos end-to-end
+                    </MudText>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
 
-            <MudItem xs="12" md="4">
-                <MudPaper Elevation="2" Class="pa-4">
-                    <MudStack Spacing="2" AlignItems="AlignItems.Center">
-                        <MudIcon Icon="@Icons.Material.Filled.Security" Size="Size.Large" Color="Color.Warning" />
-                        <MudText Typo="Typo.h6">Privado y Seguro</MudText>
-                        <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Secondary">
-                            Tus datos están protegidos con autenticación OAuth
-                        </MudText>
-                    </MudStack>
-                </MudPaper>
-            </MudItem>
-        </MudGrid>
-    </MudStack>
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Elevation="0" Class="feature-card">
+                <MudStack Spacing="3" AlignItems="AlignItems.Center">
+                    <MudIcon Icon="@Icons.Material.Filled.Insights" 
+                             Color="Color.Primary" 
+                             Class="feature-icon" />
+                    <MudText Typo="Typo.h5" Class="feature-title">
+                        Predicciones IA
+                    </MudText>
+                    <MudText Typo="Typo.body1" 
+                             Align="Align.Center" 
+                             Class="feature-description">
+                        Proyecciones inteligentes basadas en tus patrones históricos
+                    </MudText>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Elevation="0" Class="feature-card">
+                <MudStack Spacing="3" AlignItems="AlignItems.Center">
+                    <MudIcon Icon="@Icons.Material.Filled.Devices" 
+                             Color="Color.Secondary" 
+                             Class="feature-icon" />
+                    <MudText Typo="Typo.h5" Class="feature-title">
+                        Multi-dispositivo
+                    </MudText>
+                    <MudText Typo="Typo.body1" 
+                             Align="Align.Center" 
+                             Class="feature-description">
+                        Accede desde cualquier dispositivo con sincronización automática
+                    </MudText>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Elevation="0" Class="feature-card">
+                <MudStack Spacing="3" AlignItems="AlignItems.Center">
+                    <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" 
+                             Color="Color.Tertiary" 
+                             Class="feature-icon" />
+                    <MudText Typo="Typo.h5" Class="feature-title">
+                        Metas Personalizadas
+                    </MudText>
+                    <MudText Typo="Typo.body1" 
+                             Align="Align.Center" 
+                             Class="feature-description">
+                        Define objetivos y recibe notificaciones de progreso en tiempo real
+                    </MudText>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
 </MudContainer>
 

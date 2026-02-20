@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using MudBlazor;
 
 namespace ControlPeso.Web.Components.Shared;
 
@@ -9,12 +10,16 @@ namespace ControlPeso.Web.Components.Shared;
 public partial class NotificationBell
 {
     [Inject] private ILogger<NotificationBell> Logger { get; set; } = null!;
+    [Inject] private IDialogService DialogService { get; set; } = null!;
+    [Inject] private ISnackbar Snackbar { get; set; } = null!;
 
     private int _notificationCount = 0;
 
     private void OpenNotifications()
     {
         Logger.LogInformation("NotificationBell: Notifications clicked");
-        // TODO: P5.9 - Implementar apertura de panel de notificaciones
+
+        // Mostrar mensaje temporal mientras se implementa P5.9
+        Snackbar.Add("Las notificaciones se implementarán en la siguiente fase", Severity.Info);
     }
 }

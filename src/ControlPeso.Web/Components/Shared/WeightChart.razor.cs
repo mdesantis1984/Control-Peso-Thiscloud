@@ -68,10 +68,14 @@ public partial class WeightChart
             };
 
             // Configurar opciones del gráfico
+            // NOTA: NaturalSpline requiere mínimo 4 puntos de datos
+            // Si hay menos, usar interpolación lineal simple
             _options = new ChartOptions
             {
-                // Interpolación suave para línea más fluida
-                InterpolationOption = InterpolationOption.NaturalSpline,
+                // Interpolación: NaturalSpline para 4+ puntos, lineal para menos
+                InterpolationOption = orderedData.Count >= 4 
+                    ? InterpolationOption.NaturalSpline 
+                    : InterpolationOption.Straight,
 
                 // Línea principal
                 LineStrokeWidth = 3,
@@ -86,8 +90,9 @@ public partial class WeightChart
                 ChartPalette = new[] { "#2196F3" }
             };
 
-            Logger.LogDebug("WeightChart: Chart configured - Labels: {LabelCount}, Series: {SeriesCount}",
-                _labels.Length, _series.Count);
+            Logger.LogDebug(
+                "WeightChart: Chart configured - Labels: {LabelCount}, Series: {SeriesCount}, Interpolation: {Interpolation}",
+                _labels.Length, _series.Count, _options.InterpolationOption);
         }
         catch (Exception ex)
         {
