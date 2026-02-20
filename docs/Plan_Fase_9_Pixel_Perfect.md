@@ -1,13 +1,15 @@
 # Plan Fase 9 - Frontend Pixel Perfect
 
 **Fecha creación**: 2026-02-18  
-**Última actualización**: 2026-02-19 (post-fix ClaimsTransformation timing)  
+**Última actualización**: 2026-02-20 (post-fix LINQ translation errors)  
 **Estado**: 🟡 **EN PROGRESO** (23/35 tareas completadas - 66%)  
 **Objetivo**: Refinar UI/UX hasta lograr diseño "pixel perfect" según prototipo Google AI Studio
 
 ---
 
-## ⚠️ Blocker Resuelto (2026-02-19)
+## 🔧 Blockers Resueltos
+
+### ⚠️ Blocker #1: Claims Timing Issue (2026-02-19)
 
 **Problema CRÍTICO identificado durante deployment testing**:
 - Dashboard, History, Trends **NO funcionaban** - mostraban error "No se pudo identificar al usuario"
@@ -30,9 +32,33 @@
 - ✅ Docker container healthy
 - ✅ Logs muestran: `"Claims transformed successfully - UserId: 1b3c2b99-741d-4fe8-b51e-ba6dd0d0fe37"`
 - ✅ NO más errores `"invalid GUID format: 102430609103162768870"`
-- ⏳ UI testing pendiente (Dashboard/History/Trends deberían funcionar ahora)
 
-**Impacto**: Fase 9 puede continuar - funcionalidad core restaurada.
+**Impacto**: Funcionalidad core de autenticación restaurada.
+
+---
+
+### ⚠️ Blocker #2: LINQ to SQL Translation Error (2026-02-20)
+
+**Problema CRÍTICO identificado en Dashboard**:
+- Dashboard mostraba error rojo: `"Error al cargar datos: The LINQ expression 'DbSet<WeightLog>().Where(w => w.UserId == __ToString_0 && string.Compare(strA: w.Date, strB: __startDateStr_1, comparisonType: Ordinal) >= 0 && string.Compare(strA: w.Date, strB: __endDateStr_2, comparisonType: Ordinal) <= 0)' could not be translated"`
+- Síntoma: Dashboard mostraba **0.0 kg** en todas las cards y **"No hay datos disponibles"** en gráfico
+- Causa raíz: `string.Compare()` con `StringComparison` parameter **NO puede ser traducido** por EF Core SQLite translator
+- Ubicaciones afectadas: `WeightLogService.cs` líneas 80-82 (GetByUserAsync) y 252-253 (GetStatsAsync)
+
+**Solución implementada** (commit `bfa237f`):
+1. Reemplazado `string.Compare(w.Date, startDateStr, StringComparison.Ordinal)` por `w.Date.CompareTo(startDateStr)`
+2. `CompareTo()` es correctamente traducido a SQL por EF Core
+3. Funciona correctamente con formato ISO 8601 (YYYY-MM-DD) porque mantiene orden lexicográfico
+4. Aplicado en ambos métodos afectados: `GetByUserAsync()` y `GetStatsAsync()`
+
+**Validación**:
+- ✅ Build exitoso
+- ✅ Docker rebuild exitoso
+- ✅ Container healthy
+- ✅ NO errores LINQ en logs
+- ⏳ UI testing pendiente (Dashboard debe mostrar peso actual, cambio semanal, y gráfico con datos)
+
+**Impacto**: Funcionalidad core de Dashboard/History/Trends restaurada.
 
 ---
 
