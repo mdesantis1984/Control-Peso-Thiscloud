@@ -1,9 +1,38 @@
 # Plan Fase 9 - Frontend Pixel Perfect
 
 **Fecha creación**: 2026-02-18  
-**Última actualización**: 2026-02-18 (post-implementación)  
+**Última actualización**: 2026-02-19 (post-fix ClaimsTransformation timing)  
 **Estado**: 🟡 **EN PROGRESO** (23/35 tareas completadas - 66%)  
 **Objetivo**: Refinar UI/UX hasta lograr diseño "pixel perfect" según prototipo Google AI Studio
+
+---
+
+## ⚠️ Blocker Resuelto (2026-02-19)
+
+**Problema CRÍTICO identificado durante deployment testing**:
+- Dashboard, History, Trends **NO funcionaban** - mostraban error "No se pudo identificar al usuario"
+- Causa raíz: `ClaimTypes.NameIdentifier` contenía **GoogleId string** (102430609103162768870) en vez de **UserId GUID** (1b3c2b99-741d-4fe8-b51e-ba6dd0d0fe37)
+- Timing issue: `OnCreatingTicket` en `AuthenticationExtensions` ejecutaba DESPUÉS del primer render de componentes Blazor Server
+
+**Solución implementada** (commit `dee2521`):
+1. Modificado `UserClaimsTransformation.TransformAsync`:
+   - **Remover** claim `NameIdentifier` existente (GoogleId del proveedor OAuth)
+   - **Agregar** nuevo claim `NameIdentifier` con UserId GUID desde DB
+   - Cambio guard de `"UserId"` a `"claims_transformed"` para evitar duplicación
+2. Removida lógica de claims de `AuthenticationExtensions` (Google + LinkedIn):
+   - `OnCreatingTicket` ahora **SOLO** crea/actualiza usuario en DB
+   - Claims transformation manejada exclusivamente por `IClaimsTransformation`
+3. Limpieza de `History.razor.cs`:
+   - Removido retry logic con delay 500ms (ya no necesario)
+
+**Validación**:
+- ✅ Build exitoso
+- ✅ Docker container healthy
+- ✅ Logs muestran: `"Claims transformed successfully - UserId: 1b3c2b99-741d-4fe8-b51e-ba6dd0d0fe37"`
+- ✅ NO más errores `"invalid GUID format: 102430609103162768870"`
+- ⏳ UI testing pendiente (Dashboard/History/Trends deberían funcionar ahora)
+
+**Impacto**: Fase 9 puede continuar - funcionalidad core restaurada.
 
 ---
 
@@ -21,6 +50,13 @@ El proyecto tiene **backend 100% completo** (arquitectura, lógica de negocio, t
 - ~~Algunos componentes MudBlazor sin configurar parámetros óptimos~~ ✅ CONFIGURADOS
 
 **Meta**: Lograr que la UI sea **indistinguible** del prototipo de referencia (Google AI Studio), con atención extrema al detalle.
+
+**⚠️ Nota sobre "Pixel Perfect" con MudBlazor**:  
+El prototipo usa **Tailwind CSS** con customización completa, mientras la app usa **MudBlazor** (Material Design framework).  
+- ✅ **Posible**: Paleta de colores, iconografía, spacing, tipografía base, componentes funcionales
+- ⚠️ **Diferencias inevitables**: Borders, shadows, corner radius (MudBlazor aplica Material Design specs)
+- 🎯 **Objetivo realista**: Fidelidad visual máxima DENTRO de capacidades de MudBlazor
+- 📊 **Evaluación**: Comparación lado a lado del prototipo vs app real (P9.1.2) determinará qué refinamientos son posibles
 
 ---
 
