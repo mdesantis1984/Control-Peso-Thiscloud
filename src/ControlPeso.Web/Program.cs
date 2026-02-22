@@ -28,6 +28,52 @@ builder.Services.AddThisCloudFrameworkLoggings(
 // Log immediately after registration to verify initialization
 Log.Information("ThisCloud.Framework.Loggings initialized successfully");
 
+// ============================================================================
+// 2. LOCALIZATION CONFIGURATION (FASE 10)
+// ============================================================================
+
+// 2.1. Add Localization services
+builder.Services.AddLocalization(options =>
+{
+    // ResourcesPath: carpeta donde se buscan los archivos .resx
+    // Relativo a la raíz del proyecto Web
+    options.ResourcesPath = "Resources";
+});
+
+// 2.2. Configure supported cultures
+var supportedCultures = new[]
+{
+    new System.Globalization.CultureInfo("es-AR"),  // Español (Argentina) - DEFAULT
+    new System.Globalization.CultureInfo("en-US")   // English (United States)
+};
+
+builder.Services.Configure<Microsoft.AspNetCore.Builder.RequestLocalizationOptions>(options =>
+{
+    // Cultura default si no se puede determinar la del usuario
+    options.DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture("es-AR");
+
+    // Culturas soportadas para formateo de números, fechas, monedas
+    options.SupportedCultures = supportedCultures;
+
+    // Culturas soportadas para textos de UI (IStringLocalizer)
+    options.SupportedUICultures = supportedCultures;
+
+    // Request culture provider order (intenta en este orden):
+    // 1. CookieRequestCultureProvider: Cookie persistida por LanguageSelector
+    // 2. AcceptLanguageHeaderRequestCultureProvider: Browser default (Accept-Language header)
+    // 3. DefaultRequestCulture: es-AR (fallback final)
+    options.RequestCultureProviders = new Microsoft.AspNetCore.Localization.IRequestCultureProvider[]
+    {
+        new Microsoft.AspNetCore.Localization.CookieRequestCultureProvider(),
+        new Microsoft.AspNetCore.Localization.AcceptLanguageHeaderRequestCultureProvider()
+    };
+
+    // Nombre de la cookie (default: .AspNetCore.Culture)
+    // Personalizamos para claridad en DevTools
+    options.SetDefaultCulture("es-AR");
+});
+
+// ============================================================================
 
 // 3. Register Infrastructure services (DbContext, repositories)
 builder.Services.AddInfrastructureServices(builder.Configuration, builder.Environment);
@@ -176,6 +222,17 @@ app.UseRateLimiter();
 
 // 5. Request duration tracking - identify slow operations
 app.UseRequestDurationTracking();
+
+// ============================================================================
+// 6. LOCALIZATION MIDDLEWARE (FASE 10)
+// CRÍTICO: UseRequestLocalization DEBE ir:
+// - DESPUÉS de UseStaticFiles (para no procesar archivos estáticos)
+// - ANTES de UseAuthentication (para que claims tengan cultura correcta)
+// - ANTES de MapRazorComponents (para que componentes tengan cultura correcta)
+// ============================================================================
+app.UseRequestLocalization(
+    app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<Microsoft.AspNetCore.Builder.RequestLocalizationOptions>>().Value
+);
 
 app.UseAuthentication();
 
