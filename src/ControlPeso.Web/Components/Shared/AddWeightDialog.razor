@@ -1,66 +1,93 @@
 @namespace ControlPeso.Web.Components.Shared
 @using MudBlazor
 
-<MudDialog>
+<MudDialog MaxWidth="MaxWidth.Medium" Style="min-width: 500px;">
     <TitleContent>
-        <MudText Typo="Typo.h6">
-            <MudIcon Icon="@Icons.Material.Filled.MonitorWeight" Class="mr-2" />
-            Registrar Peso
-        </MudText>
+        <div class="d-flex flex-column gap-1">
+            <MudText Typo="Typo.h6" Class="font-weight-bold">
+                <MudIcon Icon="@Icons.Material.Filled.MonitorWeight" Class="mr-2" />
+                Add Weight Entry
+            </MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                Track your progress and keep your goals in sight.
+            </MudText>
+        </div>
     </TitleContent>
     <DialogContent>
-        <MudForm @ref="_form" @bind-IsValid="@_isValid">
-            <MudDatePicker Label="Fecha"
-                           @bind-Date="_date"
-                           Required="true"
-                           MaxDate="DateTime.Today"
-                           Color="Color.Primary"
-                           Variant="Variant.Outlined"
-                           Class="mb-4" />
+        <MudForm @ref="_form" @bind-IsValid="@_isValid" Class="d-flex flex-column gap-4">
+            @* Weight Input con Adornment clickeable kg/lb *@
+            <MudTextField @bind-Value="_weightText"
+                          Label="Weight"
+                          Required="true"
+                          Variant="Variant.Outlined"
+                          Adornment="Adornment.End"
+                          AdornmentText="@(_isKg ? "Kg" : "Lb")"
+                          AdornmentColor="Color.Primary"
+                          OnAdornmentClick="ToggleUnit"
+                          AdornmentAriaLabel="Toggle weight unit"
+                          HelperText="Click the unit to switch between Kg and Lb"
+                          Placeholder="0.0"
+                          InputType="InputType.Number" />
 
-            <MudTimePicker Label="Hora"
-                           @bind-Time="_time"
-                           Required="true"
-                           Color="Color.Primary"
-                           Variant="Variant.Outlined"
-                           Class="mb-4"
-                           AmPm="false" />
+            @* Date and Time side by side *@
+            <div class="d-flex gap-3">
+                <MudDatePicker Label="Date"
+                               @bind-Date="_date"
+                               Required="true"
+                               MaxDate="DateTime.Today"
+                               Color="Color.Primary"
+                               Variant="Variant.Outlined"
+                               Style="flex: 1;" />
 
-            <MudNumericField @bind-Value="_weight"
-                             Label="Peso"
-                             Adornment="Adornment.End"
-                             AdornmentText="kg"
-                             Required="true"
-                             Min="20"
-                             Max="500"
-                             Step="0.1M"
-                             Variant="Variant.Outlined"
-                             Class="mb-4"
-                             HelperText="Ingrese su peso en kilogramos" />
+                <MudTimePicker Label="Time"
+                               @bind-Time="_time"
+                               Required="true"
+                               Color="Color.Primary"
+                               Variant="Variant.Outlined"
+                               Style="flex: 1;"
+                               AmPm="true" />
+            </div>
 
+            @* Notes Field - Más amplio *@
             <MudTextField @bind-Value="_note"
-                          Label="Nota (opcional)"
-                          Lines="3"
+                          Label="Notes (Optional)"
+                          Lines="4"
                           MaxLength="500"
                           Variant="Variant.Outlined"
-                          Counter="500"
-                          HelperText="Agregue una nota sobre su registro" />
+                          Placeholder="How are you feeling? E.g. Post-workout, morning weight..."
+                          HelperText="Add any relevant details about this measurement" />
+
+            @* Info Badge *@
+            <MudAlert Severity="Severity.Info" 
+                      Dense="true" 
+                      NoIcon="false"
+                      Variant="Variant.Text"
+                      Class="mt-2">
+                <MudText Typo="Typo.caption">
+                    For the most accurate results, try to weigh yourself at the same time each day, preferably in the morning before eating.
+                </MudText>
+            </MudAlert>
         </MudForm>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel" 
-                   Variant="Variant.Text">
-            Cancelar
+                   Variant="Variant.Text"
+                   Color="Color.Default">
+            Cancel
         </MudButton>
         <MudButton Color="Color.Primary" 
                    Variant="Variant.Filled" 
+                   StartIcon="@Icons.Material.Filled.Save"
                    OnClick="Submit"
                    Disabled="@(!_isValid || _isSubmitting)">
             @if (_isSubmitting)
             {
                 <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
             }
-            Guardar
+            else
+            {
+                <span>Save Entry</span>
+            }
         </MudButton>
     </DialogActions>
 </MudDialog>

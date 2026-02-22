@@ -86,6 +86,13 @@ public static class UserMapper
         entity.DateOfBirth = dto.DateOfBirth?.ToString("yyyy-MM-dd");
         entity.Language = dto.Language;
         entity.GoalWeight = dto.GoalWeight.HasValue ? (double)dto.GoalWeight.Value : null;
+
+        // Actualizar AvatarUrl si se proporciona
+        if (dto.AvatarUrl is not null)
+        {
+            entity.AvatarUrl = dto.AvatarUrl;
+        }
+
         entity.UpdatedAt = DateTime.UtcNow.ToString("O");
     }
 

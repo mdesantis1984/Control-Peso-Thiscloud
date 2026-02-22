@@ -57,7 +57,7 @@ public partial class Admin
         }
     }
 
-    private async Task<GridData<UserDto>> LoadServerData(GridState<UserDto> state)
+    private async Task<GridData<UserDto>> LoadServerData(GridState<UserDto> state, CancellationToken ct)
     {
         _isLoadingGrid = true;
 
@@ -82,7 +82,7 @@ public partial class Admin
                 filter.Role,
                 filter.Status);
 
-            var result = await AdminService.GetUsersAsync(filter);
+            var result = await AdminService.GetUsersAsync(filter, ct);
 
             Logger.LogInformation(
                 "Users loaded - Count: {Count}, TotalCount: {TotalCount}",

@@ -1,0 +1,142 @@
+@page "/diag-auth"
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Diagnóstico de Autenticación</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-4">Diagnóstico de Autenticación</MudText>
+
+    @if (_authState != null)
+    {
+        <MudCard Class="mb-4">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Estado de Autenticación</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudStack Spacing="2">
+                    <MudText>
+                        <strong>Autenticado:</strong> @(_authState.User.Identity?.IsAuthenticated == true ? "✅ SÍ" : "❌ NO")
+                    </MudText>
+                    <MudText>
+                        <strong>Nombre:</strong> @(_authState.User.Identity?.Name ?? "N/A")
+                    </MudText>
+                    <MudText>
+                        <strong>Tipo de Autenticación:</strong> @(_authState.User.Identity?.AuthenticationType ?? "N/A")
+                    </MudText>
+                    <MudText>
+                        <strong>Es Admin (IsInRole):</strong> @(_authState.User.IsInRole("Administrator") ? "✅ SÍ" : "❌ NO")
+                    </MudText>
+                </MudStack>
+            </MudCardContent>
+        </MudCard>
+
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Claims del Usuario</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                @if (_authState.User.Claims.Any())
+                {
+                    <MudTable Items="@_authState.User.Claims" Hover="true" Dense="true">
+                        <HeaderContent>
+                            <MudTh>Tipo</MudTh>
+                            <MudTh>Valor</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Tipo">
+                                <code>@context.Type</code>
+                            </MudTd>
+                            <MudTd DataLabel="Valor">
+                                <code>@context.Value</code>
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Warning">No hay claims disponibles</MudAlert>
+                }
+            </MudCardContent>
+        </MudCard>
+
+        <MudCard Class="mt-4">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Análisis de Roles</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudStack Spacing="3">
+                    <MudText>
+                        <strong>Claim de Rol encontrado:</strong> 
+                        @{
+                            var roleClaim = _authState.User.FindFirst(ClaimTypes.Role);
+                            if (roleClaim != null)
+                            {
+                                <span>✅ SÍ - Valor: <code>@roleClaim.Value</code></span>
+                            }
+                            else
+                            {
+                                <span>❌ NO - El claim de rol NO existe</span>
+                            }
+                        }
+                    </MudText>
+                    <MudText>
+                        <strong>Claims Transformed:</strong>
+                        @{
+                            var transformed = _authState.User.FindFirst("claims_transformed");
+                            if (transformed != null)
+                            {
+                                <span>✅ SÍ - Los claims fueron transformados</span>
+                            }
+                            else
+                            {
+                                <span>❌ NO - UserClaimsTransformation no se ejecutó</span>
+                            }
+                        }
+                    </MudText>
+                    <MudText>
+                        <strong>UserId (NameIdentifier):</strong>
+                        @{
+                            var userId = _authState.User.FindFirst(ClaimTypes.NameIdentifier);
+                            if (userId != null)
+                            {
+                                <span><code>@userId.Value</code></span>
+                            }
+                            else
+                            {
+                                <span>❌ NO encontrado</span>
+                            }
+                        }
+                    </MudText>
+                </MudStack>
+            </MudCardContent>
+        </MudCard>
+    }
+    else
+    {
+        <MudProgressCircular Indeterminate="true" />
+    }
+
+    <MudButton Variant="Variant.Filled" 
+               Color="Color.Primary" 
+               Href="/dashboard"
+               Class="mt-4">
+        Volver al Dashboard
+    </MudButton>
+</MudContainer>
+
+@code {
+    private AuthenticationState? _authState;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _authState = await AuthStateProvider.GetAuthenticationStateAsync();
+    }
+}

@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using MudBlazor
 @using ControlPeso.Domain.Enums
+@using ControlPeso.Application.DTOs
 
 <PageTitle>Dashboard - Control Peso Thiscloud</PageTitle>
 
@@ -49,205 +50,283 @@ else if (_weightLogs.Count == 0)
                        Color="Color.Primary" 
                        Size="Size.Large"
                        StartIcon="@Icons.Material.Filled.Add"
-                       OnClick="OpenAddWeightDialog">
-                Agregar Mi Primer Peso
+                       OnClick="@OpenAddWeightDialog">
+                Agregar Primer Peso
             </MudButton>
         </MudPaper>
     </MudContainer>
 }
 else
 {
-    <MudText Typo="Typo.h4" Class="mb-6">Dashboard</MudText>
-
-    <MudGrid>
-        <MudItem xs="12" sm="6" md="3">
-            <StatsCard Title="Peso Actual"
-                       Value="@_currentWeight"
-                       Unit="kg"
-                       Icon="@Icons.Material.Filled.MonitorWeight"
+    @* Header Section - Pixel Perfect *@
+    <div class="d-flex justify-space-between align-center mb-6">
+        <div>
+            <MudText Typo="Typo.h4" Class="mb-1">
+                Welcome back, @_userName!
+            </MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary">
+                Here is your progress for the last 30 days.
+            </MudText>
+        </div>
+        <div class="d-flex align-center gap-3">
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="d-flex align-center">
+                <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small" Class="mr-1" />
+                @DateTime.Now.ToString("MMM yyyy")
+            </MudText>
+            <MudButton Variant="Variant.Filled"
                        Color="Color.Primary"
-                       DecimalPlaces="1" />
-        </MudItem>
-        
-        <MudItem xs="12" sm="6" md="3">
-            <StatsCard Title="Cambio Semanal"
-                       Value="@_weeklyChange"
-                       Unit="kg"
-                       Icon="@Icons.Material.Filled.TrendingDown"
-                       Color="@(_weeklyChange < 0 ? Color.Success : Color.Warning)"
-                       ShowTrend="true"
-                       TrendValue="@_weeklyChange"
-                       DecimalPlaces="1" />
-        </MudItem>
-        
-        <MudItem xs="12" sm="6" md="3">
-            <StatsCard Title="Meta"
-                       Value="@(_goalWeight ?? 0)"
-                       Unit="kg"
-                       Icon="@Icons.Material.Filled.Flag"
-                       Color="Color.Info"
-                       DecimalPlaces="1" />
-        </MudItem>
-        
-        <MudItem xs="12" sm="6" md="3">
-            <StatsCard Title="Progreso"
-                       Value="@_progress"
-                       Unit="%"
-                       Icon="@Icons.Material.Filled.ShowChart"
-                       Color="Color.Success"
-                       DecimalPlaces="0" />
-        </MudItem>
+                       StartIcon="@Icons.Material.Filled.FileDownload"
+                       Size="Size.Medium"
+                       OnClick="@ExportData">
+                Export
+            </MudButton>
+        </div>
+    </div>
 
-        <MudItem xs="12">
-            <MudCard Elevation="2">
-                <MudCardHeader>
-                    <CardHeaderContent>
-                        <MudText Typo="Typo.h6">Evolución del Peso (últimos 30 días)</MudText>
-                    </CardHeaderContent>
-                    <CardHeaderActions>
-                        <MudIconButton Icon="@Icons.Material.Filled.Refresh" 
-                                       Color="Color.Default"
-                                       OnClick="@LoadDataAsync"
-                                       aria-label="Refresh data" />
-                    </CardHeaderActions>
-                </MudCardHeader>
+    @* Stats Cards Grid - 3 Cards Pixel Perfect *@
+    <MudGrid Spacing="3" Class="dashboard-stats-grid mb-6">
+        @* Current Weight Card *@
+        <MudItem xs="12" sm="4">
+            <MudCard Elevation="2" Class="stats-card">
                 <MudCardContent Class="pa-4">
-                    <WeightChart Data="@_weightLogs" />
+                    <div class="d-flex justify-space-between align-center">
+                        <div style="flex: 1;">
+                            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">
+                                Current Weight
+                            </MudText>
+                            <MudText Typo="Typo.h4" Class="font-weight-bold">
+                                @_currentWeight.ToString("F1") <span style="font-size: 1rem; font-weight: normal;">lbs</span>
+                            </MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2">
+                                <MudIcon Icon="@Icons.Material.Filled.AccessTime" Size="Size.Small" Style="vertical-align: middle;" />
+                                Last measured @GetLastMeasuredText()
+                            </MudText>
+                        </div>
+                        <div>
+                            <MudIcon Icon="@Icons.Material.Filled.MonitorWeight"
+                                     Color="Color.Primary"
+                                     Size="Size.Large" />
+                        </div>
+                    </div>
                 </MudCardContent>
             </MudCard>
         </MudItem>
 
-        <MudItem xs="12" md="6">
-            <MudCard Elevation="2">
-                <MudCardHeader>
-                    <CardHeaderContent>
-                        <MudText Typo="Typo.h6">Registros Recientes</MudText>
-                    </CardHeaderContent>
-                    <CardHeaderActions>
-                        <MudButton Href="/history" 
-                                   Variant="Variant.Text" 
-                                   Color="Color.Primary"
-                                   Size="Size.Small">
-                            Ver Todos
-                        </MudButton>
-                    </CardHeaderActions>
-                </MudCardHeader>
-                <MudCardContent>
-                    @if (_recentLogs.Count == 0)
-                    {
-                        <MudText Typo="Typo.body2" Color="Color.Default">
-                            No hay registros recientes
-                        </MudText>
-                    }
-                    else
-                    {
-                        <MudList T="string" Dense="true">
-                            @foreach (var log in _recentLogs)
-                            {
-                                <MudListItem T="string">
-                                    <div class="d-flex justify-space-between align-center">
-                                        <div>
-                                            <MudText Typo="Typo.body1">
-                                                @log.Date.ToString("dd/MM/yyyy") - @log.Time.ToString("HH:mm")
-                                            </MudText>
-                                            @if (!string.IsNullOrEmpty(log.Note))
-                                            {
-                                                <MudText Typo="Typo.body2" Color="Color.Default" Class="mt-1">
-                                                    @log.Note
-                                                </MudText>
-                                            }
-                                        </div>
-                                        <div class="d-flex align-center">
-                                            <MudText Typo="Typo.h6" Class="mr-2">
-                                                @log.Weight.ToString("F1") kg
-                                            </MudText>
-                                            @if (log.Trend == WeightTrend.Down)
-                                            {
-                                                <MudIcon Icon="@Icons.Material.Filled.TrendingDown" Color="Color.Success" Size="Size.Small" />
-                                            }
-                                            else if (log.Trend == WeightTrend.Up)
-                                            {
-                                                <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Color="Color.Warning" Size="Size.Small" />
-                                            }
-                                        </div>
-                                    </div>
-                                </MudListItem>
-                                <MudDivider />
-                            }
-                        </MudList>
-                    }
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
-
-        <MudItem xs="12" md="6">
-            <MudCard Elevation="2">
-                <MudCardHeader>
-                    <CardHeaderContent>
-                        <MudText Typo="Typo.h6">Estadísticas</MudText>
-                    </CardHeaderContent>
-                </MudCardHeader>
-                <MudCardContent>
-                    @if (_stats != null)
-                    {
-                        <div class="d-flex flex-column gap-3">
-                            <div class="d-flex justify-space-between">
-                                <MudText Typo="Typo.body1">Promedio:</MudText>
-                                <MudText Typo="Typo.body1" Class="font-weight-bold">
-                                    @(_stats.AverageWeight?.ToString("F1") ?? "N/A") kg
-                                </MudText>
-                            </div>
-                            <MudDivider />
-
-                            <div class="d-flex justify-space-between">
-                                <MudText Typo="Typo.body1">Cambio total:</MudText>
-                                <MudText Typo="Typo.body1" Class="font-weight-bold" Color="@(_stats.TotalChange < 0 ? Color.Success : Color.Warning)">
-                                    @(_stats.TotalChange?.ToString("F1") ?? "N/A") kg
-                                </MudText>
-                            </div>
-                            <MudDivider />
-
-                            <div class="d-flex justify-space-between">
-                                <MudText Typo="Typo.body1">Peso mínimo:</MudText>
-                                <MudText Typo="Typo.body1" Class="font-weight-bold" Color="Color.Success">
-                                    @(((double?)_stats.MinWeight)?.ToString("F1") ?? "N/A") kg
-                                </MudText>
-                            </div>
-                            <MudDivider />
-
-                            <div class="d-flex justify-space-between">
-                                <MudText Typo="Typo.body1">Peso máximo:</MudText>
-                                <MudText Typo="Typo.body1" Class="font-weight-bold" Color="Color.Warning">
-                                    @(((double?)_stats.MaxWeight)?.ToString("F1") ?? "N/A") kg
-                                </MudText>
-                            </div>
-                            <MudDivider />
-
-                            <div class="d-flex justify-space-between">
-                                <MudText Typo="Typo.body1">Total registros:</MudText>
-                                <MudText Typo="Typo.body1" Class="font-weight-bold">
-                                    @_stats.TotalRecords
-                                </MudText>
+        @* Weekly Change Card *@
+        <MudItem xs="12" sm="4">
+            <MudCard Elevation="2" Class="stats-card">
+                <MudCardContent Class="pa-4">
+                    <div class="d-flex justify-space-between align-center">
+                        <div style="flex: 1;">
+                            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">
+                                Weekly Change
+                            </MudText>
+                            <MudText Typo="Typo.h4" Class="font-weight-bold" Color="@(_weeklyChange < 0 ? Color.Success : _weeklyChange > 0 ? Color.Error : Color.Default)">
+                                @(_weeklyChange < 0 ? "-" : "+")@Math.Abs(_weeklyChange).ToString("F1") <span style="font-size: 1rem; font-weight: normal;">lbs</span>
+                            </MudText>
+                            <div class="mt-3">
+                                <div class="d-flex align-center gap-2 mb-1">
+                                    <MudIcon Icon="@(_weeklyChange <= 0 ? Icons.Material.Filled.TrendingDown : Icons.Material.Filled.TrendingUp)"
+                                             Color="@(_weeklyChange <= 0 ? Color.Success : Color.Warning)"
+                                             Size="Size.Small" />
+                                    <MudText Typo="Typo.caption" Color="@(_weeklyChange <= 0 ? Color.Success : Color.Warning)" Class="font-weight-bold">
+                                        @(_weeklyChange <= 0 ? "ON TRACK" : "ABOVE TARGET")
+                                    </MudText>
+                                </div>
+                                <MudProgressLinear Color="@(_weeklyChange <= 0 ? Color.Success : Color.Warning)"
+                                                   Value="@((double)(Math.Min(Math.Abs(_weeklyChange) * 20, 100)))"
+                                                   Size="Size.Small" />
                             </div>
                         </div>
-                    }
-                    else
-                    {
-                        <MudText Typo="Typo.body2" Color="Color.Default">
-                            No hay estadísticas disponibles
-                        </MudText>
-                    }
+                        <div>
+                            <MudIcon Icon="@Icons.Material.Filled.TrendingDown"
+                                     Color="Color.Success"
+                                     Size="Size.Large" />
+                        </div>
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        @* Goal Progress Card *@
+        <MudItem xs="12" sm="4">
+            <MudCard Elevation="2" Class="stats-card">
+                <MudCardContent Class="pa-4">
+                    <div class="d-flex justify-space-between align-center">
+                        <div style="flex: 1;">
+                            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">
+                                Goal Progress
+                            </MudText>
+                            <MudText Typo="Typo.h4" Class="font-weight-bold">
+                                @_progress.ToString("F0")<span style="font-size: 1rem; font-weight: normal;">%</span>
+                            </MudText>
+                            <div class="mt-3">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-1">
+                                    TO TARGET: @GetRemainingWeight() LBS LEFT
+                                </MudText>
+                                <MudProgressLinear Color="Color.Primary"
+                                                   Value="@((double)_progress)"
+                                                   Size="Size.Small" />
+                            </div>
+                        </div>
+                        <div>
+                            <MudIcon Icon="@Icons.Material.Filled.Flag"
+                                     Color="Color.Primary"
+                                     Size="Size.Large" />
+                        </div>
+                    </div>
                 </MudCardContent>
             </MudCard>
         </MudItem>
     </MudGrid>
 
+    @* Weight Evolution Chart - Pixel Perfect *@
+    <MudCard Elevation="2" Class="mb-6">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6" Class="mb-1">Weight Evolution</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    Performance trend over the past 30 days
+                </MudText>
+            </CardHeaderContent>
+            <CardHeaderActions>
+                <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
+                    <MudButton OnClick="@(() => ChangePeriod(7))" 
+                               Variant="@(_selectedPeriod == 7 ? Variant.Filled : Variant.Text)">
+                        1W
+                    </MudButton>
+                    <MudButton OnClick="@(() => ChangePeriod(30))"
+                               Variant="@(_selectedPeriod == 30 ? Variant.Filled : Variant.Text)">
+                        1M
+                    </MudButton>
+                    <MudButton OnClick="@(() => ChangePeriod(90))"
+                               Variant="@(_selectedPeriod == 90 ? Variant.Filled : Variant.Text)">
+                        3M
+                    </MudButton>
+                    <MudButton OnClick="@(() => ChangePeriod(365))"
+                               Variant="@(_selectedPeriod == 365 ? Variant.Filled : Variant.Text)">
+                        ALL
+                    </MudButton>
+                </MudButtonGroup>
+            </CardHeaderActions>
+        </MudCardHeader>
+        <MudCardContent Class="pa-4">
+            <WeightChart Data="@_filteredWeightLogs" />
+        </MudCardContent>
+    </MudCard>
+
+    @* Measurement Log Table - Pixel Perfect *@
+    <MudCard Elevation="2">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Measurement Log</MudText>
+            </CardHeaderContent>
+            <CardHeaderActions>
+                <MudTextField @bind-Value="_searchString"
+                              Placeholder="Search entries..."
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              IconSize="Size.Medium"
+                              Class="mt-0"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              Style="max-width: 300px;" />
+            </CardHeaderActions>
+        </MudCardHeader>
+        <MudCardContent Class="pa-0">
+            <MudDataGrid T="WeightLogDto"
+                         Items="@_filteredTableLogs"
+                         Hover="true"
+                         Dense="true"
+                         RowsPerPage="5"
+                         Elevation="0">
+                <Columns>
+                    <PropertyColumn Property="x => x.Date"
+                                    Title="DATE & TIME"
+                                    Sortable="true">
+                        <CellTemplate>
+                            <div>
+                                <MudText Typo="Typo.body2">@context.Item.Date.ToString("MMM dd, yyyy")</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@context.Item.Time.ToString("hh:mm tt")</MudText>
+                            </div>
+                        </CellTemplate>
+                    </PropertyColumn>
+
+                    <PropertyColumn Property="x => x.Weight"
+                                    Title="WEIGHT (LBS)"
+                                    Sortable="true">
+                        <CellTemplate>
+                            <MudText Typo="Typo.body2" Class="font-weight-bold">
+                                @context.Item.Weight.ToString("F1")
+                            </MudText>
+                        </CellTemplate>
+                    </PropertyColumn>
+
+                    <PropertyColumn Property="x => x.Trend"
+                                    Title="TREND"
+                                    Sortable="true">
+                        <CellTemplate>
+                            <div class="d-flex align-center gap-2">
+                                @if (context.Item.Trend == WeightTrend.Down)
+                                {
+                                    <MudIcon Icon="@Icons.Material.Filled.ArrowDownward" Color="Color.Success" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2" Color="Color.Success">-0.2</MudText>
+                                }
+                                else if (context.Item.Trend == WeightTrend.Up)
+                                {
+                                    <MudIcon Icon="@Icons.Material.Filled.ArrowUpward" Color="Color.Error" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2" Color="Color.Error">+0.4</MudText>
+                                }
+                                else
+                                {
+                                    <MudIcon Icon="@Icons.Material.Filled.Remove" Color="Color.Secondary" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">0.0</MudText>
+                                }
+                            </div>
+                        </CellTemplate>
+                    </PropertyColumn>
+
+                    <PropertyColumn Property="x => x.Note"
+                                    Title="NOTES"
+                                    Sortable="false">
+                        <CellTemplate>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary" Style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                @(string.IsNullOrEmpty(context.Item.Note) ? "-" : context.Item.Note)
+                            </MudText>
+                        </CellTemplate>
+                    </PropertyColumn>
+
+                    <TemplateColumn Title="ACTIONS" Sortable="false">
+                        <CellTemplate>
+                            <MudIconButton Icon="@Icons.Material.Filled.MoreVert"
+                                           Size="Size.Small"
+                                           Color="Color.Default"
+                                           aria-label="More actions" />
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+                <PagerContent>
+                    <div class="d-flex justify-space-between align-center pa-4">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            SHOWING @Math.Min(_filteredTableLogs.Count, 1) TO @Math.Min(_filteredTableLogs.Count, 5) OF @_filteredTableLogs.Count ENTRIES
+                        </MudText>
+                        <MudPagination Count="@((_filteredTableLogs.Count + 4) / 5)"
+                                       Selected="1"
+                                       Color="Color.Primary"
+                                       Size="Size.Small"
+                                       ShowFirstButton="false"
+                                       ShowLastButton="false" />
+                    </div>
+                </PagerContent>
+            </MudDataGrid>
+        </MudCardContent>
+    </MudCard>
+
+    @* FAB - Pixel Perfect *@
     <MudFab Color="Color.Primary"
             StartIcon="@Icons.Material.Filled.Add"
             Size="Size.Large"
-            Label="Agregar Peso"
             OnClick="@OpenAddWeightDialog"
             Style="position: fixed; bottom: 24px; right: 24px; z-index: 1000;"
-            aria-label="Agregar nuevo registro de peso" />
-    }
+            aria-label="Add new weight entry" />
 }

@@ -4,21 +4,7 @@
 @using ControlPeso.Domain.Enums
 @using MudBlazor
 
-<PageTitle>Perfil - Control Peso Thiscloud</PageTitle>
-
-<HeadContent>
-    <meta name="description" content="Edita tu perfil en Control Peso Thiscloud. Actualiza tus datos personales, altura, peso objetivo, sistema de unidades, idioma y preferencias de notificaciones." />
-    <meta name="keywords" content="perfil usuario, configuración, preferencias, datos personales, altura, peso objetivo" />
-    <meta name="robots" content="noindex, nofollow" />
-    <link rel="canonical" href="https://controlpeso.thiscloud.com.ar/profile" />
-
-    @* Open Graph *@
-    <meta property="og:title" content="Perfil - Control Peso Thiscloud" />
-    <meta property="og:description" content="Edita tu perfil y preferencias en Control Peso Thiscloud." />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://controlpeso.thiscloud.com.ar/profile" />
-    <meta property="og:image" content="https://controlpeso.thiscloud.com.ar/images/og-image.png" />
-</HeadContent>
+<PageTitle>Perfil - Control Peso</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
     @if (_isLoading)
@@ -31,7 +17,7 @@
     }
     else
     {
-        <MudText Typo="Typo.h4" Class="mb-6">Mi Perfil</MudText>
+        <MudText Typo="Typo.h4" Class="mb-4">Mi Perfil</MudText>
 
         <MudGrid>
             <!-- Información de cuenta (solo lectura) -->
@@ -42,16 +28,28 @@
                             <MudText Typo="Typo.h6">Información de Cuenta</MudText>
                         </CardHeaderContent>
                         <CardHeaderActions>
-                            @if (!string.IsNullOrWhiteSpace(_user.AvatarUrl) && !_user.AvatarUrl.Contains("default-user"))
-                            {
-                                <MudAvatar Image="@_user.AvatarUrl" Size="Size.Large" Alt="@_user.Name" />
-                            }
-                            else
-                            {
-                                <MudAvatar Color="Color.Primary" Size="Size.Large">
-                                    @_user.Name[0]
-                                </MudAvatar>
-                            }
+                            <div class="d-flex flex-column align-center">
+                                @if (!string.IsNullOrWhiteSpace(_user.AvatarUrl))
+                                {
+                                    <MudAvatar Image="@_user.AvatarUrl" Size="Size.Large" Class="mb-2" />
+                                }
+                                else
+                                {
+                                    <MudAvatar Color="Color.Primary" Size="Size.Large" Class="mb-2">
+                                        @_user.Name[0]
+                                    </MudAvatar>
+                                }
+
+                                <InputFile id="avatar-file-input" OnChange="OnPhotoSelectedAsync" accept="image/*" hidden />
+                                <MudButton Variant="Variant.Text" 
+                                           Color="Color.Primary" 
+                                           Size="Size.Small"
+                                           StartIcon="@Icons.Material.Filled.CameraAlt"
+                                           OnClick="TriggerFileInput"
+                                           Disabled="@_isSaving">
+                                    Cambiar Foto
+                                </MudButton>
+                            </div>
                         </CardHeaderActions>
                     </MudCardHeader>
                     <MudCardContent>
@@ -189,12 +187,12 @@
                     <MudCardContent>
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-3">
                             <MudText>Modo Oscuro</MudText>
-                            <MudSwitch T="bool" @bind-Value="_darkMode" Color="Color.Primary" />
+                            <MudSwitch T="bool" Checked="@_darkMode" CheckedChanged="@((bool v) => _darkMode = v)" Color="Color.Primary" />
                         </MudStack>
 
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
                             <MudText>Notificaciones</MudText>
-                            <MudSwitch T="bool" @bind-Value="_notificationsEnabled" Color="Color.Primary" />
+                            <MudSwitch T="bool" Checked="@_notificationsEnabled" CheckedChanged="@((bool v) => _notificationsEnabled = v)" Color="Color.Primary" />
                         </MudStack>
                     </MudCardContent>
                     <MudCardActions>

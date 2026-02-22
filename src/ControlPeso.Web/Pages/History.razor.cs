@@ -31,7 +31,7 @@ public partial class History
     private decimal? _minWeight;
     private decimal? _maxWeight;
 
-    private async Task<GridData<WeightLogDto>> LoadServerData(GridState<WeightLogDto> state)
+    private async Task<GridData<WeightLogDto>> LoadServerData(GridState<WeightLogDto> state, CancellationToken ct)
     {
         Logger.LogInformation("Loading weight logs - Page: {Page}, PageSize: {PageSize}", state.Page, state.PageSize);
         _isLoading = true;
@@ -74,8 +74,8 @@ public partial class History
                 };
             }
 
-            // Load data
-            var result = await WeightLogService.GetByUserAsync(userId, filter);
+            // Load data with cancellation token
+            var result = await WeightLogService.GetByUserAsync(userId, filter, ct);
 
             // Update stats
             _totalRecords = result.TotalCount;

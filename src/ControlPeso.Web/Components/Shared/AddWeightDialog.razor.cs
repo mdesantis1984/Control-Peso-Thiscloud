@@ -14,7 +14,7 @@ namespace ControlPeso.Web.Components.Shared;
 public partial class AddWeightDialog
 {
     [CascadingParameter]
-    private IDialogReference? MudDialog { get; set; }
+    private IMudDialogInstance? MudDialog { get; set; }
 
     [Inject] private IWeightLogService WeightLogService { get; set; } = null!;
     [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
@@ -24,15 +24,26 @@ public partial class AddWeightDialog
     private MudForm? _form;
     private bool _isValid;
     private bool _isSubmitting;
+    private bool _isKg = true; // Toggle para kg/lb
 
     private DateTime? _date = DateTime.Today;
     private TimeSpan? _time = DateTime.Now.TimeOfDay;
     private decimal _weight = 70;
+    private string _weightText = "70.0"; // Texto del campo de peso
     private string _note = string.Empty;
 
     protected override void OnInitialized()
     {
         Logger.LogInformation("AddWeightDialog: Initialized");
+    }
+
+    /// <summary>
+    /// Toggle entre kg y lb cuando se hace clic en el Adornment
+    /// </summary>
+    private void ToggleUnit()
+    {
+        _isKg = !_isKg;
+        Logger.LogInformation("AddWeightDialog: Unit toggled to {Unit}", _isKg ? "kg" : "lb");
     }
 
     private async Task Submit()
@@ -66,13 +77,21 @@ public partial class AddWeightDialog
                 return;
             }
 
+            // Parse weight from text field
+            if (!decimal.TryParse(_weightText, out var weightValue) || weightValue < 20 || weightValue > 500)
+            {
+                Logger.LogWarning("AddWeightDialog: Invalid weight value - Input: {WeightText}", _weightText);
+                Snackbar.Add("Error: Peso inválido. Ingrese un valor entre 20 y 500.", Severity.Error);
+                return;
+            }
+
             var dto = new CreateWeightLogDto
             {
                 UserId = userId,
                 Date = DateOnly.FromDateTime(_date.Value),
                 Time = TimeOnly.FromTimeSpan(_time.Value),
-                Weight = _weight,
-                DisplayUnit = WeightUnit.Kg,
+                Weight = weightValue,
+                DisplayUnit = _isKg ? WeightUnit.Kg : WeightUnit.Lb,
                 Note = string.IsNullOrWhiteSpace(_note) ? null : _note.Trim()
             };
 

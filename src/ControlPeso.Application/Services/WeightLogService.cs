@@ -1,6 +1,7 @@
 using ControlPeso.Application.DTOs;
 using ControlPeso.Application.Filters;
 using ControlPeso.Application.Interfaces;
+using ControlPeso.Application.Logging;
 using ControlPeso.Application.Mapping;
 using ControlPeso.Domain.Entities;
 using ControlPeso.Domain.Enums;
@@ -31,6 +32,7 @@ public sealed class WeightLogService : IWeightLogService
 
     public async Task<WeightLogDto?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
+        using var scope = _logger.BeginBusinessScope("GetWeightLogById");
         _logger.LogInformation("Getting weight log by Id: {WeightLogId}", id);
 
         try

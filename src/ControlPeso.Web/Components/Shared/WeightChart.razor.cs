@@ -31,9 +31,8 @@ public partial class WeightChart
     public int Height { get; set; } = 350;
 
     private bool _isLoading = true;
-    private List<ChartSeries> _series = new();
+    private List<ChartSeries<double>> _series = new();
     private string[] _labels = Array.Empty<string>();
-    private ChartOptions _options = new();
 
     protected override void OnParametersSet()
     {
@@ -58,41 +57,18 @@ public partial class WeightChart
             _labels = orderedData.Select(d => d.Date.ToString("dd/MM")).ToArray();
 
             // Crear serie de datos
-            _series = new List<ChartSeries>
+            _series = new List<ChartSeries<double>>
             {
-                new ChartSeries
+                new ChartSeries<double>
                 {
                     Name = "Peso (kg)",
                     Data = orderedData.Select(d => (double)d.Weight).ToArray()
                 }
             };
 
-            // Configurar opciones del gráfico
-            // NOTA: NaturalSpline requiere mínimo 4 puntos de datos
-            // Si hay menos, usar interpolación lineal simple
-            _options = new ChartOptions
-            {
-                // Interpolación: NaturalSpline para 4+ puntos, lineal para menos
-                InterpolationOption = orderedData.Count >= 4 
-                    ? InterpolationOption.NaturalSpline 
-                    : InterpolationOption.Straight,
-
-                // Línea principal
-                LineStrokeWidth = 3,
-
-                // Ejes
-                YAxisTicks = 10,
-                YAxisLines = true,
-                XAxisLines = false,
-                YAxisFormat = "{0:F1} kg",
-
-                // Paleta de colores (Primary theme color)
-                ChartPalette = new[] { "#2196F3" }
-            };
-
             Logger.LogDebug(
-                "WeightChart: Chart configured - Labels: {LabelCount}, Series: {SeriesCount}, Interpolation: {Interpolation}",
-                _labels.Length, _series.Count, _options.InterpolationOption);
+                "WeightChart: Chart configured - Labels: {LabelCount}, Series: {SeriesCount}",
+                _labels.Length, _series.Count);
         }
         catch (Exception ex)
         {

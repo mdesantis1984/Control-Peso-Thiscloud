@@ -27,14 +27,24 @@ public partial class Dashboard
     private decimal _currentWeight = 0;
     private decimal _weeklyChange = 0;
     private decimal? _goalWeight = 0;
+    private decimal _startingWeight = 0;
     private decimal _progress = 0;
 
     private List<WeightLogDto> _weightLogs = new();
+    private List<WeightLogDto> _filteredWeightLogs = new();
+    private List<WeightLogDto> _filteredTableLogs = new();
     private List<WeightLogDto> _recentLogs = new();
     private WeightStatsDto? _stats = null;
 
     private Guid _currentUserId;
+    private string _userName = string.Empty;
     private bool _isLoading = true;
+
+    // Period selector state
+    private int _selectedPeriod = 30; // Default: 1M
+
+    // Search functionality
+    private string _searchString = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -117,7 +127,9 @@ public partial class Dashboard
             var user = await UserService.GetByIdAsync(_currentUserId);
             if (user != null)
             {
+                _userName = user.Name;
                 _goalWeight = user.GoalWeight;
+                _startingWeight = user.StartingWeight ?? 0;
 
                 if (_goalWeight.HasValue && user.StartingWeight.HasValue && _currentWeight > 0)
                 {
@@ -128,6 +140,10 @@ public partial class Dashboard
                     Logger.LogDebug("Dashboard: Progress calculated - {Progress}%", _progress);
                 }
             }
+
+            // Aplicar filtros iniciales
+            _filteredWeightLogs = FilterByPeriod(_selectedPeriod);
+            _filteredTableLogs = _weightLogs; // Inicialmente sin filtrar
 
             // Obtener estadísticas
             var dateRange = new Application.Filters.DateRange
@@ -146,6 +162,69 @@ public partial class Dashboard
             Logger.LogError(ex, "Dashboard: Error loading data for user {UserId}", _currentUserId);
             Snackbar.Add($"Error al cargar datos: {ex.Message}", Severity.Error);
         }
+    }
+
+    /// <summary>
+    /// Cambia el período de visualización del gráfico
+    /// </summary>
+    private void ChangePeriod(int days)
+    {
+        Logger.LogDebug("Dashboard: Changing period to {Days} days", days);
+        _selectedPeriod = days;
+        _filteredWeightLogs = FilterByPeriod(days);
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Filtra los registros de peso por período en días
+    /// </summary>
+    private List<WeightLogDto> FilterByPeriod(int days)
+    {
+        var startDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-days));
+        return _weightLogs.Where(l => l.Date >= startDate).ToList();
+    }
+
+    /// <summary>
+    /// Obtiene el texto formateado para "Last measured"
+    /// </summary>
+    private string GetLastMeasuredText()
+    {
+        if (_weightLogs.Count == 0)
+            return "N/A";
+
+        var lastLog = _weightLogs.First();
+        var lastDateTime = lastLog.Date.ToDateTime(lastLog.Time);
+        var diff = DateTime.Now - lastDateTime;
+
+        if (diff.TotalHours < 1)
+            return "a few minutes ago";
+        if (diff.TotalHours < 24)
+            return $"{(int)diff.TotalHours} hours ago";
+        if (diff.TotalDays < 7)
+            return $"{(int)diff.TotalDays} days ago";
+
+        return lastLog.Date.ToString("MMM dd, yyyy");
+    }
+
+    /// <summary>
+    /// Obtiene el peso restante para alcanzar la meta
+    /// </summary>
+    private string GetRemainingWeight()
+    {
+        if (!_goalWeight.HasValue || _currentWeight == 0)
+            return "N/A";
+
+        var remaining = _currentWeight - _goalWeight.Value;
+        return Math.Abs(remaining).ToString("F1");
+    }
+
+    /// <summary>
+    /// Exporta los datos a CSV
+    /// </summary>
+    private void ExportData()
+    {
+        Logger.LogInformation("Dashboard: Exporting data for user {UserId}", _currentUserId);
+        Snackbar.Add("Función de exportación próximamente disponible", Severity.Info);
     }
 
     private async Task OpenAddWeightDialog()

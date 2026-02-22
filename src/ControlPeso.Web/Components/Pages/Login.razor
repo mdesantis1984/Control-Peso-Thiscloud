@@ -1,5 +1,5 @@
 @page "/login"
-@layout MainLayout
+@layout EmptyLayout
 
 <PageTitle>Iniciar Sesión - Control Peso Thiscloud</PageTitle>
 
@@ -23,42 +23,100 @@
     <meta name="twitter:image" content="https://controlpeso.thiscloud.com.ar/images/og-image.png" />
 </HeadContent>
 
-<MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center justify-center" Style="min-height: 100vh;">
-    <MudPaper Elevation="4" Class="pa-8" Style="width: 100%; max-width: 450px;">
-        <MudStack Spacing="4">
-            @* Logo y título *@
+@* Background con blur circles - Pixel Perfect *@
+<div class="login-background">
+    <div class="login-blur-circle login-blur-circle-1"></div>
+    <div class="login-blur-circle login-blur-circle-2"></div>
+</div>
+
+@* Main Container - Responsive y centrado *@
+<MudContainer MaxWidth="MaxWidth.Small" Class="login-container">
+    <MudPaper Elevation="0" Class="login-card">
+        @* Decorative Top Bar (MudBlazor accent) *@
+        <div class="login-card-accent"></div>
+
+        @* Card Content *@
+        <MudStack Spacing="6" AlignItems="AlignItems.Center" Class="pa-8 pa-sm-10">
+            @* Logo/Icon circular con background primary *@
+            <div class="login-logo-circle">
+                <MudIcon Icon="@Icons.Material.Filled.MonitorWeight" 
+                         Size="Size.Large" 
+                         Color="Color.Primary" 
+                         Style="font-size: 2.5rem;" />
+            </div>
+
+            @* Títulos *@
             <MudStack Spacing="2" AlignItems="AlignItems.Center">
-                <MudIcon Icon="@Icons.Material.Filled.Scale" Size="Size.Large" Color="Color.Primary" />
-                <MudText Typo="Typo.h4" Align="Align.Center">Control Peso Thiscloud</MudText>
-                <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Secondary">
-                    Inicia sesión para continuar
+                <MudText Typo="Typo.h4" Align="Align.Center" Class="font-weight-bold">
+                    Track Your Progress
+                </MudText>
+                <MudText Typo="Typo.body1" Align="Align.Center" Color="Color.Secondary">
+                    Sign in to continue your journey
                 </MudText>
             </MudStack>
 
-            <MudDivider />
+            @* Ilustración Placeholder *@
+            <MudPaper Elevation="0" Class="login-illustration" Style="@GetIllustrationStyle()">
+            </MudPaper>
 
-            @* Botones de autenticación OAuth *@
-            <MudStack Spacing="3">
-                @* Botón Google OAuth *@
+            @* Botón Google OAuth - Custom Styled *@
+            <MudButton 
+                Variant="Variant.Outlined" 
+                Color="Color.Default"
+                Size="Size.Large"
+                FullWidth="true"
+                StartIcon="@Icons.Custom.Brands.Google"
+                OnClick="LoginWithGoogle"
+                Class="login-google-button">
+                <MudText Class="font-weight-medium">Sign in with Google</MudText>
+            </MudButton>
+
+            @* Security Badge *@
+            <MudAlert Severity="Severity.Success" 
+                      Variant="Variant.Outlined" 
+                      Dense="true" 
+                      NoIcon="true"
+                      Class="login-security-badge">
+                <div class="d-flex align-center gap-2">
+                    <MudIcon Icon="@Icons.Material.Filled.VerifiedUser" 
+                             Size="Size.Small" 
+                             Color="Color.Success" />
+                    <MudText Typo="Typo.body2" Class="flex-grow-1">
+                        Your data is stored securely and persists in your user account.
+                    </MudText>
+                </div>
+            </MudAlert>
+
+            @* Footer Links *@
+            <MudStack Spacing="4" Style="width: 100%;">
                 <MudButton 
-                    Variant="Variant.Outlined" 
-                    Color="Color.Default"
-                    Size="Size.Large"
+                    Variant="Variant.Text" 
+                    Color="Color.Primary" 
                     FullWidth="true"
-                    StartIcon="@Icons.Custom.Brands.Google"
-                    OnClick="LoginWithGoogle"
-                    Class="text-transform-none">
-                    Continuar con Google
+                    Class="text-transform-none font-weight-bold">
+                    New here? Create an account
                 </MudButton>
+
+                <MudDivider Style="opacity: 0.1;" />
+
+                <div class="d-flex justify-center align-center gap-4">
+                    <MudLink Href="/terms" Typo="Typo.caption" Color="Color.Secondary" Underline="Underline.Hover">
+                        Terms of Service
+                    </MudLink>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Style="opacity: 0.3;">•</MudText>
+                    <MudLink Href="/privacy" Typo="Typo.caption" Color="Color.Secondary" Underline="Underline.Hover">
+                        Privacy Policy
+                    </MudLink>
+                </div>
             </MudStack>
-
-            <MudDivider />
-
-            @* Información de privacidad *@
-            <MudText Typo="Typo.caption" Align="Align.Center" Color="Color.Secondary">
-                Al continuar, aceptas nuestra <MudLink Href="/privacy" Color="Color.Primary">Política de Privacidad</MudLink>
-                y <MudLink Href="/terms" Color="Color.Primary">Términos de Servicio</MudLink>
-            </MudText>
         </MudStack>
     </MudPaper>
+
+    @* Support/Help Text *@
+    <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Secondary" Class="mt-8">
+        Need help? 
+        <MudLink Href="/support" Color="Color.Primary" Underline="Underline.Hover">
+            Contact support
+        </MudLink>
+    </MudText>
 </MudContainer>

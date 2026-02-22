@@ -1,0 +1,640 @@
+/* ============================================
+   Control Peso Thiscloud - Custom CSS
+   Pixel Perfect Styling for Login Page
+   ============================================ */
+
+/* === Login Page Styles === */
+
+/* Background con blur circles - Minimalist accents */
+.login-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #121212;
+    overflow: hidden;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.login-blur-circle {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+}
+
+.login-blur-circle-1 {
+    top: -10%;
+    left: -5%;
+    width: 288px;
+    height: 288px;
+    background-color: rgba(33, 150, 243, 0.05); /* Primary/5 */
+}
+
+.login-blur-circle-2 {
+    bottom: -10%;
+    right: -5%;
+    width: 384px;
+    height: 384px;
+    background-color: rgba(0, 188, 212, 0.4); /* Accent teal/40 */
+}
+
+/* Container principal - Responsive y centrado */
+.login-container {
+    position: relative;
+    z-index: 10;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+/* Card principal - Elevación y borders sutiles */
+.login-card {
+    width: 100%;
+    max-width: 440px;
+    background-color: #1e1e1e !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    overflow: hidden !important;
+}
+
+/* Decorative top bar - Accent primary */
+.login-card-accent {
+    height: 6px;
+    width: 100%;
+    background-color: rgba(33, 150, 243, 0.8); /* Primary/80 */
+}
+
+/* Logo circular con background primary */
+.login-logo-circle {
+    width: 64px;
+    height: 64px;
+    background-color: rgba(33, 150, 243, 0.1); /* Primary/10 */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Ilustración placeholder - Aspect ratio y responsive */
+.login-illustration {
+    width: 100%;
+    height: 160px;
+    border-radius: 8px;
+    background-color: transparent;
+}
+
+/* Botón Google - Custom styling con hover effect */
+.login-google-button {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    transition: background-color 200ms ease-in-out !important;
+    text-transform: none !important;
+}
+
+.login-google-button:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Security badge - Emerald con background sutil */
+.login-security-badge {
+    background-color: rgba(76, 175, 80, 0.1) !important; /* Success/10 */
+    border-color: rgba(76, 175, 80, 0.2) !important;
+    width: 100%;
+}
+
+/* === Responsive Adjustments === */
+
+/* Mobile (XS) - 0-599px */
+@media (max-width: 599px) {
+    .login-container {
+        padding: 0.5rem;
+    }
+
+    .login-card {
+        max-width: 100%;
+    }
+
+    .login-blur-circle-1 {
+        width: 200px;
+        height: 200px;
+    }
+
+    .login-blur-circle-2 {
+        width: 250px;
+        height: 250px;
+    }
+
+    .login-illustration {
+        height: 120px;
+    }
+
+    /* Reduce padding en mobile */
+    .pa-sm-10 {
+        padding: 2rem !important;
+    }
+}
+
+/* Tablet (SM) - 600-959px */
+@media (min-width: 600px) and (max-width: 959px) {
+    .login-container {
+        padding: 1rem;
+    }
+
+    .login-illustration {
+        height: 140px;
+    }
+}
+
+/* Desktop (MD+) - 960px+ */
+@media (min-width: 960px) {
+    .login-container {
+        padding: 1.5rem;
+    }
+}
+
+/* === Global Transitions === */
+
+/* Fade in animation para page mount */
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.login-card {
+    animation: fadeIn 200ms ease-in;
+}
+
+/* Smooth transitions para interactive elements */
+.mud-button,
+.mud-link {
+    transition: all 150ms ease-in-out;
+}
+
+/* === MudBlazor Overrides para Login === */
+
+/* Asegurar que MudContainer no tenga max-width en login */
+.login-container > .mud-container {
+    max-width: none !important;
+}
+
+/* Links con hover underline decoration primary */
+.mud-link:hover {
+    text-decoration: underline;
+    text-decoration-color: var(--mud-palette-primary);
+}
+
+/* Gap utility classes (si no existen en MudBlazor) */
+.gap-2 {
+    gap: 0.5rem;
+}
+
+.gap-4 {
+    gap: 1rem;
+}
+
+/* === Accessibility Enhancements === */
+
+/* Focus visible para keyboard navigation */
+.login-google-button:focus-visible {
+    outline: 2px solid var(--mud-palette-primary);
+    outline-offset: 2px;
+}
+
+/* Reduced motion para usuarios con preferencias de accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ============================================
+   Global App Styles - Pixel Perfect
+   ============================================ */
+
+/* === Typography - Material Design (Roboto) === */
+body, html, * {
+    font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+}
+
+/* === Cards - Border radius aumentado para mejor look === */
+.mud-card {
+    border-radius: 12px !important; /* Material Design standard para surfaces */
+}
+
+.mud-paper {
+    border-radius: 12px !important;
+}
+
+.mud-button-root {
+    border-radius: 8px !important; /* Buttons usan 8px (menos que cards) */
+}
+
+.mud-input-outlined .mud-input-outlined-border {
+    border-radius: 8px !important;
+}
+
+.mud-progress-linear {
+    border-radius: 8px !important;
+}
+
+.mud-table-container {
+    border-radius: 12px !important;
+}
+
+/* Dialog y modal containers */
+.mud-dialog-container,
+.mud-dialog {
+    border-radius: 12px !important;
+}
+
+/* Snackbar */
+.mud-snackbar {
+    border-radius: 8px !important;
+}
+
+/* === Borders - Material Design dark mode === */
+.mud-table-bordered {
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.mud-table-bordered thead tr th {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.mud-table-bordered tbody tr:not(:last-child) td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+/* === MudDataGrid borders === */
+.mud-table-container {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+}
+
+.mud-table th,
+.mud-table td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.mud-table th {
+    font-weight: 500 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important; /* Ligeramente más visible para headers */
+}
+
+/* === Dividers === */
+.mud-divider {
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* === Inputs === */
+.mud-input-outlined .mud-input-outlined-border {
+    border-color: rgba(255, 255, 255, 0.23) !important;
+}
+
+.mud-input-outlined:hover .mud-input-outlined-border {
+    border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.mud-input-outlined.mud-input-focused .mud-input-outlined-border {
+    border-color: #2196F3 !important; /* Primary color */
+    border-width: 2px !important;
+}
+
+/* === Buttons === */
+.mud-button-root {
+    border-radius: 4px !important;
+    text-transform: uppercase;
+    font-weight: 500;
+    letter-spacing: 0.02857em;
+}
+
+/* === Progress bars === */
+.mud-progress-linear {
+    border-radius: 4px !important;
+}
+
+/* === Shadows - Más sutiles para dark mode (WeightTracker style) === */
+.mud-elevation-1 {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.20), 0 1px 2px 0 rgba(0, 0, 0, 0.12) !important;
+}
+
+.mud-elevation-2 {
+    box-shadow: 0 3px 6px 0 rgba(0, 0, 0, 0.25), 0 2px 4px 0 rgba(0, 0, 0, 0.15) !important;
+}
+
+.mud-elevation-4 {
+    box-shadow: 0 6px 12px 0 rgba(0, 0, 0, 0.30), 0 4px 8px 0 rgba(0, 0, 0, 0.18) !important;
+}
+
+.mud-elevation-8 {
+    box-shadow: 0 12px 24px 0 rgba(0, 0, 0, 0.35), 0 8px 16px 0 rgba(0, 0, 0, 0.20) !important;
+}
+
+/* === Stats Cards - Proporción y altura consistentes (WeightTracker exact match) === */
+.stats-card {
+    min-height: 160px !important; /* Altura fija para todos los cards */
+    display: flex;
+    flex-direction: column;
+    /* Background se define por theme (ver secciones dark/light más abajo) */
+}
+
+.stats-card .mud-card-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 16px !important; /* Padding uniforme */
+}
+
+/* Stats cards icons - tamaño consistente con referencia */
+.stats-card .mud-icon-root {
+    font-size: 2.5rem !important; /* Reducido de 3rem a 2.5rem */
+}
+
+/* Stats cards números - tamaño consistente */
+.stats-card .mud-typography-h4 {
+    font-size: 2rem !important; /* 32px - consistente entre cards */
+    line-height: 1.2 !important;
+    font-weight: 700 !important;
+}
+
+/* Progress bars - delgados como referencia WeightTracker */
+.stats-card .mud-progress-linear {
+    height: 3px !important; /* Reducido de 4px a 3px */
+    border-radius: 2px !important;
+}
+
+/* Progress bar labels - tamaño reducido */
+.stats-card .mud-typography-caption {
+    font-size: 0.75rem !important; /* 12px */
+    font-weight: 500 !important;
+}
+
+/* Dashboard específico === */
+.dashboard-header {
+    margin-bottom: 24px;
+}
+
+.dashboard-stats-grid {
+    margin-bottom: 24px;
+}
+
+.dashboard-chart-card {
+    margin-bottom: 24px;
+}
+
+/* === Stats Cards === */
+.stats-card .mud-card-header {
+    padding-bottom: 8px;
+}
+
+.stats-card .mud-card-content {
+    padding-top: 8px;
+}
+
+/* === Light Mode Adjustments === */
+
+/* Stats cards background - Light mode usa superficie clara */
+.mud-theme-light .stats-card {
+    background-color: #FFFFFF !important; /* Blanco puro para light mode */
+}
+
+.mud-theme-light .mud-table-bordered {
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+.mud-theme-light .mud-table-bordered thead tr th {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+.mud-theme-light .mud-table-bordered tbody tr:not(:last-child) td {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+.mud-theme-light .mud-table-container {
+    border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.mud-theme-light .mud-table th,
+.mud-theme-light .mud-table td {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+.mud-theme-light .mud-divider {
+    border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+.mud-theme-light .mud-input-outlined .mud-input-outlined-border {
+    border-color: rgba(0, 0, 0, 0.23) !important;
+}
+
+.mud-theme-light .mud-input-outlined:hover .mud-input-outlined-border {
+    border-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* === Dark Mode Adjustments === */
+
+/* Stats cards background - Dark mode usa WeightTracker color scheme */
+.mud-theme-dark .stats-card {
+    background-color: #1B2838 !important; /* WeightTracker card background (gris azulado oscuro) */
+}
+
+/* ========================================
+   MOBILE RESPONSIVE ADJUSTMENTS
+   ======================================== */
+
+/* === XS Breakpoint (0-599px) - Mobile Phones === */
+@media (max-width: 599px) {
+    /* Reduce general spacing for mobile */
+    .dashboard-header {
+        margin-bottom: 12px !important;
+        padding: 12px !important;
+    }
+
+    .dashboard-stats-grid {
+        margin-bottom: 12px !important;
+        gap: 8px !important;
+    }
+
+    .dashboard-chart-card {
+        margin-bottom: 12px !important;
+    }
+
+    /* Reduce font sizes para nombres largos */
+    .mud-typography-h4 {
+        font-size: 1.5rem !important; /* 24px en vez de 34px */
+        line-height: 1.3 !important;
+    }
+
+    .mud-typography-h5 {
+        font-size: 1.25rem !important; /* 20px en vez de 24px */
+    }
+
+    .mud-typography-h6 {
+        font-size: 1.1rem !important; /* 18px en vez de 20px */
+    }
+
+    /* Cards con padding reducido */
+    .mud-card .mud-card-content {
+        padding: 12px !important;
+    }
+
+    .mud-card .mud-card-header {
+        padding: 12px !important;
+    }
+
+    /* Stats cards más compactos */
+    .stats-card {
+        padding: 12px !important;
+    }
+
+    .stats-card .mud-typography-h3 {
+        font-size: 2rem !important; /* 32px en vez de 48px */
+    }
+
+    .stats-card .mud-typography-subtitle1 {
+        font-size: 0.875rem !important; /* 14px */
+    }
+
+    /* Botones más pequeños en mobile */
+    .mud-button-root {
+        padding: 6px 12px !important;
+        font-size: 0.875rem !important;
+    }
+
+    /* Export button más compacto */
+    .mud-button-root.mud-icon-button + .mud-button-root {
+        padding: 4px 8px !important;
+        font-size: 0.8125rem !important;
+    }
+
+    /* Period selector buttons más pequeños */
+    .mud-button-group .mud-button-root {
+        padding: 4px 8px !important;
+        font-size: 0.75rem !important; /* 12px */
+        min-width: 50px !important;
+    }
+
+    /* FAB position ajustado para no tapar contenido */
+    .mud-fab {
+        bottom: 12px !important;
+        right: 12px !important;
+        width: 48px !important;
+        height: 48px !important;
+    }
+
+    /* Table más compacto */
+    .mud-table-container {
+        font-size: 0.8125rem !important; /* 13px */
+    }
+
+    .mud-table-cell {
+        padding: 8px 4px !important;
+    }
+
+    .mud-table-cell-content {
+        font-size: 0.8125rem !important;
+    }
+
+    /* DataGrid header más pequeño */
+    .mud-table-head .mud-table-cell {
+        padding: 8px 4px !important;
+        font-size: 0.75rem !important;
+        font-weight: 600 !important;
+    }
+
+    /* Progress bars height reducido */
+    .mud-progress-linear {
+        height: 4px !important;
+    }
+
+    /* Input fields más compactos */
+    .mud-input {
+        font-size: 0.875rem !important;
+    }
+
+    .mud-input-outlined .mud-input-slot {
+        padding: 8px 12px !important;
+    }
+
+    /* Container padding reducido */
+    .mud-container {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+    }
+
+    /* AppBar más compacto */
+    .mud-appbar {
+        padding: 8px 12px !important;
+    }
+
+    .mud-appbar .mud-typography-h5 {
+        font-size: 1.1rem !important;
+    }
+
+    /* Avatar más pequeño en mobile */
+    .mud-avatar {
+        width: 32px !important;
+        height: 32px !important;
+    }
+
+    /* Notification bell más pequeño */
+    .mud-icon-button {
+        padding: 6px !important;
+    }
+
+    .mud-icon-button .mud-icon-root {
+        font-size: 1.25rem !important;
+    }
+}
+
+/* === SM Breakpoint (600-959px) - Tablets Portrait === */
+@media (min-width: 600px) and (max-width: 959px) {
+    /* Medium spacing adjustments */
+    .dashboard-header {
+        margin-bottom: 16px !important;
+        padding: 16px !important;
+    }
+
+    .dashboard-stats-grid {
+        margin-bottom: 16px !important;
+    }
+
+    .dashboard-chart-card {
+        margin-bottom: 16px !important;
+    }
+
+    /* Font sizes moderadamente reducidos */
+    .mud-typography-h4 {
+        font-size: 1.75rem !important; /* 28px */
+    }
+
+    /* Cards con padding medio */
+    .mud-card .mud-card-content {
+        padding: 16px !important;
+    }
+
+    /* FAB position */
+    .mud-fab {
+        bottom: 16px !important;
+        right: 16px !important;
+    }
+
+    /* Container padding medio */
+    .mud-container {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
+}

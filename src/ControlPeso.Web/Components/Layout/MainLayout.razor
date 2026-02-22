@@ -1,10 +1,13 @@
 @using Microsoft.AspNetCore.Components.Web
+@using ControlPeso.Application.Services
+@using ControlPeso.Web.Themes
+
 @inherits LayoutComponentBase
 @namespace ControlPeso.Web.Components.Layout
-@rendermode InteractiveServer
 
-@* MudBlazor Providers - según documentación oficial *@
-<MudThemeProvider @ref="_themeProvider" @bind-IsDarkMode="@_isDarkMode" />
+
+@* MudBlazor Providers - Tema personalizado ControlPeso (fixed IndexOutOfRangeException - array extendido a 26 elementos) *@
+<MudThemeProvider @ref="_themeProvider" Theme="@ControlPesoTheme.DarkTheme" @bind-IsDarkMode="@_isDarkMode" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -31,48 +34,33 @@
 
         <AuthorizeView>
             <Authorized>
-                @if (_currentUser != null && !string.IsNullOrWhiteSpace(_currentUser.AvatarUrl) && !_currentUser.AvatarUrl.Contains("default-user"))
-                {
-                    <MudMenu AnchorOrigin="Origin.BottomRight"
-                             TransformOrigin="Origin.TopRight"
-                             aria-label="User menu">
-                        <ActivatorContent>
-                            <MudAvatar Image="@_currentUser.AvatarUrl" 
-                                       Size="Size.Medium" 
-                                       Alt="@_currentUser.Name"
-                                       Style="cursor: pointer;" />
-                        </ActivatorContent>
-                        <ChildContent>
-                            <MudMenuItem Icon="@Icons.Material.Filled.Person" 
-                                         Href="/profile">
-                                Perfil
-                            </MudMenuItem>
-                            <MudDivider />
-                            <MudMenuItem Icon="@Icons.Material.Filled.Logout" 
-                                         Href="/api/auth/logout">
-                                Cerrar Sesión
-                            </MudMenuItem>
-                        </ChildContent>
-                    </MudMenu>
+                @{
+                    var userName = context.User.Identity?.Name ?? "Usuario";
+                    var hasAvatar = _currentUser != null && !string.IsNullOrWhiteSpace(_currentUser.AvatarUrl);
                 }
-                else
-                {
-                    <MudMenu Icon="@Icons.Material.Filled.AccountCircle" 
-                             Color="Color.Inherit" 
-                             AnchorOrigin="Origin.BottomRight"
-                             TransformOrigin="Origin.TopRight"
-                             aria-label="User menu">
-                        <MudMenuItem Icon="@Icons.Material.Filled.Person" 
-                                     Href="/profile">
-                            Perfil
-                        </MudMenuItem>
+
+                <MudMenu @bind-Open="_userMenuOpen" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                    <ActivatorContent Context="activator">
+                        @if (hasAvatar)
+                        {
+                            <MudAvatar Size="Size.Medium" Style="cursor: pointer;" @onclick="@(() => _userMenuOpen = !_userMenuOpen)">
+                                <MudImage Src="@(_currentUser!.AvatarUrl + "?v=" + _cacheBuster)" Alt="@userName" />
+                            </MudAvatar>
+                        }
+                        else
+                        {
+                            <MudAvatar Size="Size.Medium" Color="Color.Primary" Style="cursor: pointer;" @onclick="@(() => _userMenuOpen = !_userMenuOpen)">
+                                @AvatarHelper.GetInitials(userName)
+                            </MudAvatar>
+                        }
+                    </ActivatorContent>
+                    <ChildContent>
+                        <MudText Typo="Typo.body2" Class="px-4 py-2">@userName</MudText>
                         <MudDivider />
-                        <MudMenuItem Icon="@Icons.Material.Filled.Logout" 
-                                     Href="/api/auth/logout">
-                            Cerrar Sesión
-                        </MudMenuItem>
-                    </MudMenu>
-                }
+                        <MudMenuItem Icon="@Icons.Material.Filled.Person" Href="/profile">Perfil</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.Logout" Href="/api/auth/logout">Cerrar Sesión</MudMenuItem>
+                    </ChildContent>
+                </MudMenu>
             </Authorized>
             <NotAuthorized>
                 <MudButton Href="/login" 

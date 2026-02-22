@@ -9,9 +9,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
 
-    @* App CSS personalizado (después de MudBlazor) *@
-    <link rel="stylesheet" href="@Assets["app.css"]" />
-    <link rel="stylesheet" href="@Assets["ControlPeso.Web.styles.css"]" />
+    @* Cropper.js CSS for ImageCropperDialog (local bundle) *@
+    <link href="lib/cropperjs/cropper.min.css" rel="stylesheet" />
+
+    @* Custom CSS - Pixel Perfect Styles *@
+    <link href="css/app.css" rel="stylesheet" />
 
     @* Google Analytics 4 *@
     <script async src="https://www.googletagmanager.com/gtag/js?id=@googleAnalyticsMeasurementId"></script>
@@ -27,7 +29,7 @@
 
     <ImportMap />
     <link rel="icon" type="image/png" href="favicon.png" />
-    <HeadOutlet />
+    <HeadOutlet @rendermode="InteractiveServer" />
 </head>
 
 <body>
@@ -37,8 +39,12 @@
     @* MudBlazor JS *@
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
 
+    @* Cropper.js for ImageCropperDialog (local bundle) *@
+    <script src="lib/cropperjs/cropper.min.js"></script>
+
     @* App JS *@
     <script src="js/app.js"></script>
+    <script src="js/image-cropper.js"></script>
 </body>
 
 </html>

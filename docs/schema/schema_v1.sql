@@ -50,10 +50,11 @@ CREATE TABLE IF NOT EXISTS Users (
     Role              INTEGER     NOT NULL    DEFAULT 0
         CHECK(Role IN (0, 1)),
 
-    -- URL del avatar (tomada de Google profile, puede ser NULL si no tiene)
-    -- CHECK: máximo 2048 caracteres (límite práctico de URL)
-    AvatarUrl         TEXT        NULL
-        CHECK(AvatarUrl IS NULL OR length(AvatarUrl) <= 2048),
+    -- URL o Base64 data URL del avatar
+    -- Puede ser URL de Google profile o Base64 data URL de imagen recortada por el usuario
+    -- CHECK removido: Base64 puede ser muy largo (>100KB → >130,000 caracteres)
+    -- SQLite TEXT soporta hasta ~1GB, suficiente para imágenes optimizadas
+    AvatarUrl         TEXT        NULL,
 
     -- Fecha de registro del usuario (ISO 8601: YYYY-MM-DDTHH:MM:SSZ)
     -- Se establece al crear el usuario y NO se modifica

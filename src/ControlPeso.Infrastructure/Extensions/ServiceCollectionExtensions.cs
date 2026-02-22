@@ -59,6 +59,11 @@ public static class ServiceCollectionExtensions
         // Registrar DbSeeder para seed de datos en Development
         services.AddScoped<IDbSeeder, DbSeeder>();
 
+        // Registrar servicios de Infrastructure
+        services.AddScoped<Application.Interfaces.IUserPreferencesService, Services.UserPreferencesService>();
+        services.AddScoped<Application.Interfaces.IPhotoStorageService, Services.LocalPhotoStorageService>();
+        services.AddScoped<Application.Interfaces.IImageProcessingService, Services.ImageProcessingService>();
+
         // TODO: Agregar repositorios si se implementan (opcional - los servicios de Application
         // pueden usar DbContext directamente para simplicidad en MVP)
         // services.AddScoped<IWeightLogRepository, WeightLogRepository>();
