@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using ControlPeso.Application.DTOs;
+using ControlPeso.Application.Filters;
 using ControlPeso.Application.Interfaces;
 using ControlPeso.Domain.Enums;
 using Microsoft.AspNetCore.Components;
@@ -13,20 +14,24 @@ namespace ControlPeso.Web.Pages;
 public partial class Profile
 {
     [Inject] private IUserService UserService { get; set; } = null!;
+    [Inject] private IWeightLogService WeightLogService { get; set; } = null!;
     [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = null!;
     [Inject] private ILogger<Profile> Logger { get; set; } = null!;
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
     [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
+    [Inject] private Services.UserStateService UserStateService { get; set; } = null!;
 
     private bool _isLoading = true;
     private bool _isSaving;
-    private bool _isSavingPreferences;
 
     private UserDto? _user;
     private IBrowserFile? _selectedFile;
     private IDialogReference? _cropperDialog;
-    
+    private WeightStatsDto? _stats;
+    private long _avatarVersion = DateTime.UtcNow.Ticks; // Cache busting for avatar image
+
     // Form fields
     private string _name = string.Empty;
     private decimal _height = 170m;
@@ -34,7 +39,7 @@ public partial class Profile
     private decimal? _goalWeight;
     private UnitSystem _unitSystem = UnitSystem.Metric;
     private string _language = "es";
-    
+
     // Preferences
     private bool _darkMode = true;
     private bool _notificationsEnabled = true;
@@ -42,7 +47,7 @@ public partial class Profile
     protected override async Task OnInitializedAsync()
     {
         Logger.LogInformation("Loading user profile");
-        
+
         try
         {
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
@@ -72,6 +77,39 @@ public partial class Profile
             _goalWeight = _user.GoalWeight;
             _unitSystem = _user.UnitSystem;
             _language = _user.Language;
+
+            // DEBUG: Log avatar URL
+            Logger.LogInformation("Profile loaded - AvatarUrl from DB: '{AvatarUrl}' (IsNullOrWhiteSpace: {IsEmpty})", 
+                _user.AvatarUrl ?? "(null)", 
+                string.IsNullOrWhiteSpace(_user.AvatarUrl));
+
+            // DEBUG: Check if avatar file exists on disk
+            if (!string.IsNullOrWhiteSpace(_user.AvatarUrl) && _user.AvatarUrl.StartsWith("/uploads/avatars/"))
+            {
+                var filePath = Path.Combine("wwwroot", _user.AvatarUrl.TrimStart('/'));
+                var fileExists = File.Exists(filePath);
+                Logger.LogInformation("Avatar file check - Path: '{Path}', Exists: {Exists}", filePath, fileExists);
+            }
+
+            // Load weight statistics (all time)
+            try
+            {
+                _stats = await WeightLogService.GetStatsAsync(
+                    userId,
+                    new Application.Filters.DateRange
+                    {
+                        StartDate = DateOnly.FromDateTime(DateTime.Today.AddYears(-10)),
+                        EndDate = DateOnly.FromDateTime(DateTime.Today)
+                    });
+
+                Logger.LogDebug("Weight stats loaded - Current: {Current}, Starting: {Starting}, Change: {Change}",
+                    _stats?.CurrentWeight, _stats?.StartingWeight, _stats?.TotalChange);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning(ex, "Could not load weight statistics for user {UserId}", userId);
+                // Continue without stats - not critical
+            }
 
             Logger.LogInformation("User profile loaded successfully - UserId: {UserId}, Name: {Name}", userId, _user.Name);
         }
@@ -106,11 +144,15 @@ public partial class Profile
             };
 
             var updatedUser = await UserService.UpdateProfileAsync(_user.Id, dto);
-
             _user = updatedUser;
-            
+
+            // Notify other components that profile changed
+            UserStateService.NotifyUserProfileUpdated(_user);
+
+            // TODO: Save preferences (dark mode, notifications) when UserPreferencesService is available
+
             Logger.LogInformation("Profile updated successfully - UserId: {UserId}", _user.Id);
-            Snackbar.Add("Perfil actualizado correctamente", Severity.Success);
+            Snackbar.Add("Profile updated successfully!", Severity.Success);
         }
         catch (Exception ex)
         {
@@ -123,32 +165,70 @@ public partial class Profile
         }
     }
 
-    private async Task SavePreferences()
+    private async Task SignOut()
     {
-        if (_user is null) return;
-
-        Logger.LogInformation("Saving preferences for user {UserId}", _user.Id);
-        _isSavingPreferences = true;
+        Logger.LogInformation("User {UserId} signing out", _user?.Id);
 
         try
         {
-            // TODO: Implementar UserPreferencesService cuando esté disponible
-            // Por ahora solo simulamos el guardado
-            await Task.Delay(500);
-
-            Logger.LogInformation("Preferences saved successfully - UserId: {UserId}, DarkMode: {DarkMode}, Notifications: {Notifications}",
-                _user.Id, _darkMode, _notificationsEnabled);
-            
-            Snackbar.Add("Preferencias guardadas correctamente", Severity.Success);
+            // Navigate to logout page (Google OAuth logout)
+            NavigationManager.NavigateTo("/logout", forceLoad: true);
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error saving preferences - UserId: {UserId}", _user.Id);
-            Snackbar.Add("Error al guardar las preferencias", Severity.Error);
+            Logger.LogError(ex, "Error during sign out");
+            Snackbar.Add("Error al cerrar sesión", Severity.Error);
         }
-        finally
+    }
+
+    private async Task OpenChangePasswordDialog()
+    {
+        Logger.LogInformation("Opening change password dialog for user {UserId}", _user?.Id);
+
+        var options = new DialogOptions
         {
-            _isSavingPreferences = false;
+            CloseButton = true,
+            MaxWidth = MaxWidth.Small
+        };
+
+        var parameters = new DialogParameters
+        {
+            ["ContentText"] = "This feature is not available for Google OAuth users. Please manage your password through your Google account settings.",
+            ["CloseText"] = "OK"
+        };
+
+        await DialogService.ShowAsync<MudMessageBox>("Change Password", parameters, options);
+    }
+
+    private async Task OpenDeleteAccountDialog()
+    {
+        Logger.LogInformation("Opening delete account confirmation for user {UserId}", _user?.Id);
+
+        var options = new DialogOptions
+        {
+            CloseButton = true,
+            MaxWidth = MaxWidth.Small
+        };
+
+        var parameters = new DialogParameters
+        {
+            ["ContentText"] = "Are you sure you want to permanently delete your account? This action cannot be undone and all your data will be lost.",
+            ["CancelText"] = "Cancel",
+            ["YesText"] = "Delete"
+        };
+
+        var dialog = await DialogService.ShowAsync<MudMessageBox>("Delete Account", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            Logger.LogWarning("User {UserId} confirmed account deletion", _user?.Id);
+            Snackbar.Add("Account deletion is not yet implemented", Severity.Warning);
+            // TODO: Implement account deletion when service is available
+        }
+        else
+        {
+            Logger.LogInformation("User {UserId} cancelled account deletion", _user?.Id);
         }
     }
 
@@ -302,7 +382,14 @@ public partial class Profile
             var updatedUser = await UserService.UpdateProfileAsync(_user.Id, dto);
             _user = updatedUser;
 
-            Logger.LogInformation("Avatar updated successfully - UserId: {UserId}, AvatarUrl: {AvatarUrl}", _user.Id, avatarUrl);
+            // Update avatar version to force browser reload (cache busting)
+            _avatarVersion = DateTime.UtcNow.Ticks;
+
+            // Notify other components (e.g., MainLayout) that avatar changed
+            UserStateService.NotifyUserProfileUpdated(_user);
+
+            Logger.LogInformation("Avatar updated successfully - UserId: {UserId}, AvatarUrl: {AvatarUrl}, Version: {Version}", 
+                _user.Id, avatarUrl, _avatarVersion);
             Snackbar.Add("Foto de perfil actualizada correctamente", Severity.Success);
 
             // Close the cropper dialog after successful save
@@ -326,5 +413,39 @@ public partial class Profile
             _selectedFile = null;
             _cropperDialog = null; // Clear dialog reference
         }
+    }
+
+    /// <summary>
+    /// Gets avatar URL with cache busting query parameter to force browser reload after update.
+    /// Returns empty string if file doesn't exist on disk.
+    /// </summary>
+    private string GetAvatarUrl()
+    {
+        if (_user is null || string.IsNullOrWhiteSpace(_user.AvatarUrl))
+        {
+            Logger.LogDebug("GetAvatarUrl: Returning empty - User: {UserNull}, AvatarUrl: '{AvatarUrl}'", 
+                _user is null ? "null" : "not null", 
+                _user?.AvatarUrl ?? "(null)");
+            return string.Empty;
+        }
+
+        // If it's a local avatar (not Google URL), verify file exists
+        if (_user.AvatarUrl.StartsWith("/uploads/avatars/"))
+        {
+            var filePath = Path.Combine("wwwroot", _user.AvatarUrl.TrimStart('/'));
+            if (!File.Exists(filePath))
+            {
+                Logger.LogWarning("GetAvatarUrl: Avatar file does not exist - Path: '{Path}', Returning empty to show initials", filePath);
+                return string.Empty;
+            }
+        }
+
+        // Add version query string to prevent browser caching
+        var separator = _user.AvatarUrl.Contains('?') ? '&' : '?';
+        var url = $"{_user.AvatarUrl}{separator}v={_avatarVersion}";
+
+        Logger.LogDebug("GetAvatarUrl: Returning '{Url}' (Base: '{Base}', Version: {Version})", 
+            url, _user.AvatarUrl, _avatarVersion);
+        return url;
     }
 }

@@ -4,9 +4,9 @@
 @using ControlPeso.Domain.Enums
 @using MudBlazor
 
-<PageTitle>Perfil - Control Peso</PageTitle>
+<PageTitle>Profile - WeightTracker</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+<MudContainer MaxWidth="MaxWidth.Large" Class="pa-6">
     @if (_isLoading)
     {
         <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
@@ -17,202 +17,282 @@
     }
     else
     {
-        <MudText Typo="Typo.h4" Class="mb-4">Mi Perfil</MudText>
+        <!-- Header Section with Avatar, Name, and Save Button -->
+        <MudPaper Elevation="2" Class="pa-6 mb-4" Style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%);">
+            <MudGrid>
+                <MudItem xs="12" Class="d-flex align-center justify-space-between">
+                    <!-- Avatar and Name -->
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="4">
+                        <!-- Avatar with Click to Change -->
+                        <div style="position: relative; cursor: pointer;" @onclick="TriggerFileInput">
+                            @{
+                                var avatarUrl = GetAvatarUrl();
+                            }
+                            @if (!string.IsNullOrWhiteSpace(avatarUrl))
+                            {
+                                <MudAvatar Size="Size.Large" Style="width: 96px; height: 96px;">
+                                    <MudImage Src="@avatarUrl" Alt="@_user.Name" />
+                                </MudAvatar>
+                            }
+                            else
+                            {
+                                <MudAvatar Color="Color.Primary" Size="Size.Large" Style="width: 96px; height: 96px; font-size: 36px;">
+                                    @_user.Name[0]
+                                </MudAvatar>
+                            }
+                            <MudTooltip Text="Click to change photo">
+                                <MudIcon Icon="@Icons.Material.Filled.CameraAlt" 
+                                         Style="position: absolute; bottom: 0; right: 0; background: white; border-radius: 50%; padding: 4px;" 
+                                         Size="Size.Small" />
+                            </MudTooltip>
+                        </div>
 
+                        <!-- Hidden File Input -->
+                        <InputFile id="avatar-file-input" OnChange="OnPhotoSelectedAsync" accept="image/*" hidden />
+
+                        <!-- Name and Member Since -->
+                        <MudStack Spacing="0">
+                            <MudText Typo="Typo.h4" Style="color: white; font-weight: 600;">@_user.Name</MudText>
+                            <MudText Typo="Typo.body2" Style="color: rgba(255,255,255,0.7);">
+                                <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small" Style="vertical-align: middle;" />
+                                Member since @_user.MemberSince.ToString("MMMM yyyy")
+                            </MudText>
+                        </MudStack>
+                    </MudStack>
+
+                    <!-- Save Changes Button -->
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               OnClick="SaveChanges"
+                               Disabled="@_isSaving"
+                               StartIcon="@Icons.Material.Filled.Save"
+                               Size="Size.Large">
+                        @if (_isSaving)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                            <span>Saving...</span>
+                        }
+                        else
+                        {
+                            <span>Save Changes</span>
+                        }
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+
+        <!-- Stats Cards Section -->
+        <MudGrid Class="mb-4">
+            <!-- Starting Weight -->
+            <MudItem xs="12" md="4">
+                <MudPaper Elevation="2" Class="pa-4" Style="background: rgba(30, 58, 95, 0.1);">
+                    <MudText Typo="Typo.body2" Style="color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">
+                        Starting Weight
+                    </MudText>
+                    <MudText Typo="Typo.h4" Style="color: white; font-weight: 600;">
+                        @if (_stats?.StartingWeight.HasValue == true)
+                        {
+                            <span>@_stats.StartingWeight.Value.ToString("F1")</span>
+                            <span style="font-size: 0.5em; font-weight: 400; margin-left: 4px;">kg</span>
+                        }
+                        else if (_user.StartingWeight.HasValue)
+                        {
+                            <span>@_user.StartingWeight.Value.ToString("F1")</span>
+                            <span style="font-size: 0.5em; font-weight: 400; margin-left: 4px;">kg</span>
+                        }
+                        else
+                        {
+                            <span style="color: rgba(255,255,255,0.5);">--</span>
+                        }
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+
+            <!-- Current Weight -->
+            <MudItem xs="12" md="4">
+                <MudPaper Elevation="2" Class="pa-4" Style="background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);">
+                    <MudText Typo="Typo.body2" Style="color: rgba(255,255,255,0.9); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">
+                        Current Weight
+                    </MudText>
+                    <MudText Typo="Typo.h4" Style="color: white; font-weight: 600;">
+                        @if (_stats?.CurrentWeight.HasValue == true)
+                        {
+                            <span>@_stats.CurrentWeight.Value.ToString("F1")</span>
+                            <span style="font-size: 0.5em; font-weight: 400; margin-left: 4px;">kg</span>
+                        }
+                        else
+                        {
+                            <span style="color: rgba(255,255,255,0.7);">--</span>
+                        }
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+
+            <!-- Total Loss -->
+            <MudItem xs="12" md="4">
+                <MudPaper Elevation="2" Class="pa-4" Style="background: rgba(30, 95, 58, 0.2);">
+                    <MudText Typo="Typo.body2" Style="color: rgba(76, 175, 80, 0.9); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">
+                        Total Loss
+                    </MudText>
+                    <MudText Typo="Typo.h4" Style="color: #4caf50; font-weight: 600;">
+                        @if (_stats?.TotalChange.HasValue == true)
+                        {
+                            <span>@_stats.TotalChange.Value.ToString("F1")</span>
+                            <span style="font-size: 0.5em; font-weight: 400; margin-left: 4px;">kg</span>
+                        }
+                        else
+                        {
+                            <span style="color: rgba(76, 175, 80, 0.5);">--</span>
+                        }
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        <!-- Two Column Layout: Personal Details + Account Settings -->
         <MudGrid>
-            <!-- Información de cuenta (solo lectura) -->
+            <!-- Left Column: Personal Details -->
             <MudItem xs="12" md="6">
-                <MudCard Elevation="2">
-                    <MudCardHeader>
-                        <CardHeaderContent>
-                            <MudText Typo="Typo.h6">Información de Cuenta</MudText>
-                        </CardHeaderContent>
-                        <CardHeaderActions>
-                            <div class="d-flex flex-column align-center">
-                                @if (!string.IsNullOrWhiteSpace(_user.AvatarUrl))
-                                {
-                                    <MudAvatar Image="@_user.AvatarUrl" Size="Size.Large" Class="mb-2" />
-                                }
-                                else
-                                {
-                                    <MudAvatar Color="Color.Primary" Size="Size.Large" Class="mb-2">
-                                        @_user.Name[0]
-                                    </MudAvatar>
-                                }
+                <MudPaper Elevation="2" Class="pa-6">
+                    <!-- Header -->
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+                        <MudIcon Icon="@Icons.Material.Filled.Person" Color="Color.Primary" />
+                        <MudText Typo="Typo.h6" Style="font-weight: 600;">Personal Details</MudText>
+                    </MudStack>
 
-                                <InputFile id="avatar-file-input" OnChange="OnPhotoSelectedAsync" accept="image/*" hidden />
-                                <MudButton Variant="Variant.Text" 
-                                           Color="Color.Primary" 
-                                           Size="Size.Small"
-                                           StartIcon="@Icons.Material.Filled.CameraAlt"
-                                           OnClick="TriggerFileInput"
-                                           Disabled="@_isSaving">
-                                    Cambiar Foto
-                                </MudButton>
-                            </div>
-                        </CardHeaderActions>
-                    </MudCardHeader>
-                    <MudCardContent>
-                        <MudTextField Label="Email"
-                                      Value="@_user.Email"
-                                      ReadOnly="true"
-                                      Variant="Variant.Outlined"
-                                      Margin="Margin.Dense"
-                                      Class="mb-3" />
+                    <!-- Name Field -->
+                    <MudTextField Label="Name"
+                                  @bind-Value="_name"
+                                  Required="true"
+                                  RequiredError="Name is required"
+                                  MaxLength="200"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Class="mb-3" />
 
-                        <MudTextField Label="ID de Google"
-                                      Value="@_user.GoogleId"
-                                      ReadOnly="true"
-                                      Variant="Variant.Outlined"
-                                      Margin="Margin.Dense"
-                                      Class="mb-3" />
+                    <!-- Height Field -->
+                    <MudNumericField Label="Height"
+                                     @bind-Value="_height"
+                                     Required="true"
+                                     RequiredError="Height is required"
+                                     Min="50"
+                                     Max="300"
+                                     Variant="Variant.Outlined"
+                                     Margin="Margin.Dense"
+                                     Adornment="Adornment.End"
+                                     AdornmentText="cm"
+                                     Class="mb-3" />
 
-                        <MudTextField Label="Miembro desde"
-                                      Value="@_user.MemberSince.ToString("dd/MM/yyyy")"
-                                      ReadOnly="true"
-                                      Variant="Variant.Outlined"
-                                      Margin="Margin.Dense"
-                                      Class="mb-3" />
+                    <!-- Unit System Select -->
+                    <MudSelect Label="Unit System"
+                               T="UnitSystem"
+                               @bind-Value="_unitSystem"
+                               Variant="Variant.Outlined"
+                               Margin="Margin.Dense"
+                               Class="mb-3">
+                        <MudSelectItem T="UnitSystem" Value="UnitSystem.Metric">Metric (kg, cm)</MudSelectItem>
+                        <MudSelectItem T="UnitSystem" Value="UnitSystem.Imperial">Imperial (lb, in)</MudSelectItem>
+                    </MudSelect>
 
-                        <MudChip T="string" Color="@GetRoleColor()" Size="Size.Small">
-                            @_user.Role.ToString()
-                        </MudChip>
-                    </MudCardContent>
-                </MudCard>
-            </MudItem>
-
-            <!-- Datos editables -->
-            <MudItem xs="12" md="6">
-                <MudCard Elevation="2">
-                    <MudCardHeader>
-                        <CardHeaderContent>
-                            <MudText Typo="Typo.h6">Datos Personales</MudText>
-                        </CardHeaderContent>
-                    </MudCardHeader>
-                    <MudCardContent>
-                        <MudTextField Label="Nombre"
-                                      Value="@_name"
-                                      ValueChanged="@((string v) => _name = v)"
-                                      Required="true"
-                                      RequiredError="El nombre es obligatorio"
-                                      MaxLength="200"
-                                      Variant="Variant.Outlined"
-                                      Margin="Margin.Dense"
-                                      Class="mb-3" />
-
-                        <MudNumericField Label="Altura (cm)"
-                                         Value="@_height"
-                                         ValueChanged="@((decimal v) => _height = v)"
-                                         Required="true"
-                                         RequiredError="La altura es obligatoria"
-                                         Min="50"
-                                         Max="300"
-                                         Variant="Variant.Outlined"
-                                         Margin="Margin.Dense"
-                                         Adornment="Adornment.End"
-                                         AdornmentText="cm"
-                                         Class="mb-3" />
-
-                        <MudDatePicker Label="Fecha de Nacimiento"
-                                       Date="@_dateOfBirth"
-                                       DateChanged="@((DateTime? v) => _dateOfBirth = v)"
-                                       MaxDate="DateTime.Today"
-                                       Editable="true"
-                                       Variant="Variant.Outlined"
-                                       Margin="Margin.Dense"
-                                       Class="mb-3" />
-
-                        <MudNumericField Label="Peso Objetivo"
-                                         Value="@_goalWeight"
-                                         ValueChanged="@((decimal? v) => _goalWeight = v)"
-                                         Min="20"
-                                         Max="500"
-                                         Variant="Variant.Outlined"
-                                         Margin="Margin.Dense"
-                                         Adornment="Adornment.End"
-                                         AdornmentText="kg"
-                                         HelperText="Tu peso deseado"
-                                         Class="mb-3" />
-
-                        <MudSelect Label="Sistema de Unidades"
-                                   T="UnitSystem"
-                                   Value="@_unitSystem"
-                                   ValueChanged="@((UnitSystem v) => _unitSystem = v)"
+                    <!-- Date of Birth -->
+                    <MudDatePicker Label="Date of Birth"
+                                   @bind-Date="_dateOfBirth"
+                                   MaxDate="DateTime.Today"
+                                   Editable="true"
                                    Variant="Variant.Outlined"
                                    Margin="Margin.Dense"
-                                   Class="mb-3">
-                            <MudSelectItem T="UnitSystem" Value="UnitSystem.Metric">Métrico (kg, cm)</MudSelectItem>
-                            <MudSelectItem T="UnitSystem" Value="UnitSystem.Imperial">Imperial (lb, in)</MudSelectItem>
-                        </MudSelect>
+                                   Class="mb-3"
+                                   DateFormat="MM/dd/yyyy" />
 
-                        <MudSelect Label="Idioma"
-                                   T="string"
-                                   Value="@_language"
-                                   ValueChanged="@((string v) => _language = v)"
-                                   Variant="Variant.Outlined"
-                                   Margin="Margin.Dense"
-                                   Class="mb-3">
-                            <MudSelectItem T="string" Value="@("es")">Español</MudSelectItem>
-                            <MudSelectItem T="string" Value="@("en")">English</MudSelectItem>
-                        </MudSelect>
-                    </MudCardContent>
-                    <MudCardActions>
-                        <MudButton Variant="Variant.Filled"
-                                   Color="Color.Primary"
-                                   OnClick="SaveChanges"
-                                   Disabled="@_isSaving"
-                                   StartIcon="@Icons.Material.Filled.Save">
-                            @if (_isSaving)
-                            {
-                                <MudProgressCircular Size="Size.Small" Indeterminate="true" />
-                                <span class="ml-2">Guardando...</span>
-                            }
-                            else
-                            {
-                                <span>Guardar Cambios</span>
-                            }
-                        </MudButton>
-                    </MudCardActions>
-                </MudCard>
+                    <!-- Goal Weight -->
+                    <MudNumericField Label="Goal Weight"
+                                     @bind-Value="_goalWeight"
+                                     Min="20"
+                                     Max="500"
+                                     Variant="Variant.Outlined"
+                                     Margin="Margin.Dense"
+                                     Adornment="Adornment.End"
+                                     AdornmentText="kg"
+                                     HelperText="Your target weight"
+                                     Class="mb-3" />
+
+                    <!-- Language Select -->
+                    <MudSelect Label="Language"
+                               T="string"
+                               @bind-Value="_language"
+                               Variant="Variant.Outlined"
+                               Margin="Margin.Dense"
+                               Class="mb-3">
+                        <MudSelectItem T="string" Value="@("es")">Español</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("en")">English</MudSelectItem>
+                    </MudSelect>
+
+                    <!-- Dark Mode Switch -->
+                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-3">
+                        <MudText>Dark Mode</MudText>
+                        <MudSwitch T="bool" @bind-Checked="_darkMode" Color="Color.Primary" />
+                    </MudStack>
+
+                    <!-- Notifications Switch -->
+                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                        <MudText>Notifications</MudText>
+                        <MudSwitch T="bool" @bind-Checked="_notificationsEnabled" Color="Color.Primary" />
+                    </MudStack>
+                </MudPaper>
             </MudItem>
 
-            <!-- Preferencias -->
-            <MudItem xs="12">
-                <MudCard Elevation="2">
-                    <MudCardHeader>
-                        <CardHeaderContent>
-                            <MudText Typo="Typo.h6">Preferencias</MudText>
-                        </CardHeaderContent>
-                    </MudCardHeader>
-                    <MudCardContent>
-                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-3">
-                            <MudText>Modo Oscuro</MudText>
-                            <MudSwitch T="bool" Checked="@_darkMode" CheckedChanged="@((bool v) => _darkMode = v)" Color="Color.Primary" />
-                        </MudStack>
+            <!-- Right Column: Account Settings -->
+            <MudItem xs="12" md="6">
+                <MudPaper Elevation="2" Class="pa-6">
+                    <!-- Header -->
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+                        <MudIcon Icon="@Icons.Material.Filled.Settings" Color="Color.Primary" />
+                        <MudText Typo="Typo.h6" Style="font-weight: 600;">Account Settings</MudText>
+                    </MudStack>
 
-                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                            <MudText>Notificaciones</MudText>
-                            <MudSwitch T="bool" Checked="@_notificationsEnabled" CheckedChanged="@((bool v) => _notificationsEnabled = v)" Color="Color.Primary" />
-                        </MudStack>
-                    </MudCardContent>
-                    <MudCardActions>
-                        <MudButton Variant="Variant.Filled"
-                                   Color="Color.Secondary"
-                                   OnClick="SavePreferences"
-                                   Disabled="_isSavingPreferences"
-                                   StartIcon="@Icons.Material.Filled.Settings">
-                            @if (_isSavingPreferences)
-                            {
-                                <MudProgressCircular Size="Size.Small" Indeterminate="true" />
-                                <span class="ml-2">Guardando...</span>
-                            }
-                            else
-                            {
-                                <span>Guardar Preferencias</span>
-                            }
-                        </MudButton>
-                    </MudCardActions>
-                </MudCard>
+                    <!-- Email Address (Read-only) -->
+                    <MudText Typo="Typo.body2" Class="mb-2" Style="text-transform: uppercase; letter-spacing: 0.5px; color: rgba(255,255,255,0.7);">
+                        EMAIL ADDRESS
+                    </MudText>
+                    <MudText Typo="Typo.body1" Class="mb-4" Style="font-weight: 500;">
+                        @_user.Email
+                    </MudText>
+
+                    <!-- Password Section -->
+                    <MudText Typo="Typo.body2" Class="mb-2" Style="text-transform: uppercase; letter-spacing: 0.5px; color: rgba(255,255,255,0.7);">
+                        PASSWORD
+                    </MudText>
+                    <MudLink Typo="Typo.body1" 
+                             Class="mb-4 d-block"
+                             Style="color: #1976d2; cursor: pointer; text-decoration: none;"
+                             @onclick="OpenChangePasswordDialog">
+                        Change password
+                        <MudIcon Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Style="vertical-align: middle; margin-left: 4px;" />
+                    </MudLink>
+
+                    <MudDivider Class="my-4" />
+
+                    <!-- Sign Out Button -->
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Default"
+                               FullWidth="true"
+                               StartIcon="@Icons.Material.Filled.Logout"
+                               OnClick="SignOut"
+                               Class="mb-3"
+                               Style="text-transform: none; justify-content: flex-start;">
+                        Sign Out
+                    </MudButton>
+
+                    <!-- Delete Account Button -->
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Error"
+                               FullWidth="true"
+                               StartIcon="@Icons.Material.Filled.DeleteForever"
+                               OnClick="OpenDeleteAccountDialog"
+                               Style="text-transform: none; justify-content: flex-start;">
+                        Delete Account
+                    </MudButton>
+                </MudPaper>
             </MudItem>
         </MudGrid>
     }

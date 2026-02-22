@@ -18,6 +18,7 @@ public partial class MainLayout : IDisposable
     [Inject] private IUserService UserService { get; set; } = null!;
     [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
     [Inject] private ThemeService ThemeService { get; set; } = null!;
+    [Inject] private UserStateService UserStateService { get; set; } = null!;
 
     private bool _drawerOpen = true;
     private bool _isDarkMode = true; // Estado del tema - default dark mode
@@ -32,6 +33,9 @@ public partial class MainLayout : IDisposable
 
         // Suscribirse a cambios de autenticación
         AuthStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+
+        // Suscribirse a cambios de perfil de usuario
+        UserStateService.UserProfileUpdated += OnUserProfileUpdated;
 
         try
         {
@@ -65,6 +69,28 @@ public partial class MainLayout : IDisposable
         catch (Exception ex)
         {
             Logger.LogError(ex, "MainLayout: Error handling authentication state change");
+        }
+    }
+
+    /// <summary>
+    /// Handler para cambios en el perfil de usuario.
+    /// Se ejecuta cuando el usuario actualiza su perfil (e.g., avatar).
+    /// </summary>
+    private async void OnUserProfileUpdated(object? sender, UserDto updatedUser)
+    {
+        try
+        {
+            Logger.LogInformation("MainLayout: User profile updated - UserId: {UserId}, AvatarUrl: {AvatarUrl}",
+                updatedUser.Id, updatedUser.AvatarUrl ?? "(null)");
+
+            _currentUser = updatedUser;
+            _cacheBuster = DateTime.UtcNow.Ticks; // Update cache buster to force image reload
+
+            await InvokeAsync(StateHasChanged); // Force re-render
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "MainLayout: Error handling user profile update");
         }
     }
 
@@ -181,5 +207,6 @@ public partial class MainLayout : IDisposable
     public void Dispose()
     {
         AuthStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
+        UserStateService.UserProfileUpdated -= OnUserProfileUpdated;
     }
 }

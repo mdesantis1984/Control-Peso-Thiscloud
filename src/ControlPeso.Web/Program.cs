@@ -81,6 +81,9 @@ builder.Services.AddHttpClient<ControlPeso.Web.Services.INotificationService, Co
 builder.Services.Configure<ControlPeso.Web.Services.TelegramOptions>(
     builder.Configuration.GetSection(ControlPeso.Web.Services.TelegramOptions.ConfigSection));
 
+// 6.7. Add User State Service (shared state across components)
+builder.Services.AddScoped<ControlPeso.Web.Services.UserStateService>();
+
 // 7. Add Authentication & Authorization (Google OAuth + LinkedIn OAuth)
 builder.Services.AddOAuthAuthentication(builder.Configuration);
 
