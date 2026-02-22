@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true"><xsd:complexType><xsd:choice maxOccurs="unbounded"><xsd:element name="data"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /><xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" /></xsd:complexType></xsd:element><xsd:element name="resheader"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" /></xsd:complexType></xsd:element></xsd:choice></xsd:complexType></xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  
+  <data name="DialogTitle" xml:space="preserve"><value>Agregar Peso</value><comment>Dialog title</comment></data>
+  <data name="WeightLabel" xml:space="preserve"><value>Peso (kg)</value><comment>Weight input label</comment></data>
+  <data name="DateLabel" xml:space="preserve"><value>Fecha</value><comment>Date input label</comment></data>
+  <data name="TimeLabel" xml:space="preserve"><value>Hora</value><comment>Time input label</comment></data>
+  <data name="NotesLabel" xml:space="preserve"><value>Notas (opcional)</value><comment>Notes input label</comment></data>
+  <data name="SaveButton" xml:space="preserve"><value>Guardar</value><comment>Save button</comment></data>
+  <data name="CancelButton" xml:space="preserve"><value>Cancelar</value><comment>Cancel button</comment></data>
+  <data name="SuccessMessage" xml:space="preserve"><value>Peso guardado exitosamente</value><comment>Success notification</comment></data>
+  <data name="ErrorMessage" xml:space="preserve"><value>Error al guardar el peso</value><comment>Error notification</comment></data>
+</root>
