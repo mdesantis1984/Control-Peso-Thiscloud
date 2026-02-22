@@ -2,7 +2,7 @@ using ControlPeso.Application.DTOs;
 using ControlPeso.Application.Filters;
 using ControlPeso.Application.Interfaces;
 using ControlPeso.Application.Mapping;
-using ControlPeso.Domain.Entities;
+using ControlPeso.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -178,16 +178,31 @@ public sealed class UserService : IUserService
             if (existingUser is not null)
             {
                 // Update existing user
-                _logger.LogInformation("User exists, updating: {UserId}", existingUser.Id);
+                var previousAvatarUrl = existingUser.AvatarUrl;
+                var isCustomAvatar = previousAvatarUrl?.StartsWith("/uploads/avatars/") == true;
+
+                _logger.LogInformation(
+                    "User exists, updating: {UserId} - Current avatar: {CurrentAvatar}, Is custom: {IsCustom}",
+                    existingUser.Id, previousAvatarUrl ?? "NULL", isCustomAvatar);
 
                 UserMapper.UpdateFromGoogle(existingUser, googleInfo);
 
                 await _context.SaveChangesAsync(ct);
 
                 var updatedDto = UserMapper.ToDto(existingUser);
-                _logger.LogInformation(
-                    "User updated from Google OAuth: {UserId}, Email: {Email}, AvatarUrl: {HasAvatar}",
-                    updatedDto.Id, updatedDto.Email, updatedDto.AvatarUrl is not null);
+
+                if (isCustomAvatar && existingUser.AvatarUrl == previousAvatarUrl)
+                {
+                    _logger.LogInformation(
+                        "✅ Custom avatar PRESERVED during Google OAuth update: {UserId}, AvatarUrl: {AvatarUrl}",
+                        updatedDto.Id, updatedDto.AvatarUrl);
+                }
+                else
+                {
+                    _logger.LogInformation(
+                        "User updated from Google OAuth: {UserId}, Email: {Email}, AvatarUrl: {AvatarUrl}",
+                        updatedDto.Id, updatedDto.Email, updatedDto.AvatarUrl ?? "NULL");
+                }
 
                 return updatedDto;
             }
@@ -257,18 +272,31 @@ public sealed class UserService : IUserService
             if (existingUser is not null)
             {
                 // Update existing user
+                var previousAvatarUrl = existingUser.AvatarUrl;
+                var isCustomAvatar = previousAvatarUrl?.StartsWith("/uploads/avatars/") == true;
+
                 _logger.LogInformation(
-                    "User exists, updating: {UserId} - Provider: {Provider}",
-                    existingUser.Id, oauthInfo.Provider);
+                    "User exists, updating: {UserId} - Provider: {Provider}, Current avatar: {CurrentAvatar}, Is custom: {IsCustom}",
+                    existingUser.Id, oauthInfo.Provider, previousAvatarUrl ?? "NULL", isCustomAvatar);
 
                 UserMapper.UpdateFromOAuth(existingUser, oauthInfo);
 
                 await _context.SaveChangesAsync(ct);
 
                 var updatedDto = UserMapper.ToDto(existingUser);
-                _logger.LogInformation(
-                    "User updated from {Provider} OAuth: {UserId}, Email: {Email}, AvatarUrl: {HasAvatar}",
-                    oauthInfo.Provider, updatedDto.Id, updatedDto.Email, updatedDto.AvatarUrl is not null);
+
+                if (isCustomAvatar && existingUser.AvatarUrl == previousAvatarUrl)
+                {
+                    _logger.LogInformation(
+                        "✅ Custom avatar PRESERVED during {Provider} OAuth update: {UserId}, AvatarUrl: {AvatarUrl}",
+                        oauthInfo.Provider, updatedDto.Id, updatedDto.AvatarUrl);
+                }
+                else
+                {
+                    _logger.LogInformation(
+                        "User updated from {Provider} OAuth: {UserId}, Email: {Email}, AvatarUrl: {AvatarUrl}",
+                        oauthInfo.Provider, updatedDto.Id, updatedDto.Email, updatedDto.AvatarUrl ?? "NULL");
+                }
 
                 return updatedDto;
             }

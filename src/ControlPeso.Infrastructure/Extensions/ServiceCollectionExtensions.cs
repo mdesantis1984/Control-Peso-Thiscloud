@@ -63,6 +63,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<Application.Interfaces.IUserPreferencesService, Services.UserPreferencesService>();
         services.AddScoped<Application.Interfaces.IPhotoStorageService, Services.LocalPhotoStorageService>();
         services.AddScoped<Application.Interfaces.IImageProcessingService, Services.ImageProcessingService>();
+        services.AddScoped<Application.Interfaces.IUserNotificationService, Services.UserNotificationService>();
 
         // TODO: Agregar repositorios si se implementan (opcional - los servicios de Application
         // pueden usar DbContext directamente para simplicidad en MVP)

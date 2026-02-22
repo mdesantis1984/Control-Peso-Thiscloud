@@ -21,7 +21,7 @@ public partial class Dashboard
     [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
     [Inject] private NavigationManager Navigation { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
-    [Inject] private ISnackbar Snackbar { get; set; } = null!;
+    [Inject] private Services.NotificationService Snackbar { get; set; } = null!; // User notification service con verificación de preferencias
     [Inject] private ILogger<Dashboard> Logger { get; set; } = null!;
 
     private decimal _currentWeight = 0;

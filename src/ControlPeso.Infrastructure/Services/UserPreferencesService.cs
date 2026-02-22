@@ -30,28 +30,76 @@ internal sealed class UserPreferencesService : IUserPreferencesService
         {
             var userIdStr = userId.ToString();
 
+            _logger.LogInformation("🔍 GetDarkModePreferenceAsync - START - UserId: {UserId}", userId);
+
             var preferences = await _context.UserPreferences
                 .AsNoTracking()
                 .Where(p => p.UserId == userIdStr)
-                .Select(p => p.DarkMode)
                 .FirstOrDefaultAsync(ct);
 
-            // Si no existe preferencia, retornar true (dark mode por defecto)
-            var isDarkMode = preferences == 1;
+            if (preferences == null)
+            {
+                _logger.LogWarning("⚠️ NO PREFERENCES FOUND - Creating defaults - UserId: {UserId}", userId);
+                await CreateDefaultPreferencesAsync(userId, ct);
+                return true; // Dark mode por defecto
+            }
 
-            _logger.LogDebug(
-                "UserPreferencesService: Dark mode preference retrieved - UserId: {UserId}, IsDarkMode: {IsDarkMode}",
-                userId, isDarkMode);
+            var darkModeValue = preferences.DarkMode;
+            var isDarkMode = darkModeValue == 1;
+
+            _logger.LogInformation(
+                "✅ DarkMode retrieved - UserId: {UserId}, DB Value: {DbValue}, Result: {Result}",
+                userId, darkModeValue, isDarkMode);
 
             return isDarkMode;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "UserPreferencesService: Error retrieving dark mode preference for user {UserId}",
+                "❌ ERROR retrieving dark mode preference for user {UserId}",
                 userId);
 
             // En caso de error, retornar dark mode por defecto
+            return true;
+        }
+    }
+
+    public async Task<bool> GetNotificationsEnabledAsync(Guid userId, CancellationToken ct = default)
+    {
+        try
+        {
+            var userIdStr = userId.ToString();
+
+            _logger.LogInformation("🔍 GetNotificationsEnabledAsync - START - UserId: {UserId}", userId);
+
+            var preferences = await _context.UserPreferences
+                .AsNoTracking()
+                .Where(p => p.UserId == userIdStr)
+                .FirstOrDefaultAsync(ct);
+
+            if (preferences == null)
+            {
+                _logger.LogWarning("⚠️ NO PREFERENCES FOUND - Creating defaults - UserId: {UserId}", userId);
+                await CreateDefaultPreferencesAsync(userId, ct);
+                return true; // Notificaciones habilitadas por defecto
+            }
+
+            var notificationsValue = preferences.NotificationsEnabled;
+            var isEnabled = notificationsValue == 1;
+
+            _logger.LogInformation(
+                "✅ NotificationsEnabled retrieved - UserId: {UserId}, DB Value: {DbValue}, Result: {Result}",
+                userId, notificationsValue, isEnabled);
+
+            return isEnabled;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "❌ ERROR retrieving notifications preference for user {UserId}",
+                userId);
+
+            // En caso de error, retornar habilitadas por defecto
             return true;
         }
     }
@@ -87,6 +135,9 @@ internal sealed class UserPreferencesService : IUserPreferencesService
             preferences.DarkMode = isDarkMode ? 1 : 0;
             preferences.UpdatedAt = DateTime.UtcNow.ToString("O");
 
+            // Forzar EF a actualizar todos los campos
+            _context.Entry(preferences).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+
             await _context.SaveChangesAsync(ct);
 
             _logger.LogInformation(
@@ -97,6 +148,105 @@ internal sealed class UserPreferencesService : IUserPreferencesService
         {
             _logger.LogError(ex,
                 "UserPreferencesService: Error updating dark mode preference for user {UserId}",
+                userId);
+            throw;
+        }
+    }
+
+    public async Task UpdateNotificationsEnabledAsync(Guid userId, bool isEnabled, CancellationToken ct = default)
+    {
+        try
+        {
+            var userIdStr = userId.ToString();
+
+            var preferences = await _context.UserPreferences
+                .FirstOrDefaultAsync(p => p.UserId == userIdStr, ct);
+
+            if (preferences == null)
+            {
+                // Si no existen preferencias, crearlas con el valor especificado
+                await CreateDefaultPreferencesAsync(userId, ct);
+
+                // Obtener las preferencias recién creadas para actualizarlas
+                preferences = await _context.UserPreferences
+                    .FirstOrDefaultAsync(p => p.UserId == userIdStr, ct);
+
+                if (preferences == null)
+                {
+                    _logger.LogWarning(
+                        "UserPreferencesService: Failed to create default preferences for user {UserId}",
+                        userId);
+                    return;
+                }
+            }
+
+            // Actualizar el valor de NotificationsEnabled
+            preferences.NotificationsEnabled = isEnabled ? 1 : 0;
+            preferences.UpdatedAt = DateTime.UtcNow.ToString("O");
+
+            // Forzar EF a actualizar todos los campos
+            _context.Entry(preferences).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+
+            await _context.SaveChangesAsync(ct);
+
+            _logger.LogInformation(
+                "UserPreferencesService: Notifications preference updated - UserId: {UserId}, IsEnabled: {IsEnabled}",
+                userId, isEnabled);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "UserPreferencesService: Error updating notifications preference for user {UserId}",
+                userId);
+            throw;
+        }
+    }
+
+    public async Task UpdatePreferencesAsync(Guid userId, bool isDarkMode, bool notificationsEnabled, CancellationToken ct = default)
+    {
+        try
+        {
+            var userIdStr = userId.ToString();
+
+            var preferences = await _context.UserPreferences
+                .FirstOrDefaultAsync(p => p.UserId == userIdStr, ct);
+
+            if (preferences == null)
+            {
+                // Si no existen preferencias, crearlas
+                await CreateDefaultPreferencesAsync(userId, ct);
+
+                // Obtener las preferencias recién creadas para actualizarlas
+                preferences = await _context.UserPreferences
+                    .FirstOrDefaultAsync(p => p.UserId == userIdStr, ct);
+
+                if (preferences == null)
+                {
+                    _logger.LogWarning(
+                        "UserPreferencesService: Failed to create default preferences for user {UserId}",
+                        userId);
+                    return;
+                }
+            }
+
+            // Actualizar ambos valores
+            preferences.DarkMode = isDarkMode ? 1 : 0;
+            preferences.NotificationsEnabled = notificationsEnabled ? 1 : 0;
+            preferences.UpdatedAt = DateTime.UtcNow.ToString("O");
+
+            // Forzar EF a actualizar todos los campos (no solo UpdatedAt)
+            _context.Entry(preferences).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+
+            await _context.SaveChangesAsync(ct);
+
+            _logger.LogInformation(
+                "UserPreferencesService: Preferences updated - UserId: {UserId}, IsDarkMode: {IsDarkMode}, NotificationsEnabled: {NotificationsEnabled}",
+                userId, isDarkMode, notificationsEnabled);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "UserPreferencesService: Error updating preferences for user {UserId}",
                 userId);
             throw;
         }
@@ -121,7 +271,7 @@ internal sealed class UserPreferencesService : IUserPreferencesService
             }
 
             // Crear preferencias por defecto
-            var preferences = new Domain.Entities.UserPreferences
+            var preferences = new UserPreferences
             {
                 Id = Guid.NewGuid().ToString(),
                 UserId = userIdStr,

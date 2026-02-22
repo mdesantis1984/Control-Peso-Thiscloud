@@ -3,7 +3,7 @@ using ControlPeso.Application.Filters;
 using ControlPeso.Application.Interfaces;
 using ControlPeso.Application.Logging;
 using ControlPeso.Application.Mapping;
-using ControlPeso.Domain.Entities;
+using ControlPeso.Infrastructure;
 using ControlPeso.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

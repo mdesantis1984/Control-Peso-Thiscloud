@@ -1,0 +1,95 @@
+@using MudBlazor
+@namespace ControlPeso.Web.Components.Shared
+
+<MudPopover Open="@IsOpen" 
+            AnchorOrigin="Origin.BottomRight" 
+            TransformOrigin="Origin.TopRight"
+            MaxHeight="600">
+    <MudPaper Elevation="8" Class="pa-4" Style="max-width: 400px; max-height: 600px; overflow-y: auto;">
+        <MudStack Spacing="2">
+            <!-- Header -->
+            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                <MudText Typo="Typo.h6">Notificaciones</MudText>
+                @if (_notifications.Count > 0)
+                {
+                    <MudStack Row="true" Spacing="1">
+                        <MudTooltip Text="Marcar todas como leídas">
+                            <MudIconButton Icon="@Icons.Material.Filled.DoneAll" 
+                                           Size="Size.Small" 
+                                           OnClick="@MarkAllAsReadAsync" 
+                                           Disabled="@_isLoading" />
+                        </MudTooltip>
+                        <MudTooltip Text="Borrar todas">
+                            <MudIconButton Icon="@Icons.Material.Filled.DeleteSweep" 
+                                           Size="Size.Small" 
+                                           Color="Color.Error"
+                                           OnClick="@DeleteAllAsync" 
+                                           Disabled="@_isLoading" />
+                        </MudTooltip>
+                    </MudStack>
+                }
+            </MudStack>
+            
+            <MudDivider />
+            
+            <!-- Lista de notificaciones -->
+            @if (_isLoading)
+            {
+                <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Class="pa-4">
+                    <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">Cargando...</MudText>
+                </MudStack>
+            }
+            else if (_notifications.Count == 0)
+            {
+                <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Class="pa-4">
+                    <MudIcon Icon="@Icons.Material.Outlined.Notifications" Size="Size.Large" Color="Color.Secondary" />
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">No hay notificaciones</MudText>
+                </MudStack>
+            }
+            else
+            {
+                <MudStack Spacing="2">
+                    @foreach (var notification in _notifications)
+                    {
+                        var notificationClass = GetNotificationClass(notification);
+
+                        <MudPaper Class="@($"{notificationClass} pa-2")" Style="border-radius: 8px;" Elevation="1">
+                            <MudStack Spacing="1">
+                                <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                                    <MudChip T="string"
+                                             Size="Size.Small" 
+                                             Color="@GetSeverityColor(notification.Type)"
+                                             Variant="Variant.Filled">
+                                        @GetSeverityLabel(notification.Type)
+                                    </MudChip>
+                                    <MudTooltip Text="Borrar">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Close" 
+                                                       Size="Size.Small" 
+                                                       OnClick="@(() => DeleteAsync(notification.Id))"
+                                                       Disabled="@_isLoading" />
+                                    </MudTooltip>
+                                </MudStack>
+
+                                @if (!string.IsNullOrWhiteSpace(notification.Title))
+                                {
+                                    <MudText Typo="Typo.subtitle2" Style="font-weight: 600;">
+                                        @notification.Title
+                                    </MudText>
+                                }
+
+                                <MudText Typo="Typo.body2">
+                                    @notification.Message
+                                </MudText>
+
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    @FormatTimestamp(notification.CreatedAt)
+                                </MudText>
+                            </MudStack>
+                        </MudPaper>
+                    }
+                </MudStack>
+            }
+        </MudStack>
+    </MudPaper>
+</MudPopover>

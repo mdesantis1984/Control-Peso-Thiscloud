@@ -15,7 +15,7 @@ public partial class Trends
     [Inject] private IUserService UserService { get; set; } = null!;
     [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
     [Inject] private ILogger<Trends> Logger { get; set; } = null!;
-    [Inject] private ISnackbar Snackbar { get; set; } = null!;
+    [Inject] private Services.NotificationService Snackbar { get; set; } = null!; // User notification service con verificación de preferencias
 
     private bool _isLoading = true;
     private List<WeightLogDto> _logs = [];

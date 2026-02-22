@@ -1,6 +1,5 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using ControlPeso.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace ControlPeso.Infrastructure;
@@ -18,27 +17,17 @@ public partial class ControlPesoDbContext : DbContext
 
     public virtual DbSet<AuditLog> AuditLog { get; set; }
 
+    public virtual DbSet<UserNotifications> UserNotifications { get; set; }
+
     public virtual DbSet<UserPreferences> UserPreferences { get; set; }
 
     public virtual DbSet<Users> Users { get; set; }
 
     public virtual DbSet<WeightLogs> WeightLogs { get; set; }
 
-    // NOTE: OnConfiguring con connection string hardcodeado fue REMOVIDO (generado por scaffold).
-    // El DbContext usa el constructor con DbContextOptions<ControlPesoDbContext>
-    // que recibe configuración desde appsettings.json vía AddInfrastructureServices.
-    // Connection string: configuration.GetConnectionString("DefaultConnection")
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        // Permitir que la configuración venga desde DI (constructor con DbContextOptions)
-        // Solo configurar si NO fue configurado externamente (ej: en tests unitarios sin DI)
-        if (!optionsBuilder.IsConfigured)
-        {
-            // Fallback para tests o diseño-time tools (EF Core migrations, scaffolding)
-            // En runtime de aplicación, esto NUNCA se ejecuta porque DI ya configuró el DbContext
-            optionsBuilder.UseSqlite("Data Source=controlpeso.db");
-        }
-    }
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlite("Data Source=../../controlpeso.db");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -55,6 +44,19 @@ public partial class ControlPesoDbContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.AuditLog)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
+        });
+
+        modelBuilder.Entity<UserNotifications>(entity =>
+        {
+            entity.HasIndex(e => e.CreatedAt, "IX_UserNotifications_CreatedAt").IsDescending();
+
+            entity.HasIndex(e => e.IsRead, "IX_UserNotifications_IsRead");
+
+            entity.HasIndex(e => e.UserId, "IX_UserNotifications_UserId");
+
+            entity.HasIndex(e => new { e.UserId, e.IsRead }, "IX_UserNotifications_UserId_IsRead");
+
+            entity.HasOne(d => d.User).WithMany(p => p.UserNotifications).HasForeignKey(d => d.UserId);
         });
 
         modelBuilder.Entity<UserPreferences>(entity =>
@@ -90,7 +92,7 @@ public partial class ControlPesoDbContext : DbContext
 
             entity.HasIndex(e => e.Status, "IX_Users_Status");
 
-            entity.Property(e => e.Height).HasDefaultValue(1700.0);
+            entity.Property(e => e.Height).HasDefaultValue(170.0);
             entity.Property(e => e.Language).HasDefaultValue("es");
         });
 

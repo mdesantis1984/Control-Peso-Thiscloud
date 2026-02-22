@@ -19,7 +19,7 @@ public partial class AddWeightDialog
     [Inject] private IWeightLogService WeightLogService { get; set; } = null!;
     [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
     [Inject] private ILogger<AddWeightDialog> Logger { get; set; } = null!;
-    [Inject] private ISnackbar Snackbar { get; set; } = null!;
+    [Inject] private Services.NotificationService Snackbar { get; set; } = null!; // User notification service con verificación de preferencias
 
     private MudForm? _form;
     private bool _isValid;

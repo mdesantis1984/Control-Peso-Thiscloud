@@ -1,4 +1,3 @@
-using ControlPeso.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 

@@ -1,7 +1,7 @@
 using ControlPeso.Application.DTOs;
 using ControlPeso.Application.Filters;
 using ControlPeso.Application.Interfaces;
-using ControlPeso.Domain.Entities;
+using ControlPeso.Infrastructure;
 using ControlPeso.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

@@ -1,5 +1,5 @@
 using ControlPeso.Application.DTOs;
-using ControlPeso.Domain.Entities;
+using ControlPeso.Infrastructure;
 
 namespace ControlPeso.Application.Mapping;
 

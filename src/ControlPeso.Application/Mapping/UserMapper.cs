@@ -1,5 +1,5 @@
 using ControlPeso.Application.DTOs;
-using ControlPeso.Domain.Entities;
+using ControlPeso.Infrastructure;
 using ControlPeso.Domain.Enums;
 
 namespace ControlPeso.Application.Mapping;
@@ -99,6 +99,8 @@ public static class UserMapper
     /// <summary>
     /// Actualiza campos sincronizables desde Google (nombre, avatar) si han cambiado.
     /// Se usa en el callback OAuth para mantener datos actualizados.
+    /// IMPORTANTE: Preserva avatares personalizados (subidos localmente) y solo actualiza
+    /// con el avatar de Google si el usuario no tiene un avatar personalizado.
     /// </summary>
     public static void UpdateFromGoogle(Users entity, GoogleUserInfo info)
     {
@@ -119,7 +121,12 @@ public static class UserMapper
             changed = true;
         }
 
-        if (entity.AvatarUrl != info.AvatarUrl)
+        // Preservar avatares personalizados: solo actualizar si NO es un avatar local personalizado
+        // Avatares personalizados empiezan con "/uploads/avatars/"
+        // Avatares de Google empiezan con "https://" o son NULL
+        var isCustomAvatar = entity.AvatarUrl?.StartsWith("/uploads/avatars/") == true;
+
+        if (!isCustomAvatar && entity.AvatarUrl != info.AvatarUrl)
         {
             entity.AvatarUrl = info.AvatarUrl;
             changed = true;
@@ -172,6 +179,8 @@ public static class UserMapper
     /// <summary>
     /// Actualiza campos sincronizables desde OAuth genérico (nombre, email, avatar) si han cambiado.
     /// Funciona con cualquier provider (Google, LinkedIn, etc.).
+    /// IMPORTANTE: Preserva avatares personalizados (subidos localmente) y solo actualiza
+    /// con el avatar del proveedor OAuth si el usuario no tiene un avatar personalizado.
     /// </summary>
     public static void UpdateFromOAuth(Users entity, OAuthUserInfo info)
     {
@@ -192,7 +201,12 @@ public static class UserMapper
             changed = true;
         }
 
-        if (entity.AvatarUrl != info.AvatarUrl)
+        // Preservar avatares personalizados: solo actualizar si NO es un avatar local personalizado
+        // Avatares personalizados empiezan con "/uploads/avatars/"
+        // Avatares de OAuth empiezan con "https://" o son NULL
+        var isCustomAvatar = entity.AvatarUrl?.StartsWith("/uploads/avatars/") == true;
+
+        if (!isCustomAvatar && entity.AvatarUrl != info.AvatarUrl)
         {
             entity.AvatarUrl = info.AvatarUrl;
             changed = true;

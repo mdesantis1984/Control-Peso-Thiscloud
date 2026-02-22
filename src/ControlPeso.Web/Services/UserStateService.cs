@@ -22,6 +22,12 @@ public sealed class UserStateService
     public event EventHandler<UserDto>? UserProfileUpdated;
 
     /// <summary>
+    /// Event raised when user theme preference (Dark Mode) is updated.
+    /// Subscribers (e.g., MainLayout, Profile page) can refresh their UI.
+    /// </summary>
+    public event EventHandler<bool>? UserThemeUpdated;
+
+    /// <summary>
     /// Notify all subscribers that user profile has been updated.
     /// </summary>
     public void NotifyUserProfileUpdated(UserDto updatedUser)
@@ -34,5 +40,18 @@ public sealed class UserStateService
             updatedUser.AvatarUrl ?? "(null)");
 
         UserProfileUpdated?.Invoke(this, updatedUser);
+    }
+
+    /// <summary>
+    /// Notify all subscribers that user theme preference has been updated.
+    /// </summary>
+    /// <param name="isDarkMode">True for dark mode, false for light mode</param>
+    public void NotifyUserThemeUpdated(bool isDarkMode)
+    {
+        _logger.LogInformation(
+            "UserStateService: Notifying theme update - IsDarkMode: {IsDarkMode}",
+            isDarkMode);
+
+        UserThemeUpdated?.Invoke(this, isDarkMode);
     }
 }

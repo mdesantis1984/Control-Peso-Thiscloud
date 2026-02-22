@@ -28,14 +28,15 @@
             <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
                            Color="Color.Inherit"
                            OnClick="@ToggleDarkModeAsync"
-                           aria-label="Toggle dark mode" />
+                           aria-label="Toggle dark mode"
+                           Class="mr-3" />
 
-            <NotificationBell />
+            <NotificationBell Class="mr-3" />
 
         <AuthorizeView>
             <Authorized>
                 @{
-                    var userName = context.User.Identity?.Name ?? "Usuario";
+                    var firstName = MainLayout.GetFirstName(context.User.Identity?.Name);
                     var hasAvatar = _currentUser != null && !string.IsNullOrWhiteSpace(_currentUser.AvatarUrl);
                 }
 
@@ -44,18 +45,18 @@
                         @if (hasAvatar)
                         {
                             <MudAvatar Size="Size.Medium" Style="cursor: pointer;" @onclick="@(() => _userMenuOpen = !_userMenuOpen)">
-                                <MudImage Src="@(_currentUser!.AvatarUrl + "?v=" + _cacheBuster)" Alt="@userName" />
+                                <MudImage Src="@_currentUser!.AvatarUrl" Alt="@firstName" />
                             </MudAvatar>
                         }
                         else
                         {
                             <MudAvatar Size="Size.Medium" Color="Color.Primary" Style="cursor: pointer;" @onclick="@(() => _userMenuOpen = !_userMenuOpen)">
-                                @AvatarHelper.GetInitials(userName)
+                                @AvatarHelper.GetInitials(firstName)
                             </MudAvatar>
                         }
                     </ActivatorContent>
                     <ChildContent>
-                        <MudText Typo="Typo.body2" Class="px-4 py-2">@userName</MudText>
+                        <MudText Typo="Typo.body2" Class="px-4 py-2">@firstName</MudText>
                         <MudDivider />
                         <MudMenuItem Icon="@Icons.Material.Filled.Person" Href="/profile">Perfil</MudMenuItem>
                         <MudMenuItem Icon="@Icons.Material.Filled.Logout" Href="/api/auth/logout">Cerrar Sesión</MudMenuItem>

@@ -76,6 +76,9 @@ builder.Services.AddMudServices();
 // 6.5. Add Theme Service (gestión de tema con persistencia en cookies)
 builder.Services.AddScoped<ControlPeso.Web.Services.ThemeService>();
 
+// 6.5.5. Add User Notification Service (wrapper para Snackbar con verificación de preferencias)
+builder.Services.AddScoped<ControlPeso.Web.Services.NotificationService>();
+
 // 6.6. Add Notification Services (Telegram)
 builder.Services.AddHttpClient<ControlPeso.Web.Services.INotificationService, ControlPeso.Web.Services.TelegramNotificationService>();
 builder.Services.Configure<ControlPeso.Web.Services.TelegramOptions>(

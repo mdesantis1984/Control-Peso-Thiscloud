@@ -19,7 +19,7 @@ public partial class Admin
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
     [Inject] private ILogger<Admin> Logger { get; set; } = default!;
-    [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private Services.NotificationService Snackbar { get; set; } = default!; // User notification service con verificación de preferencias
 
     private bool _isLoadingDashboard = true;
     private bool _isLoadingGrid;

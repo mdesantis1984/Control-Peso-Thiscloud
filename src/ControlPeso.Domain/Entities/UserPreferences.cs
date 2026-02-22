@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
-namespace ControlPeso.Domain.Entities;
+namespace ControlPeso.Infrastructure;
 
 public partial class UserPreferences
 {

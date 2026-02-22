@@ -230,13 +230,19 @@
                     <!-- Dark Mode Switch -->
                     <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-3">
                         <MudText>Dark Mode</MudText>
-                        <MudSwitch T="bool" @bind-Checked="_darkMode" Color="Color.Primary" />
+                        <MudSwitch T="bool" 
+                                   Value="@DarkMode" 
+                                   ValueChanged="@OnDarkModeChanged" 
+                                   Color="Color.Primary" />
                     </MudStack>
 
                     <!-- Notifications Switch -->
                     <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
                         <MudText>Notifications</MudText>
-                        <MudSwitch T="bool" @bind-Checked="_notificationsEnabled" Color="Color.Primary" />
+                        <MudSwitch T="bool" 
+                                   Value="@NotificationsEnabled" 
+                                   ValueChanged="@OnNotificationsEnabledChanged" 
+                                   Color="Color.Primary" />
                     </MudStack>
                 </MudPaper>
             </MudItem>
@@ -257,18 +263,6 @@
                     <MudText Typo="Typo.body1" Class="mb-4" Style="font-weight: 500;">
                         @_user.Email
                     </MudText>
-
-                    <!-- Password Section -->
-                    <MudText Typo="Typo.body2" Class="mb-2" Style="text-transform: uppercase; letter-spacing: 0.5px; color: rgba(255,255,255,0.7);">
-                        PASSWORD
-                    </MudText>
-                    <MudLink Typo="Typo.body1" 
-                             Class="mb-4 d-block"
-                             Style="color: #1976d2; cursor: pointer; text-decoration: none;"
-                             @onclick="OpenChangePasswordDialog">
-                        Change password
-                        <MudIcon Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Style="vertical-align: middle; margin-left: 4px;" />
-                    </MudLink>
 
                     <MudDivider Class="my-4" />
 
@@ -295,5 +289,26 @@
                 </MudPaper>
             </MudItem>
         </MudGrid>
+
+        <!-- Save Changes Button (Bottom) -->
+        <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-6">
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       Size="Size.Large"
+                       StartIcon="@Icons.Material.Filled.Save"
+                       OnClick="SaveChanges"
+                       Disabled="@_isSaving"
+                       Style="padding: 12px 32px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">
+                @if (_isSaving)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                    <span>SAVING...</span>
+                }
+                else
+                {
+                    <span>SAVE CHANGES</span>
+                }
+            </MudButton>
+        </MudStack>
     }
 </MudContainer>

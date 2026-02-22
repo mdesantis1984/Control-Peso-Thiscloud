@@ -24,7 +24,6 @@ public partial class MainLayout : IDisposable
     private bool _isDarkMode = true; // Estado del tema - default dark mode
     private MudThemeProvider _themeProvider = null!; // Referencia al provider
     private UserDto? _currentUser;
-    private long _cacheBuster = DateTime.UtcNow.Ticks; // Cache buster para avatar
     private bool _userMenuOpen = false; // Estado del menú de usuario
 
     protected override async Task OnInitializedAsync()
@@ -36,6 +35,9 @@ public partial class MainLayout : IDisposable
 
         // Suscribirse a cambios de perfil de usuario
         UserStateService.UserProfileUpdated += OnUserProfileUpdated;
+
+        // Suscribirse a cambios de tema (para sincronizar switches de Profile con botón de AppBar)
+        UserStateService.UserThemeUpdated += OnUserThemeUpdated;
 
         try
         {
@@ -84,13 +86,58 @@ public partial class MainLayout : IDisposable
                 updatedUser.Id, updatedUser.AvatarUrl ?? "(null)");
 
             _currentUser = updatedUser;
-            _cacheBuster = DateTime.UtcNow.Ticks; // Update cache buster to force image reload
+            // No need for cache buster - avatar filename contains unique Guid
 
             await InvokeAsync(StateHasChanged); // Force re-render
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "MainLayout: Error handling user profile update");
+        }
+    }
+
+    /// <summary>
+    /// Handler para cambios en el tema de usuario desde otros componentes (e.g., Profile page).
+    /// Mantiene sincronizado el botón de AppBar con los switches de Profile.
+    /// </summary>
+    private async void OnUserThemeUpdated(object? sender, bool isDarkMode)
+    {
+        try
+        {
+            Logger.LogInformation("MainLayout: User theme updated externally - IsDarkMode: {IsDarkMode}", isDarkMode);
+
+            _isDarkMode = isDarkMode;
+
+            await InvokeAsync(StateHasChanged); // Force re-render
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "MainLayout: Error handling user theme update");
+        }
+    }
+
+    /// <summary>
+    /// Extrae el primer nombre de un nombre completo de forma segura.
+    /// </summary>
+    /// <param name="fullName">Nombre completo del usuario</param>
+    /// <returns>Primer nombre o "Usuario" si no se puede extraer</returns>
+    private static string GetFirstName(string? fullName)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(fullName))
+                return "Usuario";
+
+            var spaceIndex = fullName.IndexOf(' ');
+            if (spaceIndex > 0)
+                return fullName.Substring(0, spaceIndex).Trim();
+
+            return fullName.Trim();
+        }
+        catch (Exception)
+        {
+            // En caso de cualquier error, retornar fallback seguro
+            return "Usuario";
         }
     }
 
@@ -126,7 +173,7 @@ public partial class MainLayout : IDisposable
                 {
                     Logger.LogInformation("MainLayout: Fetching user from database - UserId: {UserId}", userId);
                     _currentUser = await UserService.GetByIdAsync(userId);
-                    _cacheBuster = DateTime.UtcNow.Ticks; // Refresh cache buster
+                    // No cache buster needed - avatar filename contains unique Guid
 
                     if (_currentUser != null)
                     {
@@ -181,8 +228,11 @@ public partial class MainLayout : IDisposable
         {
             _isDarkMode = !_isDarkMode;
 
-            // Guardar preferencia en cookie
+            // Guardar preferencia en DB (si autenticado) o cookie (si no autenticado)
             await ThemeService.SetUserThemePreferenceAsync(_isDarkMode);
+
+            // Notificar a otros componentes (Profile page) que el tema cambió
+            UserStateService.NotifyUserThemeUpdated(_isDarkMode);
 
             Logger.LogInformation("MainLayout: Dark mode toggled - IsDarkMode: {IsDarkMode}", _isDarkMode);
 
@@ -202,11 +252,12 @@ public partial class MainLayout : IDisposable
     }
 
     /// <summary>
-    /// Dispose pattern para desuscribirse del evento.
+    /// Dispose pattern para desuscribirse de eventos.
     /// </summary>
     public void Dispose()
     {
         AuthStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
         UserStateService.UserProfileUpdated -= OnUserProfileUpdated;
+        UserStateService.UserThemeUpdated -= OnUserThemeUpdated;
     }
 }
