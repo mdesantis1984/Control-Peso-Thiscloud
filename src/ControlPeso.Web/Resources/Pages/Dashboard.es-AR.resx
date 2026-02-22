@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" msdata:Ordinal="5" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  
+  <!-- Page Metadata -->
+  <data name="PageTitle" xml:space="preserve">
+    <value>Dashboard - Control Peso Thiscloud</value>
+    <comment>Browser tab title</comment>
+  </data>
+  <data name="MetaDescription" xml:space="preserve">
+    <value>Panel principal de Control Peso Thiscloud. Visualiza tus métricas de peso actual, cambio semanal, progreso hacia tu meta e IMC con gráficos de evolución.</value>
+    <comment>SEO meta description</comment>
+  </data>
+  <data name="MetaKeywords" xml:space="preserve">
+    <value>dashboard, panel de control, métricas peso, gráfico evolución, IMC, seguimiento peso</value>
+    <comment>SEO keywords</comment>
+  </data>
+  <data name="OgTitle" xml:space="preserve">
+    <value>Dashboard - Control Peso Thiscloud</value>
+    <comment>Open Graph title for social media</comment>
+  </data>
+  <data name="OgDescription" xml:space="preserve">
+    <value>Panel principal de Control Peso Thiscloud con métricas en tiempo real y gráficos de evolución.</value>
+    <comment>Open Graph description for social media</comment>
+  </data>
+  
+  <!-- Empty State -->
+  <data name="WelcomeTitle" xml:space="preserve">
+    <value>¡Bienvenido a Control Peso!</value>
+    <comment>Empty state welcome message title</comment>
+  </data>
+  <data name="WelcomeSubtitle" xml:space="preserve">
+    <value>Comienza tu seguimiento de peso hoy</value>
+    <comment>Empty state subtitle</comment>
+  </data>
+  <data name="WelcomeDescription" xml:space="preserve">
+    <value>Agrega tu primer registro de peso para comenzar a ver tus estadísticas, gráficos de evolución y seguir tu progreso hacia tu meta de salud.</value>
+    <comment>Empty state description</comment>
+  </data>
+  <data name="AddFirstWeightButton" xml:space="preserve">
+    <value>Agregar Primer Peso</value>
+    <comment>Button text for adding first weight entry</comment>
+  </data>
+  
+  <!-- Header -->
+  <data name="WelcomeBack" xml:space="preserve">
+    <value>Welcome back, {0}!</value>
+    <comment>Welcome message with user name. Placeholder {0} = user name</comment>
+  </data>
+  <data name="ProgressSubtitle" xml:space="preserve">
+    <value>Here is your progress for the last 30 days.</value>
+    <comment>Subtitle showing progress period</comment>
+  </data>
+  <data name="ExportButton" xml:space="preserve">
+    <value>Export</value>
+    <comment>Export data button</comment>
+  </data>
+  
+  <!-- Stats Cards -->
+  <data name="CurrentWeightLabel" xml:space="preserve">
+    <value>Current Weight</value>
+    <comment>Stats card label for current weight</comment>
+  </data>
+  <data name="LastMeasured" xml:space="preserve">
+    <value>Last measured {0}</value>
+    <comment>Last measurement time. Placeholder {0} = time ago (e.g., "2 hours ago")</comment>
+  </data>
+  <data name="WeeklyChangeLabel" xml:space="preserve">
+    <value>Weekly Change</value>
+    <comment>Stats card label for weekly weight change</comment>
+  </data>
+  <data name="OnTrack" xml:space="preserve">
+    <value>ON TRACK</value>
+    <comment>Status message when weight change is positive (losing weight)</comment>
+  </data>
+  <data name="AboveTarget" xml:space="preserve">
+    <value>ABOVE TARGET</value>
+    <comment>Status message when weight change is negative (gaining weight)</comment>
+  </data>
+  <data name="GoalProgressLabel" xml:space="preserve">
+    <value>Goal Progress</value>
+    <comment>Stats card label for goal progress</comment>
+  </data>
+  <data name="ToTarget" xml:space="preserve">
+    <value>TO TARGET: {0} LBS LEFT</value>
+    <comment>Remaining weight to goal. Placeholder {0} = lbs remaining</comment>
+  </data>
+  
+  <!-- Chart Section -->
+  <data name="WeightEvolutionTitle" xml:space="preserve">
+    <value>Weight Evolution</value>
+    <comment>Chart section title</comment>
+  </data>
+  <data name="WeightEvolutionSubtitle" xml:space="preserve">
+    <value>Performance trend over the past 30 days</value>
+    <comment>Chart section subtitle</comment>
+  </data>
+  <data name="Period1W" xml:space="preserve">
+    <value>1W</value>
+    <comment>Period filter button: 1 week</comment>
+  </data>
+  <data name="Period1M" xml:space="preserve">
+    <value>1M</value>
+    <comment>Period filter button: 1 month</comment>
+  </data>
+  <data name="Period3M" xml:space="preserve">
+    <value>3M</value>
+    <comment>Period filter button: 3 months</comment>
+  </data>
+  <data name="PeriodAll" xml:space="preserve">
+    <value>ALL</value>
+    <comment>Period filter button: all time</comment>
+  </data>
+  
+  <!-- Measurement Log Table -->
+  <data name="MeasurementLogTitle" xml:space="preserve">
+    <value>Measurement Log</value>
+    <comment>Table section title</comment>
+  </data>
+  <data name="SearchPlaceholder" xml:space="preserve">
+    <value>Search entries...</value>
+    <comment>Search input placeholder</comment>
+  </data>
+  <data name="TableHeaderDateTime" xml:space="preserve">
+    <value>DATE &amp; TIME</value>
+    <comment>Table column header for date and time</comment>
+  </data>
+  <data name="TableHeaderWeight" xml:space="preserve">
+    <value>WEIGHT (LBS)</value>
+    <comment>Table column header for weight</comment>
+  </data>
+  <data name="TableHeaderTrend" xml:space="preserve">
+    <value>TREND</value>
+    <comment>Table column header for trend</comment>
+  </data>
+  <data name="TableHeaderNotes" xml:space="preserve">
+    <value>NOTES</value>
+    <comment>Table column header for notes</comment>
+  </data>
+  <data name="TableHeaderActions" xml:space="preserve">
+    <value>ACTIONS</value>
+    <comment>Table column header for action buttons</comment>
+  </data>
+  <data name="PagerShowing" xml:space="preserve">
+    <value>SHOWING {0} TO {1} OF {2} ENTRIES</value>
+    <comment>Pagination text. {0} = first entry number, {1} = last entry number, {2} = total entries</comment>
+  </data>
+  <data name="FabAriaLabel" xml:space="preserve">
+    <value>Add new weight entry</value>
+    <comment>Aria label for floating action button</comment>
+  </data>
+  <data name="MoreActionsAriaLabel" xml:space="preserve">
+    <value>More actions</value>
+    <comment>Aria label for more actions button in table</comment>
+  </data>
+</root>
