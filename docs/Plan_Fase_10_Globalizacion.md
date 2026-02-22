@@ -4,8 +4,8 @@
 - Rama: `feature/fase-9-pixel-perfect` (working branch)
 - Fase: **10 - Globalización (i18n)**
 - Fecha inicio: **2026-02-19**
-- Última actualización: **2026-02-22 23:15**
-- Estado: 🟡 **EN PROGRESO** — 3/20 tareas (15% ejecutado)
+- Última actualización: **2026-02-23 00:35**
+- Estado: 🟡 **EN PROGRESO** — 4/20 tareas (20% ejecutado)
 - Duración estimada: **4-6 días** (40-60 horas de trabajo)
 
 ---
@@ -1001,7 +1001,7 @@ public partial class LanguageSelector
 | P10.1 | Configurar localization en Program.cs | 30 min | 100% | ✅ |
 | P10.2 | Crear estructura Resources/ | 5 min | 100% | ✅ |
 | P10.3 | Crear .resx páginas (16 archivos) | 4-5 h | 100% | ✅ |
-| P10.4 | Crear .resx componentes (14 archivos) | 2-3 h | 0% | 🔵 |
+| P10.4 | Crear .resx componentes (14 archivos) | 2-3 h | 100% | ✅ |
 | P10.5 | Crear .resx validators (6 archivos) | 1 h | 0% | 🔵 |
 | P10.6 | Refactorizar Dashboard con IStringLocalizer | 1.5 h | 0% | 🔵 |
 | P10.7 | Refactorizar Profile con IStringLocalizer | 1.5 h | 0% | 🔵 |
@@ -1019,7 +1019,7 @@ public partial class LanguageSelector
 | P10.19 | Verificar persistencia cross-session | 30 min | 0% | 🔵 |
 | P10.20 | Build + tests + commit + push | 1 h | 0% | 🔵 |
 
-**Total**: 20 tareas | **Progreso**: 3/20 completadas (15%) | **Duración**: ~26-28 horas (4-6 días de trabajo)
+**Total**: 20 tareas | **Progreso**: 4/20 completadas (20%) | **Duración**: ~26-28 horas (4-6 días de trabajo)
 
 ---
 
@@ -1124,7 +1124,7 @@ Antes de crear PR de Fase 10 a `develop`, verificar:
 
 ## 📊 Resumen de Progreso
 
-### ✅ Tareas Completadas (3/20)
+### ✅ Tareas Completadas (4/20)
 
 **P10.1 — Configurar Localization en Program.cs** ✅
 - ✅ Localization services registrados (`AddLocalization` con `ResourcesPath="Resources"`)
@@ -1147,26 +1147,34 @@ Antes de crear PR de Fase 10 a `develop`, verificar:
 - ✅ Build exitoso sin errores
 - 📦 Commits: `f14e861`, `a5d6b10`
 
-**Total Strings en .resx**: ~111 entries (páginas) | **Total Archivos Creados**: 20 archivos (4 .gitkeep + 16 .resx)
+**P10.4 — Crear Archivos .resx para Componentes (14 archivos)** ✅
+- ✅ 14 archivos `.resx` creados (7 componentes × 2 culturas)
+- ✅ Componentes cubiertas: MainLayout (9 strings), NavMenu (11 strings), AddWeightDialog (9 strings), StatsCard (placeholder), TrendCard (placeholder), WeightChart (1 string), NotificationBell (1 string)
+- ✅ Traducciones inglés contextuales
+- ✅ Aria labels para accesibilidad incluidos
+- ✅ Build exitoso sin errores
+- 📦 Commits: `ebf55f8`
 
-### 🔵 Tareas Pendientes (17/20)
+**Total Strings en .resx**: ~142 entries (páginas + componentes) | **Total Archivos Creados**: 34 archivos (4 .gitkeep + 30 .resx)
 
-**Próxima Tarea**: P10.4 — Crear Archivos .resx para Componentes (14 archivos)
-- 7 componentes × 2 culturas = 14 archivos
-- Componentes: MainLayout, NavMenu, AddWeightDialog, StatsCard, TrendCard, WeightChart, NotificationBell
-- Duración estimada: 2-3 horas
+### 🔵 Tareas Pendientes (16/20)
+
+**Próxima Tarea**: P10.5 — Crear Archivos .resx para Validators (6 archivos)
+- 3 validators × 2 culturas = 6 archivos
+- Validators: CreateWeightLogValidator, UpdateWeightLogValidator, UpdateUserProfileValidator
+- Duración estimada: 1 hora
 
 ### 📈 Métricas de Progreso
 
 | Métrica | Valor | Progreso |
 |---------|-------|----------|
-| **Tareas Completadas** | 3/20 | 15% |
-| **Archivos .resx Creados** | 16/36 | 44% |
-| **Strings Traducidos** | ~111/228 | ~49% |
-| **Commits** | 4 | - |
+| **Tareas Completadas** | 4/20 | 20% |
+| **Archivos .resx Creados** | 30/36 | 83% |
+| **Strings Traducidos** | ~142/252 | ~56% |
+| **Commits** | 5 | - |
 | **Build Status** | ✅ Passing | 100% |
-| **Tiempo Invertido** | ~1.5 horas | - |
+| **Tiempo Invertido** | ~2 horas | - |
 
 ### 🎯 Siguiente Hito
 
-**Completar P10.4 y P10.5** → 36/36 archivos .resx creados (100% de recursos de localización preparados)
+**Completar P10.5** → 36/36 archivos .resx creados (100% de recursos de localización preparados)
