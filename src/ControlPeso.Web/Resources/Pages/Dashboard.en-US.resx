@@ -210,4 +210,37 @@
     <value>More actions</value>
     <comment>Aria label for more actions button in table</comment>
   </data>
+
+  <data name="ErrorLoadingDashboard" xml:space="preserve">
+    <value>Error loading dashboard. Please try again.</value>
+    <comment>Error message when dashboard fails to load</comment>
+  </data>
+  <data name="ErrorLoadingData" xml:space="preserve">
+    <value>Error loading data: {0}</value>
+    <comment>Error message when data loading fails. {0} = error details</comment>
+  </data>
+  <data name="TimeAgoMinutes" xml:space="preserve">
+    <value>a few minutes ago</value>
+    <comment>Relative time text for last measured (less than 1 hour ago)</comment>
+  </data>
+  <data name="TimeAgoHours" xml:space="preserve">
+    <value>{0} hours ago</value>
+    <comment>Relative time text for last measured (hours ago). {0} = hours count</comment>
+  </data>
+  <data name="TimeAgoDays" xml:space="preserve">
+    <value>{0} days ago</value>
+    <comment>Relative time text for last measured (days ago). {0} = days count</comment>
+  </data>
+  <data name="ExportComingSoon" xml:space="preserve">
+    <value>Export feature coming soon</value>
+    <comment>Info message when export button is clicked</comment>
+  </data>
+  <data name="AddWeightDialogTitle" xml:space="preserve">
+    <value>Log Weight</value>
+    <comment>Title for add weight dialog</comment>
+  </data>
+  <data name="WeightSavedSuccess" xml:space="preserve">
+    <value>Weight logged successfully</value>
+    <comment>Success message after weight is saved</comment>
+  </data>
 </root>

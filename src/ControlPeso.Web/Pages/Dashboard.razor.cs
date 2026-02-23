@@ -4,6 +4,7 @@ using ControlPeso.Application.Interfaces;
 using ControlPeso.Web.Components.Shared;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.Localization;
 using MudBlazor;
 using System.Security.Claims;
 
@@ -16,6 +17,7 @@ namespace ControlPeso.Web.Pages;
 /// </summary>
 public partial class Dashboard
 {
+    [Inject] private IStringLocalizer<Dashboard> Localizer { get; set; } = null!;
     [Inject] private IWeightLogService WeightLogService { get; set; } = null!;
     [Inject] private IUserService UserService { get; set; } = null!;
     [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
@@ -45,6 +47,73 @@ public partial class Dashboard
 
     // Search functionality
     private string _searchString = string.Empty;
+
+    // ========================================================================
+    // LOCALIZED PROPERTIES
+    // ========================================================================
+
+    // Page metadata
+    private string PageTitle => Localizer["PageTitle"];
+    private string MetaDescription => Localizer["MetaDescription"];
+    private string MetaKeywords => Localizer["MetaKeywords"];
+    private string OgTitle => Localizer["OgTitle"];
+    private string OgDescription => Localizer["OgDescription"];
+
+    // Empty state
+    private string WelcomeTitle => Localizer["WelcomeTitle"];
+    private string WelcomeSubtitle => Localizer["WelcomeSubtitle"];
+    private string WelcomeDescription => Localizer["WelcomeDescription"];
+    private string AddFirstWeightButton => Localizer["AddFirstWeightButton"];
+
+    // Header section
+    private string WelcomeBack => Localizer["WelcomeBack", _userName];
+    private string ProgressSubtitle => Localizer["ProgressSubtitle"];
+    private string ExportButton => Localizer["ExportButton"];
+
+    // Stats cards
+    private string CurrentWeightLabel => Localizer["CurrentWeightLabel"];
+    private string LastMeasured => Localizer["LastMeasured", GetLastMeasuredText()];
+    private string WeeklyChangeLabel => Localizer["WeeklyChangeLabel"];
+    private string OnTrack => Localizer["OnTrack"];
+    private string AboveTarget => Localizer["AboveTarget"];
+    private string GoalProgressLabel => Localizer["GoalProgressLabel"];
+    private string ToTarget => Localizer["ToTarget", GetRemainingWeight()];
+
+    // Chart section
+    private string WeightEvolutionTitle => Localizer["WeightEvolutionTitle"];
+    private string WeightEvolutionSubtitle => Localizer["WeightEvolutionSubtitle"];
+    private string Period1W => Localizer["Period1W"];
+    private string Period1M => Localizer["Period1M"];
+    private string Period3M => Localizer["Period3M"];
+    private string PeriodAll => Localizer["PeriodAll"];
+
+    // Table section
+    private string MeasurementLogTitle => Localizer["MeasurementLogTitle"];
+    private string SearchPlaceholder => Localizer["SearchPlaceholder"];
+    private string TableHeaderDateTime => Localizer["TableHeaderDateTime"];
+    private string TableHeaderWeight => Localizer["TableHeaderWeight"];
+    private string TableHeaderTrend => Localizer["TableHeaderTrend"];
+    private string TableHeaderNotes => Localizer["TableHeaderNotes"];
+    private string TableHeaderActions => Localizer["TableHeaderActions"];
+    private string PagerShowing => Localizer["PagerShowing", Math.Min(_filteredTableLogs.Count, 1), Math.Min(_filteredTableLogs.Count, 5), _filteredTableLogs.Count];
+
+    // Accessibility
+    private string FabAriaLabel => Localizer["FabAriaLabel"];
+    private string MoreActionsAriaLabel => Localizer["MoreActionsAriaLabel"];
+
+    // Error messages
+    private string ErrorLoadingDashboard => Localizer["ErrorLoadingDashboard"];
+    private string ErrorLoadingData(string details) => Localizer["ErrorLoadingData", details];
+
+    // Success/info messages
+    private string ExportComingSoon => Localizer["ExportComingSoon"];
+    private string AddWeightDialogTitle => Localizer["AddWeightDialogTitle"];
+    private string WeightSavedSuccess => Localizer["WeightSavedSuccess"];
+
+    // Relative time
+    private string TimeAgoMinutes => Localizer["TimeAgoMinutes"];
+    private string TimeAgoHours(int hours) => Localizer["TimeAgoHours", hours];
+    private string TimeAgoDays(int days) => Localizer["TimeAgoDays", days];
 
     protected override async Task OnInitializedAsync()
     {
@@ -77,7 +146,7 @@ public partial class Dashboard
         catch (Exception ex)
         {
             Logger.LogError(ex, "Dashboard: Error initializing");
-            Snackbar.Add("Error al cargar el dashboard. Por favor, intenta nuevamente.", Severity.Error);
+            Snackbar.Add(ErrorLoadingDashboard, Severity.Error);
         }
         finally
         {
@@ -160,7 +229,7 @@ public partial class Dashboard
         catch (Exception ex)
         {
             Logger.LogError(ex, "Dashboard: Error loading data for user {UserId}", _currentUserId);
-            Snackbar.Add($"Error al cargar datos: {ex.Message}", Severity.Error);
+            Snackbar.Add(ErrorLoadingData(ex.Message), Severity.Error);
         }
     }
 
@@ -197,11 +266,11 @@ public partial class Dashboard
         var diff = DateTime.Now - lastDateTime;
 
         if (diff.TotalHours < 1)
-            return "a few minutes ago";
+            return TimeAgoMinutes;
         if (diff.TotalHours < 24)
-            return $"{(int)diff.TotalHours} hours ago";
+            return TimeAgoHours((int)diff.TotalHours);
         if (diff.TotalDays < 7)
-            return $"{(int)diff.TotalDays} days ago";
+            return TimeAgoDays((int)diff.TotalDays);
 
         return lastLog.Date.ToString("MMM dd, yyyy");
     }
@@ -224,20 +293,20 @@ public partial class Dashboard
     private void ExportData()
     {
         Logger.LogInformation("Dashboard: Exporting data for user {UserId}", _currentUserId);
-        Snackbar.Add("Función de exportación próximamente disponible", Severity.Info);
+        Snackbar.Add(ExportComingSoon, Severity.Info);
     }
 
     private async Task OpenAddWeightDialog()
     {
         Logger.LogInformation("Dashboard: Opening AddWeightDialog for user {UserId}", _currentUserId);
 
-        var dialog = await DialogService.ShowAsync<AddWeightDialog>("Registrar Peso");
+        var dialog = await DialogService.ShowAsync<AddWeightDialog>(AddWeightDialogTitle);
         var result = await dialog.Result;
 
         if (result != null && !result.Canceled)
         {
             Logger.LogInformation("Dashboard: Weight added successfully, reloading data");
-            Snackbar.Add("Peso registrado correctamente", Severity.Success);
+            Snackbar.Add(WeightSavedSuccess, Severity.Success);
             await LoadDataAsync();
             StateHasChanged();
         }
