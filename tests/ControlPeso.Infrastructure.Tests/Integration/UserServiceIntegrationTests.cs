@@ -2,6 +2,7 @@ using ControlPeso.Application.DTOs;
 using ControlPeso.Application.Services;
 using ControlPeso.Domain.Enums;
 using ControlPeso.Infrastructure.Tests.Helpers;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -14,18 +15,21 @@ public sealed class UserServiceIntegrationTests : IDisposable
 {
     private readonly string _databaseName = $"UserServiceTests_{Guid.NewGuid()}";
     private ControlPesoDbContext? _context;
+    private SqliteConnection? _connection;
 
     public void Dispose()
     {
-        _context?.Database.EnsureDeleted();
+        // Disponer en orden correcto: contexto primero, luego conexión
         _context?.Dispose();
+        _connection?.Dispose();
+        // No usar EnsureDeleted() para in-memory SQLite - se borra automáticamente al cerrar conexión
     }
 
     [Fact]
     public async Task GetByIdAsync_WithExistingUser_ShouldReturnUser()
     {
         // Arrange
-        _context = await InMemoryDbContextFactory.CreateWithSeedDataAsync(_databaseName);
+        (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(_databaseName);
         var service = new UserService(_context, NullLogger<UserService>.Instance);
 
         var existingUser = await _context.Users.FirstAsync();
@@ -45,7 +49,7 @@ public sealed class UserServiceIntegrationTests : IDisposable
     public async Task GetByGoogleIdAsync_WithExistingGoogleId_ShouldReturnUser()
     {
         // Arrange
-        _context = await InMemoryDbContextFactory.CreateWithSeedDataAsync(_databaseName);
+        (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(_databaseName);
         var service = new UserService(_context, NullLogger<UserService>.Instance);
 
         var existingUser = await _context.Users.FirstAsync();
@@ -63,7 +67,7 @@ public sealed class UserServiceIntegrationTests : IDisposable
     public async Task CreateOrUpdateFromGoogleAsync_WithNewUser_ShouldCreateUser()
     {
         // Arrange
-        _context = InMemoryDbContextFactory.Create(_databaseName);
+        (_context, _connection) = InMemoryDbContextFactory.Create(_databaseName);
         var service = new UserService(_context, NullLogger<UserService>.Instance);
 
         var googleInfo = new GoogleUserInfo
@@ -96,7 +100,7 @@ public sealed class UserServiceIntegrationTests : IDisposable
     public async Task CreateOrUpdateFromGoogleAsync_WithExistingUser_ShouldUpdateUser()
     {
         // Arrange
-        _context = await InMemoryDbContextFactory.CreateWithSeedDataAsync(_databaseName);
+        (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(_databaseName);
         var service = new UserService(_context, NullLogger<UserService>.Instance);
 
         var existingUser = await _context.Users.FirstAsync();
@@ -130,7 +134,7 @@ public sealed class UserServiceIntegrationTests : IDisposable
     public async Task UpdateProfileAsync_ShouldUpdateUserProfile()
     {
         // Arrange
-        _context = await InMemoryDbContextFactory.CreateWithSeedDataAsync(_databaseName);
+        (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(_databaseName);
         var service = new UserService(_context, NullLogger<UserService>.Instance);
 
         var existingUser = await _context.Users.FirstAsync();
@@ -168,7 +172,7 @@ public sealed class UserServiceIntegrationTests : IDisposable
     public async Task GetByIdAsync_WithNonExistentId_ShouldReturnNull()
     {
         // Arrange
-        _context = InMemoryDbContextFactory.Create(_databaseName);
+        (_context, _connection) = InMemoryDbContextFactory.Create(_databaseName);
         var service = new UserService(_context, NullLogger<UserService>.Instance);
 
         var nonExistentId = Guid.NewGuid();
@@ -184,7 +188,7 @@ public sealed class UserServiceIntegrationTests : IDisposable
     public async Task GetByGoogleIdAsync_WithNonExistentGoogleId_ShouldReturnNull()
     {
         // Arrange
-        _context = InMemoryDbContextFactory.Create(_databaseName);
+        (_context, _connection) = InMemoryDbContextFactory.Create(_databaseName);
         var service = new UserService(_context, NullLogger<UserService>.Instance);
 
         // Act
