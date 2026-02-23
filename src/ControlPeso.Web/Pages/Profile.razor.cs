@@ -6,6 +6,7 @@ using ControlPeso.Domain.Enums;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.Extensions.Localization;
 using Microsoft.JSInterop;
 using MudBlazor;
 
@@ -13,13 +14,14 @@ namespace ControlPeso.Web.Pages;
 
 public partial class Profile : IDisposable
 {
+    [Inject] private IStringLocalizer<Profile> Localizer { get; set; } = null!;
     [Inject] private IUserService UserService { get; set; } = null!;
     [Inject] private IWeightLogService WeightLogService { get; set; } = null!;
     [Inject] private IUserPreferencesService UserPreferencesService { get; set; } = null!;
     [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
     [Inject] private ILogger<Profile> Logger { get; set; } = null!;
-    [Inject] private Services.NotificationService Snackbar { get; set; } = null!; // User notification service con verificación de preferencias
+    [Inject] private Services.NotificationService Snackbar { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
     [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
     [Inject] private Services.UserStateService UserStateService { get; set; } = null!;
@@ -67,6 +69,79 @@ public partial class Profile : IDisposable
         }
     }
 
+    // ========================================================================
+    // LOCALIZED STRINGS
+    // ========================================================================
+
+    // Page & Meta
+    private string PageTitle => Localizer["PageTitle"];
+    private string MetaDescription => Localizer["MetaDescription"];
+
+    // Header Section
+    private string ClickToChangePhotoTooltip => Localizer["ClickToChangePhotoTooltip"];
+    private string SaveChangesButton => Localizer["SaveChangesButton"];
+    private string SavingButton => Localizer["SavingButton"];
+
+    // Stats Cards
+    private string StartingWeightLabel => Localizer["StartingWeightLabel"];
+    private string CurrentWeightLabel => Localizer["CurrentWeightLabel"];
+    private string TotalLossLabel => Localizer["TotalLossLabel"];
+    private string KgUnit => Localizer["KgUnit"];
+    private string NoData => Localizer["NoData"];
+
+    // Personal Details Card
+    private string PersonalDetailsTitle => Localizer["PersonalDetailsTitle"];
+    private string NameLabel => Localizer["NameLabel"];
+    private string NameRequired => Localizer["NameRequired"];
+    private string HeightLabel => Localizer["HeightLabel"];
+    private string HeightRequired => Localizer["HeightRequired"];
+    private string CmUnit => Localizer["CmUnit"];
+    private string UnitSystemLabel => Localizer["UnitSystemLabel"];
+    private string UnitSystemMetric => Localizer["UnitSystemMetric"];
+    private string UnitSystemImperial => Localizer["UnitSystemImperial"];
+    private string DateOfBirthLabel => Localizer["DateOfBirthLabel"];
+    private string GoalWeightLabel => Localizer["GoalWeightLabel"];
+    private string LanguageLabel => Localizer["LanguageLabel"];
+    private string LanguageSpanish => Localizer["LanguageSpanish"];
+    private string LanguageEnglish => Localizer["LanguageEnglish"];
+    private string DarkModeLabel => Localizer["DarkModeLabel"];
+    private string NotificationsLabel => Localizer["NotificationsLabel"];
+
+    // Account Settings Card
+    private string AccountSettingsTitle => Localizer["AccountSettingsTitle"];
+    private string EmailAddressLabel => Localizer["EmailAddressLabel"];
+    private string SignOutButton => Localizer["SignOutButton"];
+    private string DeleteAccountButton => Localizer["DeleteAccountButton"];
+
+    // Error Messages
+    private string ErrorLoadingProfile => Localizer["ErrorLoadingProfile"];
+    private string ErrorUserNotIdentified => Localizer["ErrorUserNotIdentified"];
+    private string ErrorUserNotFound => Localizer["ErrorUserNotFound"];
+    private string ErrorLoadingProfileGeneral => Localizer["ErrorLoadingProfileGeneral"];
+    private string ErrorUpdatingProfile => Localizer["ErrorUpdatingProfile"];
+    private string ErrorChangingTheme => Localizer["ErrorChangingTheme"];
+    private string ErrorChangingNotificationPreference => Localizer["ErrorChangingNotificationPreference"];
+    private string ErrorSigningOut => Localizer["ErrorSigningOut"];
+    private string ErrorDeletingAccount => Localizer["ErrorDeletingAccount"];
+    private string PhotoSizeTooLarge => Localizer["PhotoSizeTooLarge"];
+    private string PhotoInvalidFormat => Localizer["PhotoInvalidFormat"];
+
+    // Success Messages
+    private string ProfileSavedSuccess => Localizer["ProfileSavedSuccess"];
+    private string AccountDeletedSuccess => Localizer["AccountDeletedSuccess"];
+    private string PhotoUploadedSuccess => Localizer["PhotoUploadedSuccess"];
+
+    // Delete Account Dialog
+    private string DeleteAccountConfirmation => Localizer["DeleteAccountConfirmation"];
+    private string DeleteAccountButtonText => Localizer["DeleteAccountButtonText"];
+    private string CropImageDialogTitle => Localizer["CropImageDialogTitle"];
+    private string DeleteAccountDialogTitle => Localizer["DeleteAccountDialogTitle"];
+    private string AccountDeletionNotImplemented => Localizer["AccountDeletionNotImplemented"];
+
+    // Methods with placeholders
+    private string GetMemberSinceText() => Localizer["MemberSince", _user?.MemberSince.ToString("MMMM yyyy") ?? string.Empty];
+    private string GetErrorUploadingPhoto(string error) => Localizer["ErrorUploadingPhoto", error];
+
     // Event handlers for MudSwitch ValueChanged (bypasses broken @bind-Checked)
     private async void OnDarkModeChanged(bool newValue)
     {
@@ -86,7 +161,7 @@ public partial class Profile : IDisposable
         catch (Exception ex)
         {
             Logger.LogError(ex, "Profile: Error applying theme immediately");
-            Snackbar.Add("Error al cambiar el tema", Severity.Error);
+            Snackbar.Add(ErrorChangingTheme, Severity.Error);
         }
 
         StateHasChanged();
@@ -113,7 +188,7 @@ public partial class Profile : IDisposable
         catch (Exception ex)
         {
             Logger.LogError(ex, "Profile: Error applying notifications preference immediately");
-            Snackbar.Add("Error al cambiar preferencia de notificaciones", Severity.Error);
+            Snackbar.Add(ErrorChangingNotificationPreference, Severity.Error);
         }
 
         StateHasChanged();
@@ -131,7 +206,7 @@ public partial class Profile : IDisposable
             if (string.IsNullOrWhiteSpace(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
             {
                 Logger.LogWarning("User ID claim not found or invalid");
-                Snackbar.Add("No se pudo identificar al usuario", Severity.Error);
+                Snackbar.Add(ErrorUserNotIdentified, Severity.Error);
                 return;
             }
 
@@ -141,7 +216,7 @@ public partial class Profile : IDisposable
             if (_user is null)
             {
                 Logger.LogWarning("User {UserId} not found in database", userId);
-                Snackbar.Add("Usuario no encontrado", Severity.Error);
+                Snackbar.Add(ErrorUserNotFound, Severity.Error);
                 return;
             }
 
@@ -210,7 +285,7 @@ public partial class Profile : IDisposable
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error loading user profile");
-            Snackbar.Add("Error al cargar el perfil", Severity.Error);
+            Snackbar.Add(ErrorLoadingProfileGeneral, Severity.Error);
         }
         finally
         {
@@ -249,12 +324,12 @@ public partial class Profile : IDisposable
             // No need to save them again here (avoids duplicate DB writes).
 
             Logger.LogInformation("Profile updated successfully - UserId: {UserId}", _user.Id);
-            Snackbar.Add("Cambios guardados correctamente", Severity.Success);
+            Snackbar.Add(ProfileSavedSuccess, Severity.Success);
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error updating user profile - UserId: {UserId}", _user.Id);
-            Snackbar.Add("Error al actualizar el perfil", Severity.Error);
+            Snackbar.Add(ErrorUpdatingProfile, Severity.Error);
         }
         finally
         {
@@ -274,7 +349,7 @@ public partial class Profile : IDisposable
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error during sign out");
-            Snackbar.Add("Error al cerrar sesión", Severity.Error);
+            Snackbar.Add(ErrorSigningOut, Severity.Error);
         }
     }
 
@@ -287,8 +362,8 @@ public partial class Profile : IDisposable
         // Create custom confirmation dialog
         var parameters = new DialogParameters
         {
-            ["ContentText"] = "¿Está seguro que quiere eliminar su cuenta? Esta acción no se puede deshacer y todos sus datos (registros de peso, preferencias, etc.) se perderán permanentemente.",
-            ["ButtonText"] = "Eliminar",
+            ["ContentText"] = DeleteAccountConfirmation,
+            ["ButtonText"] = DeleteAccountButtonText,
             ["Color"] = Color.Error
         };
 
@@ -300,7 +375,7 @@ public partial class Profile : IDisposable
         };
 
         var dialog = await DialogService.ShowAsync<Components.Shared.ConfirmationDialog>(
-            "Eliminar Cuenta",
+            DeleteAccountDialogTitle,
             parameters,
             options);
 
@@ -337,7 +412,7 @@ public partial class Profile : IDisposable
 
             // For now, show a message that deletion is not implemented
             Logger.LogError("Account deletion not implemented yet - UserId: {UserId}", _user.Id);
-            Snackbar.Add("La eliminación de cuenta aún no está implementada. Contacta al soporte.", Severity.Warning);
+            Snackbar.Add(AccountDeletionNotImplemented, Severity.Warning);
 
             // When implemented:
             // await UserService.DeleteAccountAsync(_user.Id);
@@ -394,7 +469,7 @@ public partial class Profile : IDisposable
         if (!allowedTypes.Contains(_selectedFile.ContentType.ToLowerInvariant()))
         {
             Logger.LogWarning("Invalid file type: {ContentType}", _selectedFile.ContentType);
-            Snackbar.Add("Solo se permiten imágenes (JPG, PNG, WebP)", Severity.Warning);
+            Snackbar.Add(PhotoInvalidFormat, Severity.Warning);
             _selectedFile = null;
             return;
         }
@@ -404,7 +479,7 @@ public partial class Profile : IDisposable
         if (_selectedFile.Size > maxFileSize)
         {
             Logger.LogWarning("File too large: {Size} bytes", _selectedFile.Size);
-            Snackbar.Add("La imagen no debe superar 5MB", Severity.Warning);
+            Snackbar.Add(PhotoSizeTooLarge, Severity.Warning);
             _selectedFile = null;
             return;
         }
@@ -429,7 +504,7 @@ public partial class Profile : IDisposable
 
         Logger.LogDebug("Opening ImageCropperDialog for user {UserId}", _user.Id);
         _cropperDialog = await DialogService.ShowAsync<Components.Shared.ImageCropperDialog>(
-            "Recortar Imagen",
+            CropImageDialogTitle,
             parameters,
             options);
 
@@ -526,7 +601,7 @@ public partial class Profile : IDisposable
 
             Logger.LogInformation("Avatar updated successfully - UserId: {UserId}, AvatarUrl: {AvatarUrl}, Version: {Version}", 
                 _user.Id, avatarUrl, _avatarVersion);
-            Snackbar.Add("Foto de perfil actualizada correctamente", Severity.Success);
+            Snackbar.Add(PhotoUploadedSuccess, Severity.Success);
 
             // Close the cropper dialog after successful save
             if (_cropperDialog is not null)
@@ -541,7 +616,7 @@ public partial class Profile : IDisposable
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error updating avatar - UserId: {UserId}", _user.Id);
-            Snackbar.Add("Error al actualizar la foto de perfil", Severity.Error);
+            Snackbar.Add(GetErrorUploadingPhoto(ex.Message), Severity.Error);
         }
         finally
         {

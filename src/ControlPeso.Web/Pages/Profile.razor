@@ -4,7 +4,7 @@
 @using ControlPeso.Domain.Enums
 @using MudBlazor
 
-<PageTitle>Profile - WeightTracker</PageTitle>
+<PageTitle>@PageTitle</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="pa-6">
     @if (_isLoading)
@@ -13,7 +13,7 @@
     }
     else if (_user is null)
     {
-        <MudAlert Severity="Severity.Error">No se pudo cargar el perfil del usuario.</MudAlert>
+        <MudAlert Severity="Severity.Error">@ErrorLoadingProfile</MudAlert>
     }
     else
     {
@@ -40,8 +40,8 @@
                                     @_user.Name[0]
                                 </MudAvatar>
                             }
-                            <MudTooltip Text="Click to change photo">
-                                <MudIcon Icon="@Icons.Material.Filled.CameraAlt" 
+                            <MudTooltip Text="@ClickToChangePhotoTooltip">
+                                <MudIcon Icon="@Icons.Material.Filled.CameraAlt"
                                          Style="position: absolute; bottom: 0; right: 0; background: var(--mud-palette-primary); border-radius: 50%; padding: 4px; color: white;" 
                                          Size="Size.Small" />
                             </MudTooltip>
@@ -56,7 +56,7 @@
                             <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
                                 <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Small" />
                                 <MudText Typo="Typo.caption">
-                                    Member since @_user.MemberSince.ToString("MMMM yyyy")
+                                    @GetMemberSinceText()
                                 </MudText>
                             </MudStack>
                         </MudStack>
@@ -71,11 +71,11 @@
                         @if (_isSaving)
                         {
                             <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-                            <span>SAVING...</span>
+                            <span>@SavingButton</span>
                         }
                         else
                         {
-                            <span>SAVE CHANGES</span>
+                            <span>@SaveChangesButton</span>
                         }
                     </MudButton>
                 </MudStack>
@@ -87,7 +87,7 @@
             <MudItem xs="12" md="4">
                 <MudPaper Elevation="2" Class="pa-4">
                     <MudStack>
-                        <MudText Typo="Typo.overline">STARTING WEIGHT</MudText>
+                        <MudText Typo="Typo.overline">@StartingWeightLabel</MudText>
                         <MudStack Row="true" AlignItems="AlignItems.End" Spacing="1">
                             <MudText Typo="Typo.h4">
                                 @if (_stats?.StartingWeight.HasValue == true)
@@ -100,10 +100,10 @@
                                 }
                                 else
                                 {
-                                    <span>--</span>
+                                    <span>@NoData</span>
                                 }
                             </MudText>
-                            <MudText Typo="Typo.body2">kg</MudText>
+                            <MudText Typo="Typo.body2">@KgUnit</MudText>
                         </MudStack>
                     </MudStack>
                 </MudPaper>
@@ -113,7 +113,7 @@
             <MudItem xs="12" md="4">
                 <MudPaper Elevation="2" Class="pa-4" Style="background: var(--mud-palette-primary);">
                     <MudStack>
-                        <MudText Typo="Typo.overline" Style="color: white;">CURRENT WEIGHT</MudText>
+                        <MudText Typo="Typo.overline" Style="color: white;">@CurrentWeightLabel</MudText>
                         <MudStack Row="true" AlignItems="AlignItems.End" Spacing="1">
                             <MudText Typo="Typo.h4" Style="color: white;">
                                 @if (_stats?.CurrentWeight.HasValue == true)
@@ -122,10 +122,10 @@
                                 }
                                 else
                                 {
-                                    <span>--</span>
+                                    <span>@NoData</span>
                                 }
                             </MudText>
-                            <MudText Typo="Typo.body2" Style="color: white;">kg</MudText>
+                            <MudText Typo="Typo.body2" Style="color: white;">@KgUnit</MudText>
                         </MudStack>
                     </MudStack>
                 </MudPaper>
@@ -135,7 +135,7 @@
                 <MudItem xs="12" md="4">
                     <MudPaper Elevation="2" Class="pa-4">
                         <MudStack>
-                            <MudText Typo="Typo.overline" Color="Color.Success">TOTAL LOSS</MudText>
+                            <MudText Typo="Typo.overline" Color="Color.Success">@TotalLossLabel</MudText>
                             <MudStack Row="true" AlignItems="AlignItems.End" Spacing="1">
                                 <MudText Typo="Typo.h4" Color="Color.Success">
                                     @if (_stats?.TotalChange.HasValue == true)
@@ -144,10 +144,10 @@
                                     }
                                     else
                                     {
-                                        <span>--</span>
+                                        <span>@NoData</span>
                                     }
                                 </MudText>
-                                <MudText Typo="Typo.body2" Color="Color.Success">kg</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Success">@KgUnit</MudText>
                             </MudStack>
                         </MudStack>
                     </MudPaper>
@@ -162,42 +162,42 @@
                     <MudCardHeader>
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                             <MudIcon Icon="@Icons.Material.Filled.Person" />
-                            <MudText Typo="Typo.h6">Personal Details</MudText>
+                            <MudText Typo="Typo.h6">@PersonalDetailsTitle</MudText>
                         </MudStack>
                     </MudCardHeader>
                     <MudCardContent>
 
                                 <MudStack Spacing="3">
                                     <!-- Name Field -->
-                                    <MudTextField Label="Name*"
+                                    <MudTextField Label="@NameLabel"
                                                   @bind-Value="_name"
                                                   Required="true"
-                                                  RequiredError="Name is required"
+                                                  RequiredError="@NameRequired"
                                                   MaxLength="200"
                                                   Variant="Variant.Outlined" />
 
                                     <!-- Height Field -->
-                                    <MudNumericField Label="Height*"
+                                    <MudNumericField Label="@HeightLabel"
                                                      @bind-Value="_height"
                                                      Required="true"
-                                                     RequiredError="Height is required"
+                                                     RequiredError="@HeightRequired"
                                                      Min="50"
                                                      Max="300"
                                                      Variant="Variant.Outlined"
                                                      Adornment="Adornment.End"
-                                                     AdornmentText="cm" />
+                                                     AdornmentText="@CmUnit" />
 
                                     <!-- Unit System Select -->
-                                    <MudSelect Label="Unit System"
+                                    <MudSelect Label="@UnitSystemLabel"
                                                T="UnitSystem"
                                                @bind-Value="_unitSystem"
                                                Variant="Variant.Outlined">
-                                        <MudSelectItem T="UnitSystem" Value="UnitSystem.Metric">Metric (kg, cm)</MudSelectItem>
-                                        <MudSelectItem T="UnitSystem" Value="UnitSystem.Imperial">Imperial (lb, in)</MudSelectItem>
+                                        <MudSelectItem T="UnitSystem" Value="UnitSystem.Metric">@UnitSystemMetric</MudSelectItem>
+                                        <MudSelectItem T="UnitSystem" Value="UnitSystem.Imperial">@UnitSystemImperial</MudSelectItem>
                                     </MudSelect>
 
                                     <!-- Date of Birth -->
-                                    <MudDatePicker Label="Date of Birth"
+                                    <MudDatePicker Label="@DateOfBirthLabel"
                                                    @bind-Date="_dateOfBirth"
                                                    MaxDate="DateTime.Today"
                                                    Editable="true"
@@ -205,21 +205,21 @@
                                                    DateFormat="MM/dd/yyyy" />
 
                                     <!-- Goal Weight -->
-                                    <MudNumericField Label="Goal Weight"
+                                    <MudNumericField Label="@GoalWeightLabel"
                                                      @bind-Value="_goalWeight"
                                                      Min="20"
                                                      Max="500"
                                                      Variant="Variant.Outlined"
                                                      Adornment="Adornment.End"
-                                                     AdornmentText="kg" />
+                                                     AdornmentText="@KgUnit" />
 
                                     <!-- Language Select -->
-                                    <MudSelect Label="Language"
+                                    <MudSelect Label="@LanguageLabel"
                                                T="string"
                                                @bind-Value="_language"
                                                Variant="Variant.Outlined">
-                                        <MudSelectItem T="string" Value="@("es")">Español</MudSelectItem>
-                                        <MudSelectItem T="string" Value="@("en")">English</MudSelectItem>
+                                        <MudSelectItem T="string" Value="@("es")">@LanguageSpanish</MudSelectItem>
+                                        <MudSelectItem T="string" Value="@("en")">@LanguageEnglish</MudSelectItem>
                                     </MudSelect>
 
                                     <!-- Dark Mode Switch -->
@@ -227,14 +227,14 @@
                                                Value="@DarkMode" 
                                                ValueChanged="@OnDarkModeChanged" 
                                                Color="Color.Primary"
-                                               Label="Dark Mode" />
+                                               Label="@DarkModeLabel" />
 
                                     <!-- Notifications Switch -->
                                     <MudSwitch T="bool" 
                                                Value="@NotificationsEnabled" 
                                                ValueChanged="@OnNotificationsEnabledChanged" 
                                                Color="Color.Primary"
-                                               Label="Notifications" />
+                                               Label="@NotificationsLabel" />
                                 </MudStack>
                             </MudCardContent>
                         </MudCard>
@@ -246,14 +246,14 @@
                                     <MudCardHeader>
                                         <MudStack Row="true" Spacing="2">
                                             <MudIcon Icon="@Icons.Material.Filled.Settings" />
-                                            <MudText Typo="Typo.h6">Account Settings</MudText>
+                                            <MudText Typo="Typo.h6">@AccountSettingsTitle</MudText>
                                         </MudStack>
                                     </MudCardHeader>
                                     <MudCardContent>
                                         <MudStack Spacing="3">
                                             <!-- Email Address (Read-only) -->
                                             <div>
-                                                <MudText Typo="Typo.caption">EMAIL ADDRESS</MudText>
+                                                <MudText Typo="Typo.caption">@EmailAddressLabel</MudText>
                                                 <MudText Typo="Typo.body1">@_user.Email</MudText>
                                             </div>
 
@@ -264,7 +264,7 @@
                                                        FullWidth="true"
                                                        StartIcon="@Icons.Material.Filled.Logout"
                                                        OnClick="SignOut">
-                                                Sign Out
+                                                @SignOutButton
                                             </MudButton>
 
                                             <!-- Delete Account Button -->
@@ -273,7 +273,7 @@
                                                        FullWidth="true"
                                                        StartIcon="@Icons.Material.Filled.Delete"
                                                        OnClick="OpenDeleteAccountDialog">
-                                                Delete Account
+                                                @DeleteAccountButton
                                             </MudButton>
                                         </MudStack>
                                     </MudCardContent>

@@ -15,19 +15,70 @@
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   
   <data name="PageTitle" xml:space="preserve"><value>Profile - Control Peso Thiscloud</value></data>
-  <data name="ProfileTitle" xml:space="preserve"><value>Profile</value></data>
-  <data name="PersonalInformation" xml:space="preserve"><value>Personal Information</value></data>
-  <data name="Name" xml:space="preserve"><value>Name</value></data>
-  <data name="Email" xml:space="preserve"><value>Email</value></data>
-  <data name="Height" xml:space="preserve"><value>Height</value></data>
-  <data name="DateOfBirth" xml:space="preserve"><value>Date of Birth</value></data>
-  <data name="GoalWeight" xml:space="preserve"><value>Goal Weight</value></data>
-  <data name="StartingWeight" xml:space="preserve"><value>Starting Weight</value></data>
-  <data name="UnitSystem" xml:space="preserve"><value>Unit System</value></data>
-  <data name="Language" xml:space="preserve"><value>Language</value></data>
-  <data name="Preferences" xml:space="preserve"><value>Preferences</value></data>
-  <data name="DarkMode" xml:space="preserve"><value>Dark Mode</value></data>
-  <data name="Notifications" xml:space="preserve"><value>Notifications</value></data>
-  <data name="SaveButton" xml:space="preserve"><value>Save Changes</value></data>
-  <data name="CancelButton" xml:space="preserve"><value>Cancel</value></data>
+  <data name="MetaDescription" xml:space="preserve"><value>Manage your personal profile, preferences and account settings in Control Peso Thiscloud.</value></data>
+
+  <!-- Header Section -->
+  <data name="ClickToChangePhotoTooltip" xml:space="preserve"><value>Click to change photo</value></data>
+  <data name="MemberSince" xml:space="preserve"><value>Member since {0}</value><comment>{0} = Month year (e.g., February 2026)</comment></data>
+  <data name="SaveChangesButton" xml:space="preserve"><value>SAVE CHANGES</value></data>
+  <data name="SavingButton" xml:space="preserve"><value>SAVING...</value></data>
+
+  <!-- Stats Cards -->
+  <data name="StartingWeightLabel" xml:space="preserve"><value>STARTING WEIGHT</value></data>
+  <data name="CurrentWeightLabel" xml:space="preserve"><value>CURRENT WEIGHT</value></data>
+  <data name="TotalLossLabel" xml:space="preserve"><value>TOTAL LOSS</value></data>
+  <data name="KgUnit" xml:space="preserve"><value>kg</value></data>
+  <data name="NoData" xml:space="preserve"><value>--</value></data>
+
+  <!-- Personal Details Card -->
+  <data name="PersonalDetailsTitle" xml:space="preserve"><value>Personal Details</value></data>
+  <data name="NameLabel" xml:space="preserve"><value>Name</value></data>
+  <data name="NameRequired" xml:space="preserve"><value>Name is required</value></data>
+  <data name="HeightLabel" xml:space="preserve"><value>Height</value></data>
+  <data name="HeightRequired" xml:space="preserve"><value>Height is required</value></data>
+  <data name="CmUnit" xml:space="preserve"><value>cm</value></data>
+  <data name="UnitSystemLabel" xml:space="preserve"><value>Unit System</value></data>
+  <data name="UnitSystemMetric" xml:space="preserve"><value>Metric (kg, cm)</value></data>
+  <data name="UnitSystemImperial" xml:space="preserve"><value>Imperial (lb, in)</value></data>
+  <data name="DateOfBirthLabel" xml:space="preserve"><value>Date of Birth</value></data>
+  <data name="GoalWeightLabel" xml:space="preserve"><value>Goal Weight</value></data>
+  <data name="LanguageLabel" xml:space="preserve"><value>Language</value></data>
+  <data name="LanguageSpanish" xml:space="preserve"><value>Español</value></data>
+  <data name="LanguageEnglish" xml:space="preserve"><value>English</value></data>
+  <data name="DarkModeLabel" xml:space="preserve"><value>Dark Mode</value></data>
+  <data name="NotificationsLabel" xml:space="preserve"><value>Notifications</value></data>
+
+  <!-- Account Settings Card -->
+  <data name="AccountSettingsTitle" xml:space="preserve"><value>Account Settings</value></data>
+  <data name="EmailAddressLabel" xml:space="preserve"><value>EMAIL ADDRESS</value></data>
+  <data name="SignOutButton" xml:space="preserve"><value>Sign Out</value></data>
+  <data name="DeleteAccountButton" xml:space="preserve"><value>Delete Account</value></data>
+
+  <!-- Error Messages -->
+  <data name="ErrorLoadingProfile" xml:space="preserve"><value>Could not load user profile.</value></data>
+  <data name="ErrorUserNotIdentified" xml:space="preserve"><value>Could not identify user</value></data>
+  <data name="ErrorUserNotFound" xml:space="preserve"><value>User not found</value></data>
+  <data name="ErrorLoadingProfileGeneral" xml:space="preserve"><value>Error loading profile</value></data>
+  <data name="ErrorUpdatingProfile" xml:space="preserve"><value>Error updating profile</value></data>
+  <data name="ErrorChangingTheme" xml:space="preserve"><value>Error changing theme</value></data>
+  <data name="ErrorChangingNotificationPreference" xml:space="preserve"><value>Error changing notification preference</value></data>
+  <data name="ErrorSigningOut" xml:space="preserve"><value>Error signing out</value></data>
+  <data name="ErrorDeletingAccount" xml:space="preserve"><value>Error deleting account</value></data>
+  <data name="ErrorUploadingPhoto" xml:space="preserve"><value>Error uploading photo: {0}</value><comment>{0} = error message</comment></data>
+
+  <!-- Success Messages -->
+  <data name="ProfileSavedSuccess" xml:space="preserve"><value>Changes saved successfully</value></data>
+  <data name="AccountDeletedSuccess" xml:space="preserve"><value>Account deleted successfully</value></data>
+  <data name="PhotoUploadedSuccess" xml:space="preserve"><value>Profile photo updated successfully</value></data>
+
+  <!-- Delete Account Dialog -->
+  <data name="DeleteAccountConfirmation" xml:space="preserve"><value>Are you sure you want to delete your account? This action cannot be undone and all your data (weight logs, preferences, etc.) will be permanently lost.</value></data>
+  <data name="DeleteAccountButtonText" xml:space="preserve"><value>Delete</value></data>
+
+  <!-- Photo Upload -->
+  <data name="PhotoSizeTooLarge" xml:space="preserve"><value>Photo is too large. Maximum size: 5 MB</value></data>
+  <data name="PhotoInvalidFormat" xml:space="preserve"><value>Invalid photo format. Only allowed: JPG, JPEG, PNG</value></data>
+  <data name="CropImageDialogTitle" xml:space="preserve"><value>Crop Image</value></data>
+  <data name="DeleteAccountDialogTitle" xml:space="preserve"><value>Delete Account</value></data>
+  <data name="AccountDeletionNotImplemented" xml:space="preserve"><value>Account deletion is not yet implemented. Please contact support.</value></data>
 </root>
