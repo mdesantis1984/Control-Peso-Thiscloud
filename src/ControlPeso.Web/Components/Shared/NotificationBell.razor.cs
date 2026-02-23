@@ -2,6 +2,7 @@ using System.Security.Claims;
 using ControlPeso.Application.Interfaces;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.Localization;
 using MudBlazor;
 
 namespace ControlPeso.Web.Components.Shared;
@@ -12,10 +13,14 @@ namespace ControlPeso.Web.Components.Shared;
 public partial class NotificationBell : IDisposable
 {
     [Inject] private ILogger<NotificationBell> Logger { get; set; } = null!;
+    [Inject] private IStringLocalizer<NotificationBell> Localizer { get; set; } = null!;
     [Inject] private IUserNotificationService NotificationService { get; set; } = null!;
     [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
 
     [Parameter] public string? Class { get; set; }
+
+    // Localized Properties
+    private string NotificationsAriaLabel => Localizer[nameof(NotificationsAriaLabel)];
 
     private int _unreadNotificationCount = 0;
     private bool _notificationPanelOpen = false;

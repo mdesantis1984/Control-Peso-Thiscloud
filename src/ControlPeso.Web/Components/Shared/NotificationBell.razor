@@ -6,7 +6,7 @@
             <MudIconButton Icon="@Icons.Material.Filled.Notifications" 
                            Color="Color.Inherit"
                            OnClick="@ToggleNotificationPanel"
-                           aria-label="Notifications" />
+                           aria-label="@NotificationsAriaLabel" />
             @if (_unreadNotificationCount > 0)
             {
                 <MudText Typo="Typo.caption" 

@@ -1,5 +1,6 @@
 using ControlPeso.Application.DTOs;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Localization;
 using MudBlazor;
 
 namespace ControlPeso.Web.Components.Shared;
@@ -11,12 +12,16 @@ namespace ControlPeso.Web.Components.Shared;
 public partial class WeightChart
 {
     [Inject] private ILogger<WeightChart> Logger { get; set; } = null!;
+    [Inject] private IStringLocalizer<WeightChart> Localizer { get; set; } = null!;
 
     /// <summary>
     /// Datos de registros de peso a graficar
     /// </summary>
     [Parameter, EditorRequired]
     public List<WeightLogDto> Data { get; set; } = new();
+
+    // Localized Properties
+    private string NoDataAvailable => Localizer[nameof(NoDataAvailable)];
 
     /// <summary>
     /// Título del gráfico
