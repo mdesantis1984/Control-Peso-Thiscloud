@@ -3,9 +3,7 @@ using ControlPeso.Application.Filters;
 using ControlPeso.Application.Interfaces;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.Extensions.Localization;
 using MudBlazor;
-using System.Security.Claims;
 using AppDateRange = ControlPeso.Application.Filters.DateRange;
 
 namespace ControlPeso.Web.Pages;
@@ -16,8 +14,7 @@ public partial class Trends
     [Inject] private IUserService UserService { get; set; } = null!;
     [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
     [Inject] private ILogger<Trends> Logger { get; set; } = null!;
-    [Inject] private Services.NotificationService Snackbar { get; set; } = null!;
-    [Inject] private IStringLocalizer<Trends> Localizer { get; set; } = null!;
+    [Inject] private ISnackbar Snackbar { get; set; } = null!;
 
     private bool _isLoading = true;
     private List<WeightLogDto> _logs = [];
@@ -40,71 +37,6 @@ public partial class Trends
     private decimal? _projectedWeight;
     private decimal _projectedChange;
 
-    // ========================================================================
-    // LOCALIZED STRINGS (Properties for clean markup)
-    // ========================================================================
-
-    // Page / Meta
-    private string PageTitle => Localizer["PageTitle"];
-    private string MetaDescription => Localizer["MetaDescription"];
-    private string MetaKeywords => Localizer["MetaKeywords"];
-    private string OgTitle => Localizer["OgTitle"];
-    private string OgDescription => Localizer["OgDescription"];
-
-    // Header
-    private string TrendsTitle => Localizer["TrendsTitle"];
-
-    // Trend Cards
-    private string Last7Days => Localizer["Last7Days"];
-    private string Last30Days => Localizer["Last30Days"];
-    private string TotalChange => Localizer["TotalChange"];
-    private string OverallAverage => Localizer["OverallAverage"];
-
-    // Chart
-    private string WeightEvolution90Days => Localizer["WeightEvolution90Days"];
-    private string EvolutionLabel => Localizer["EvolutionLabel"];
-
-    // Statistics
-    private string StatisticsTitle => Localizer["StatisticsTitle"];
-    private string CurrentWeightLabel => Localizer["CurrentWeightLabel"];
-    private string StartingWeightLabel => Localizer["StartingWeightLabel"];
-    private string MinWeightLabel => Localizer["MinWeightLabel"];
-    private string MaxWeightLabel => Localizer["MaxWeightLabel"];
-    private string OverallAverageLabel => Localizer["OverallAverageLabel"];
-    private string TotalRecordsLabel => Localizer["TotalRecordsLabel"];
-    private string KgUnit => Localizer["KgUnit"];
-
-    // Projection
-    private string ProjectionTitle => Localizer["ProjectionTitle"];
-    private string ProjectionDescription => Localizer["ProjectionDescription"];
-    private string InsufficientDataProjection => Localizer["InsufficientDataProjection"];
-    private string GetEstimatedChange(decimal change) => Localizer["EstimatedChange", change.ToString("F1")];
-
-    // No Data / Limited Data
-    private string NoDataTitle => Localizer["NoDataTitle"];
-    private string NoDataMessage => Localizer["NoDataMessage"];
-    private string DashboardLink => Localizer["DashboardLink"];
-    private string LimitedDataTitle => Localizer["LimitedDataTitle"];
-    private string GetLimitedDataMessage(int count) => Localizer["LimitedDataMessage", count];
-    private string LimitedDataSubMessage => Localizer["LimitedDataSubMessage"];
-
-    // Current Stats (Limited Data)
-    private string CurrentStatsTitle => Localizer["CurrentStatsTitle"];
-    private string FirstWeightLabel => Localizer["FirstWeightLabel"];
-    private string ChangeLabel => Localizer["ChangeLabel"];
-    private string AverageLabel => Localizer["AverageLabel"];
-
-    // Next Steps (Limited Data)
-    private string NextStepsTitle => Localizer["NextStepsTitle"];
-    private string NextStep1 => Localizer["NextStep1"];
-    private string NextStep2 => Localizer["NextStep2"];
-    private string NextStep3 => Localizer["NextStep3"];
-    private string GetNextStep4(int recordsNeeded) => Localizer["NextStep4", recordsNeeded];
-
-    // Error Messages
-    private string ErrorLoadingTrends => Localizer["ErrorLoadingTrends"];
-    private string UserNotIdentified => Localizer["UserNotIdentified"];
-
     protected override async Task OnInitializedAsync()
     {
         Logger.LogInformation("Loading trends analysis");
@@ -112,12 +44,12 @@ public partial class Trends
         try
         {
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-            var userIdClaim = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userIdClaim = authState.User.FindFirst("sub")?.Value;
 
             if (string.IsNullOrWhiteSpace(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
             {
                 Logger.LogWarning("User ID claim not found or invalid");
-                Snackbar.Add(UserNotIdentified, Severity.Error);
+                Snackbar.Add("No se pudo identificar al usuario", Severity.Error);
                 return;
             }
 
@@ -155,7 +87,7 @@ public partial class Trends
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error loading trends analysis");
-            Snackbar.Add(ErrorLoadingTrends, Severity.Error);
+            Snackbar.Add("Error al cargar el análisis de tendencias", Severity.Error);
         }
         finally
         {

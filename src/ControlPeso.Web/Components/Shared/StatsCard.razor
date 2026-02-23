@@ -17,8 +17,7 @@
                              Size="Size.Small" 
                              Color="@GetTrendColor()"
                              Class="mt-3">
-                        <MudIcon Icon="@GetTrendIcon()" Size="Size.Small" Class="mr-1" />
-                        @Math.Abs(TrendValue).ToString("0.0") @Unit
+                        @GetTrendIcon() @Math.Abs(TrendValue).ToString("0.0") @Unit
                     </MudChip>
                 }
             </div>

@@ -5,24 +5,24 @@
 @using ControlPeso.Web.Components.Shared
 @using MudBlazor
 
-<PageTitle>@PageTitle</PageTitle>
+<PageTitle>Tendencias - Control Peso Thiscloud</PageTitle>
 
 <HeadContent>
-    <meta name="description" content="@MetaDescription" />
-    <meta name="keywords" content="@MetaKeywords" />
+    <meta name="description" content="Análisis de tendencias de peso en Control Peso Thiscloud. Compara períodos, visualiza promedios, proyecciones y Smart Insights para optimizar tu seguimiento." />
+    <meta name="keywords" content="tendencias peso, análisis peso, proyecciones peso, smart insights, comparación períodos, promedio peso" />
     <meta name="robots" content="noindex, nofollow" />
     <link rel="canonical" href="https://controlpeso.thiscloud.com.ar/trends" />
 
     @* Open Graph *@
-    <meta property="og:title" content="@OgTitle" />
-    <meta property="og:description" content="@OgDescription" />
+    <meta property="og:title" content="Tendencias - Control Peso Thiscloud" />
+    <meta property="og:description" content="Análisis de tendencias y proyecciones de peso con Smart Insights." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://controlpeso.thiscloud.com.ar/trends" />
     <meta property="og:image" content="https://controlpeso.thiscloud.com.ar/images/og-image.png" />
 </HeadContent>
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
-    <MudText Typo="Typo.h4" Class="mb-4">@TrendsTitle</MudText>
+    <MudText Typo="Typo.h4" Class="mb-4">Análisis de Tendencias</MudText>
 
     @if (_isLoading)
     {
@@ -30,137 +30,49 @@
     }
     else if (_logs.Count == 0)
     {
-        <MudAlert Severity="Severity.Info" Icon="@Icons.Material.Filled.Info" Elevation="2">
-            <MudText Typo="Typo.h6" Class="mb-2">@NoDataTitle</MudText>
-            <MudText Typo="Typo.body2">
-                @NoDataMessage
-            </MudText>
-            <MudText Typo="Typo.body2" Class="mt-2">
-                Ve al <MudLink Href="/dashboard" Color="Color.Primary">@DashboardLink</MudLink> y registra tu primer peso.
-            </MudText>
+        <MudAlert Severity="Severity.Info">
+            No hay suficientes datos para mostrar tendencias. Registra algunos pesos para comenzar.
         </MudAlert>
-    }
-    else if (_logs.Count < 4)
-    {
-        <MudAlert Severity="Severity.Warning" Icon="@Icons.Material.Filled.Warning" Elevation="2" Class="mb-4">
-            <MudText Typo="Typo.h6" Class="mb-2">@LimitedDataTitle</MudText>
-            <MudText Typo="Typo.body2">
-                @((MarkupString)GetLimitedDataMessage(_logs.Count))
-            </MudText>
-            <MudText Typo="Typo.body2" Class="mt-2">
-                @LimitedDataSubMessage
-            </MudText>
-        </MudAlert>
-
-        <!-- Mostrar estadísticas básicas para datos limitados -->
-        <MudGrid>
-            <MudItem xs="12" md="6">
-                <MudCard Elevation="2">
-                    <MudCardHeader>
-                        <CardHeaderContent>
-                            <MudText Typo="Typo.h6">@CurrentStatsTitle</MudText>
-                        </CardHeaderContent>
-                    </MudCardHeader>
-                    <MudCardContent>
-                        <MudSimpleTable Dense="true">
-                            <tbody>
-                                <tr>
-                                    <td><MudText Typo="Typo.body2">@CurrentWeightLabel</MudText></td>
-                                    <td><MudText Typo="Typo.body2"><strong>@_currentWeight.ToString("F1") @KgUnit</strong></MudText></td>
-                                </tr>
-                                @if (_logs.Count > 1)
-                                {
-                                    <tr>
-                                        <td><MudText Typo="Typo.body2">@FirstWeightLabel</MudText></td>
-                                        <td><MudText Typo="Typo.body2">@_logs.First().Weight.ToString("F1") @KgUnit</MudText></td>
-                                    </tr>
-                                    <tr>
-                                        <td><MudText Typo="Typo.body2">@ChangeLabel</MudText></td>
-                                        <td><MudText Typo="Typo.body2" Color="@(_totalChange < 0 ? Color.Success : Color.Warning)">
-                                            @(_totalChange > 0 ? "+" : "")@_totalChange.ToString("F1") @KgUnit
-                                        </MudText></td>
-                                    </tr>
-                                    <tr>
-                                        <td><MudText Typo="Typo.body2">@AverageLabel</MudText></td>
-                                        <td><MudText Typo="Typo.body2">@_overallAverage.ToString("F1") @KgUnit</MudText></td>
-                                    </tr>
-                                }
-                                <tr>
-                                    <td><MudText Typo="Typo.body2">@TotalRecordsLabel</MudText></td>
-                                    <td><MudText Typo="Typo.body2">@_logs.Count</MudText></td>
-                                </tr>
-                            </tbody>
-                        </MudSimpleTable>
-                    </MudCardContent>
-                </MudCard>
-            </MudItem>
-
-            <MudItem xs="12" md="6">
-                <MudCard Elevation="2">
-                    <MudCardHeader>
-                        <CardHeaderContent>
-                            <MudText Typo="Typo.h6">@NextStepsTitle</MudText>
-                        </CardHeaderContent>
-                    </MudCardHeader>
-                    <MudCardContent>
-                        <MudList T="string" Dense="true">
-                            <MudListItem T="string" Icon="@Icons.Material.Filled.Check" IconColor="Color.Success">
-                                <MudText Typo="Typo.body2">@NextStep1</MudText>
-                            </MudListItem>
-                            <MudListItem T="string" Icon="@Icons.Material.Filled.Check" IconColor="Color.Success">
-                                <MudText Typo="Typo.body2">@NextStep2</MudText>
-                            </MudListItem>
-                            <MudListItem T="string" Icon="@Icons.Material.Filled.Check" IconColor="Color.Success">
-                                <MudText Typo="Typo.body2">@NextStep3</MudText>
-                            </MudListItem>
-                            <MudListItem T="string" Icon="@Icons.Material.Filled.ShowChart" IconColor="Color.Primary">
-                                <MudText Typo="Typo.body2">@GetNextStep4(4 - _logs.Count)</MudText>
-                            </MudListItem>
-                        </MudList>
-                    </MudCardContent>
-                </MudCard>
-            </MudItem>
-        </MudGrid>
     }
     else
     {
         <MudGrid>
             <!-- Tarjetas de tendencias -->
             <MudItem xs="12" sm="6" md="3">
-                <TrendCard Title="@Last7Days"
+                <TrendCard Title="Últimos 7 días"
                            CurrentValue="@_last7DaysAvg"
                            PreviousValue="@_previous7DaysAvg"
-                           Unit="@KgUnit"
+                           Unit="kg"
                            Icon="@Icons.Material.Filled.CalendarToday"
                            IconColor="Color.Primary"
                            LowerIsBetter="true" />
             </MudItem>
 
             <MudItem xs="12" sm="6" md="3">
-                <TrendCard Title="@Last30Days"
+                <TrendCard Title="Últimos 30 días"
                            CurrentValue="@_last30DaysAvg"
                            PreviousValue="@_previous30DaysAvg"
-                           Unit="@KgUnit"
+                           Unit="kg"
                            Icon="@Icons.Material.Filled.CalendarMonth"
                            IconColor="Color.Secondary"
                            LowerIsBetter="true" />
             </MudItem>
 
             <MudItem xs="12" sm="6" md="3">
-                <TrendCard Title="@TotalChange"
+                <TrendCard Title="Cambio total"
                            CurrentValue="@_totalChange"
                            PreviousValue="0"
-                           Unit="@KgUnit"
+                           Unit="kg"
                            Icon="@Icons.Material.Filled.ShowChart"
                            IconColor="Color.Tertiary"
                            ShowChange="false" />
             </MudItem>
 
             <MudItem xs="12" sm="6" md="3">
-                <TrendCard Title="@OverallAverage"
+                <TrendCard Title="Promedio General"
                            CurrentValue="@_overallAverage"
                            PreviousValue="@_startingWeight"
-                           Unit="@KgUnit"
+                           Unit="kg"
                            Icon="@Icons.Material.Filled.Analytics"
                            IconColor="Color.Info"
                            LowerIsBetter="true" />
@@ -171,11 +83,11 @@
                 <MudCard Elevation="2">
                     <MudCardHeader>
                         <CardHeaderContent>
-                            <MudText Typo="Typo.h6">@WeightEvolution90Days</MudText>
+                            <MudText Typo="Typo.h6">Evolución del Peso (Últimos 90 días)</MudText>
                         </CardHeaderContent>
                     </MudCardHeader>
                     <MudCardContent>
-                        <WeightChart Data="@_logs" Title="@EvolutionLabel" />
+                        <WeightChart Data="@_logs" Title="Evolución" />
                     </MudCardContent>
                 </MudCard>
             </MudItem>
@@ -185,34 +97,34 @@
                 <MudCard Elevation="2">
                     <MudCardHeader>
                         <CardHeaderContent>
-                            <MudText Typo="Typo.h6">@StatisticsTitle</MudText>
+                            <MudText Typo="Typo.h6">Estadísticas</MudText>
                         </CardHeaderContent>
                     </MudCardHeader>
                     <MudCardContent>
                         <MudSimpleTable Dense="true">
                             <tbody>
                                 <tr>
-                                    <td><MudText Typo="Typo.body2">@CurrentWeightLabel</MudText></td>
-                                    <td><MudText Typo="Typo.body2"><strong>@_currentWeight.ToString("F1") @KgUnit</strong></MudText></td>
+                                    <td><MudText Typo="Typo.body2">Peso actual</MudText></td>
+                                    <td><MudText Typo="Typo.body2"><strong>@_currentWeight.ToString("F1") kg</strong></MudText></td>
                                 </tr>
                                 <tr>
-                                    <td><MudText Typo="Typo.body2">@StartingWeightLabel</MudText></td>
-                                    <td><MudText Typo="Typo.body2">@_startingWeight?.ToString("F1") @KgUnit</MudText></td>
+                                    <td><MudText Typo="Typo.body2">Peso inicial</MudText></td>
+                                    <td><MudText Typo="Typo.body2">@_startingWeight?.ToString("F1") kg</MudText></td>
                                 </tr>
                                 <tr>
-                                    <td><MudText Typo="Typo.body2">@MinWeightLabel</MudText></td>
-                                    <td><MudText Typo="Typo.body2" Color="Color.Success">@_minWeight.ToString("F1") @KgUnit</MudText></td>
+                                    <td><MudText Typo="Typo.body2">Peso mínimo</MudText></td>
+                                    <td><MudText Typo="Typo.body2" Color="Color.Success">@_minWeight.ToString("F1") kg</MudText></td>
                                 </tr>
                                 <tr>
-                                    <td><MudText Typo="Typo.body2">@MaxWeightLabel</MudText></td>
-                                    <td><MudText Typo="Typo.body2" Color="Color.Warning">@_maxWeight.ToString("F1") @KgUnit</MudText></td>
+                                    <td><MudText Typo="Typo.body2">Peso máximo</MudText></td>
+                                    <td><MudText Typo="Typo.body2" Color="Color.Warning">@_maxWeight.ToString("F1") kg</MudText></td>
                                 </tr>
                                 <tr>
-                                    <td><MudText Typo="Typo.body2">@OverallAverageLabel</MudText></td>
-                                    <td><MudText Typo="Typo.body2">@_overallAverage.ToString("F1") @KgUnit</MudText></td>
+                                    <td><MudText Typo="Typo.body2">Promedio general</MudText></td>
+                                    <td><MudText Typo="Typo.body2">@_overallAverage.ToString("F1") kg</MudText></td>
                                 </tr>
                                 <tr>
-                                    <td><MudText Typo="Typo.body2">@TotalRecordsLabel</MudText></td>
+                                    <td><MudText Typo="Typo.body2">Total de registros</MudText></td>
                                     <td><MudText Typo="Typo.body2">@_logs.Count</MudText></td>
                                 </tr>
                             </tbody>
@@ -226,26 +138,27 @@
                 <MudCard Elevation="2">
                     <MudCardHeader>
                         <CardHeaderContent>
-                            <MudText Typo="Typo.h6">@ProjectionTitle</MudText>
+                            <MudText Typo="Typo.h6">Proyección (30 días)</MudText>
                         </CardHeaderContent>
                     </MudCardHeader>
                     <MudCardContent>
                         @if (_projectedWeight.HasValue)
                         {
                             <MudText Typo="Typo.body1" Class="mb-2">
-                                @ProjectionDescription
+                                Basado en tu tendencia actual, en 30 días podrías estar en:
                             </MudText>
                             <MudText Typo="Typo.h4" Color="@GetProjectionColor()">
-                                @_projectedWeight.Value.ToString("F1") @KgUnit
+                                @_projectedWeight.Value.ToString("F1") kg
                             </MudText>
                             <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
-                                @GetEstimatedChange(_projectedChange)
+                                (Cambio estimado: @_projectedChange.ToString("F1") kg)
                             </MudText>
                         }
                         else
                         {
                             <MudText Typo="Typo.body2" Color="Color.Secondary">
-                                @InsufficientDataProjection
+                                No hay suficientes datos para calcular una proyección.
+                                Registra pesos durante varios días para ver una estimación.
                             </MudText>
                         }
                     </MudCardContent>

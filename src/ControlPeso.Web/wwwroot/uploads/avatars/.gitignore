@@ -1,4 +1,0 @@
-# Ignorar todas las imágenes de avatar pero mantener el directorio
-*
-!.gitkeep
-!.gitignore

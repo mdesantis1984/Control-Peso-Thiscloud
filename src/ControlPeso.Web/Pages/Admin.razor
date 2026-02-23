@@ -6,17 +6,17 @@
 @using ControlPeso.Web.Components.Shared
 @using MudBlazor
 
-<PageTitle>@PageTitle</PageTitle>
+<PageTitle>Panel de Administración - Control Peso Thiscloud</PageTitle>
 
 <HeadContent>
-    <meta name="description" content="@MetaDescription" />
-    <meta name="keywords" content="@MetaKeywords" />
+    <meta name="description" content="Panel de administración de Control Peso Thiscloud. Gestiona usuarios, cambia roles y estados, visualiza estadísticas y exporta datos. Acceso solo para administradores." />
+    <meta name="keywords" content="panel administración, gestión usuarios, cambio roles, estadísticas usuarios, exportar datos, admin" />
     <meta name="robots" content="noindex, nofollow" />
     <link rel="canonical" href="https://controlpeso.thiscloud.com.ar/admin" />
 
     @* Open Graph *@
-    <meta property="og:title" content="@OgTitle" />
-    <meta property="og:description" content="@OgDescription" />
+    <meta property="og:title" content="Panel de Administración - Control Peso Thiscloud" />
+    <meta property="og:description" content="Panel de administración para gestión de usuarios y estadísticas del sistema." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://controlpeso.thiscloud.com.ar/admin" />
     <meta property="og:image" content="https://controlpeso.thiscloud.com.ar/images/og-image.png" />
@@ -25,7 +25,7 @@
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <MudText Typo="Typo.h4" Class="mb-4">
         <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Class="mr-2" />
-        @AdminPanelTitle
+        Panel de Administración
     </MudText>
 
     @if (_isLoadingDashboard)
@@ -34,7 +34,7 @@
     }
     else if (_dashboard is null)
     {
-        <MudAlert Severity="Severity.Error">@ErrorLoadingDashboard</MudAlert>
+        <MudAlert Severity="Severity.Error">Error al cargar el dashboard</MudAlert>
     }
     else
     {
@@ -43,7 +43,7 @@
             <!-- Total Users -->
             <MudItem xs="12" sm="6" md="3">
                 <StatsCard 
-                    Title="@TotalUsers"
+                    Title="Total Usuarios"
                     Value="@((decimal)_dashboard.TotalUsers)"
                     Icon="@Icons.Material.Filled.People"
                     Color="Color.Primary" />
@@ -52,7 +52,7 @@
             <!-- Active Users -->
             <MudItem xs="12" sm="6" md="3">
                 <StatsCard 
-                    Title="@ActiveUsers"
+                    Title="Usuarios Activos"
                     Value="@((decimal)_dashboard.ActiveUsers)"
                     Icon="@Icons.Material.Filled.CheckCircle"
                     Color="Color.Success" />
@@ -61,7 +61,7 @@
             <!-- Pending Users -->
             <MudItem xs="12" sm="6" md="3">
                 <StatsCard 
-                    Title="@PendingUsers"
+                    Title="Usuarios Pendientes"
                     Value="@((decimal)_dashboard.PendingUsers)"
                     Icon="@Icons.Material.Filled.HourglassEmpty"
                     Color="Color.Warning" />
@@ -70,7 +70,7 @@
             <!-- Inactive Users -->
             <MudItem xs="12" sm="6" md="3">
                 <StatsCard 
-                    Title="@InactiveUsers"
+                    Title="Usuarios Inactivos"
                     Value="@((decimal)_dashboard.InactiveUsers)"
                     Icon="@Icons.Material.Filled.Block"
                     Color="Color.Error" />
@@ -79,7 +79,7 @@
             <!-- Total Weight Logs -->
             <MudItem xs="12" sm="6" md="4">
                 <StatsCard 
-                    Title="@TotalRecords"
+                    Title="Registros Totales"
                     Value="@((decimal)_dashboard.TotalWeightLogs)"
                     Icon="@Icons.Material.Filled.FitnessCenter"
                     Color="Color.Info" />
@@ -88,7 +88,7 @@
             <!-- Weight Logs Last Week -->
             <MudItem xs="12" sm="6" md="4">
                 <StatsCard 
-                    Title="@Last7Days"
+                    Title="Últimos 7 días"
                     Value="@((decimal)_dashboard.WeightLogsLastWeek)"
                     Icon="@Icons.Material.Filled.CalendarToday"
                     Color="Color.Secondary" />
@@ -97,7 +97,7 @@
             <!-- Weight Logs Last Month -->
             <MudItem xs="12" sm="6" md="4">
                 <StatsCard 
-                    Title="@Last30Days"
+                    Title="Últimos 30 días"
                     Value="@((decimal)_dashboard.WeightLogsLastMonth)"
                     Icon="@Icons.Material.Filled.DateRange"
                     Color="Color.Tertiary" />
@@ -112,7 +112,7 @@
                             <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
                                 <MudStack Spacing="1">
                                     <MudText Typo="Typo.body2" Color="Color.Secondary">
-                                        @LatestRegistration
+                                        Último registro
                                     </MudText>
                                     <MudText Typo="Typo.h6">
                                         @_dashboard.LatestUserRegistration.Value.ToString("dd/MM/yyyy HH:mm")
@@ -132,7 +132,7 @@
                 <CardHeaderContent>
                     <MudText Typo="Typo.h6">
                         <MudIcon Icon="@Icons.Material.Filled.TableChart" Class="mr-2" />
-                        @UserManagementTitle
+                        Gestión de Usuarios
                     </MudText>
                 </CardHeaderContent>
                 <CardHeaderActions>
@@ -148,7 +148,7 @@
                         }
                         else
                         {
-                            <MudText>@ExportButton</MudText>
+                            <MudText>Exportar CSV</MudText>
                         }
                     </MudButton>
                 </CardHeaderActions>
@@ -160,7 +160,7 @@
                         <MudItem xs="12" md="4">
                             <MudTextField 
                                 @bind-Value="_searchTerm"
-                                Label="@SearchPlaceholder"
+                                Label="Buscar por nombre o email"
                                 Variant="Variant.Outlined"
                                 Adornment="Adornment.Start"
                                 AdornmentIcon="@Icons.Material.Filled.Search"
@@ -172,25 +172,25 @@
                             <MudSelect 
                                 T="UserRole?"
                                 @bind-Value="_filterRole"
-                                Label="@FilterByRole"
+                                Label="Filtrar por Rol"
                                 Variant="Variant.Outlined"
                                 Clearable="true"
                                 OnClearButtonClick="@(() => { _filterRole = null; _grid?.ReloadServerData(); })">
-                                <MudSelectItem T="UserRole?" Value="@UserRole.User">@RoleUser</MudSelectItem>
-                                <MudSelectItem T="UserRole?" Value="@UserRole.Administrator">@RoleAdministrator</MudSelectItem>
+                                <MudSelectItem T="UserRole?" Value="@UserRole.User">Usuario</MudSelectItem>
+                                <MudSelectItem T="UserRole?" Value="@UserRole.Administrator">Administrador</MudSelectItem>
                             </MudSelect>
                         </MudItem>
                         <MudItem xs="12" md="3">
                             <MudSelect 
                                 T="UserStatus?"
                                 @bind-Value="_filterStatus"
-                                Label="@FilterByStatus"
+                                Label="Filtrar por Estado"
                                 Variant="Variant.Outlined"
                                 Clearable="true"
                                 OnClearButtonClick="@(() => { _filterStatus = null; _grid?.ReloadServerData(); })">
-                                <MudSelectItem T="UserStatus?" Value="@UserStatus.Active">@StatusActive</MudSelectItem>
-                                <MudSelectItem T="UserStatus?" Value="@UserStatus.Inactive">@StatusInactive</MudSelectItem>
-                                <MudSelectItem T="UserStatus?" Value="@UserStatus.Pending">@StatusPending</MudSelectItem>
+                                <MudSelectItem T="UserStatus?" Value="@UserStatus.Active">Activo</MudSelectItem>
+                                <MudSelectItem T="UserStatus?" Value="@UserStatus.Inactive">Inactivo</MudSelectItem>
+                                <MudSelectItem T="UserStatus?" Value="@UserStatus.Pending">Pendiente</MudSelectItem>
                             </MudSelect>
                         </MudItem>
                         <MudItem xs="12" md="2">
@@ -200,7 +200,7 @@
                                 StartIcon="@Icons.Material.Filled.Clear"
                                 FullWidth="true"
                                 OnClick="@ClearFilters">
-                                @ClearFiltersButton
+                                Limpiar
                             </MudButton>
                         </MudItem>
                     </MudGrid>
@@ -216,7 +216,7 @@
                     Striped="true"
                     Loading="@_isLoadingGrid">
                     <Columns>
-                        <PropertyColumn Property="x => x.AvatarUrl" Title="@ColumnAvatar" Sortable="false">
+                        <PropertyColumn Property="x => x.AvatarUrl" Title="Avatar" Sortable="false">
                             <CellTemplate>
                                 @if (!string.IsNullOrEmpty(context.Item.AvatarUrl))
                                 {
@@ -231,21 +231,21 @@
                             </CellTemplate>
                         </PropertyColumn>
 
-                        <PropertyColumn Property="x => x.Name" Title="@ColumnName" />
+                        <PropertyColumn Property="x => x.Name" Title="Nombre" />
 
-                        <PropertyColumn Property="x => x.Email" Title="@ColumnEmail" />
+                        <PropertyColumn Property="x => x.Email" Title="Email" />
 
-                        <PropertyColumn Property="x => x.Role" Title="@ColumnRole">
+                        <PropertyColumn Property="x => x.Role" Title="Rol">
                             <CellTemplate>
                                 <MudChip 
                                     Size="Size.Small" 
                                     Color="@GetRoleColor(context.Item.Role)">
-                                    @(context.Item.Role == UserRole.Administrator ? RoleAdminShort : RoleUser)
+                                    @(context.Item.Role == UserRole.Administrator ? "Admin" : "Usuario")
                                 </MudChip>
                             </CellTemplate>
                         </PropertyColumn>
 
-                        <PropertyColumn Property="x => x.Status" Title="@ColumnStatus">
+                        <PropertyColumn Property="x => x.Status" Title="Estado">
                             <CellTemplate>
                                 <MudChip 
                                     Size="Size.Small" 
@@ -255,9 +255,9 @@
                             </CellTemplate>
                         </PropertyColumn>
 
-                        <PropertyColumn Property="x => x.MemberSince" Title="@ColumnRegistration" Format="dd/MM/yyyy" />
+                        <PropertyColumn Property="x => x.MemberSince" Title="Registro" Format="dd/MM/yyyy" />
 
-                        <TemplateColumn Title="@ColumnActions" Sortable="false">
+                        <TemplateColumn Title="Acciones" Sortable="false">
                             <CellTemplate>
                                 <MudStack Row="true" Spacing="1">
                                     <MudIconButton 
@@ -265,13 +265,13 @@
                                         Size="Size.Small" 
                                         Color="Color.Primary"
                                         OnClick="@(() => OpenChangeRoleDialog(context.Item))"
-                                        title="@ChangeRoleButtonTitle" />
+                                        title="Cambiar Rol" />
                                     <MudIconButton 
                                         Icon="@Icons.Material.Filled.ToggleOn" 
                                         Size="Size.Small" 
                                         Color="Color.Secondary"
                                         OnClick="@(() => OpenChangeStatusDialog(context.Item))"
-                                        title="@ChangeStatusButtonTitle" />
+                                        title="Cambiar Estado" />
                                 </MudStack>
                             </CellTemplate>
                         </TemplateColumn>
@@ -281,7 +281,7 @@
                     </PagerContent>
                     <NoRecordsContent>
                         <MudText Typo="Typo.body1" Color="Color.Secondary" Align="Align.Center" Class="pa-4">
-                            @NoUsersFound
+                            No se encontraron usuarios
                         </MudText>
                     </NoRecordsContent>
                 </MudDataGrid>

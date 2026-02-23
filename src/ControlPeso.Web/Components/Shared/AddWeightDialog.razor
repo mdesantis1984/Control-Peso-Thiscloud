@@ -1,100 +1,66 @@
 @namespace ControlPeso.Web.Components.Shared
 @using MudBlazor
 
-<MudDialog MaxWidth="MaxWidth.Small" Class="add-weight-dialog">
+<MudDialog>
     <TitleContent>
-        <MudStack Spacing="1">
-            <MudText Typo="Typo.h6" Class="font-weight-bold">
-                <MudIcon Icon="@Icons.Material.Filled.MonitorWeight" Class="mr-2" />
-                @DialogTitle
-            </MudText>
-            <MudText Typo="Typo.body2" Color="Color.Secondary">
-                @DialogSubtitle
-            </MudText>
-        </MudStack>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.MonitorWeight" Class="mr-2" />
+            Registrar Peso
+        </MudText>
     </TitleContent>
     <DialogContent>
         <MudForm @ref="_form" @bind-IsValid="@_isValid">
-            <MudStack Spacing="3">
-                @* Weight Input con Adornment clickeable kg/lb *@
-                <MudTextField @bind-Value="_weightText"
-                              Label="@WeightLabel"
-                              Required="true"
-                              Variant="Variant.Outlined"
-                              Adornment="Adornment.End"
-                              AdornmentText="@(_isKg ? "Kg" : "Lb")"
-                              AdornmentColor="Color.Primary"
-                              OnAdornmentClick="ToggleUnit"
-                              AdornmentAriaLabel="@ToggleUnitAriaLabel"
-                              HelperText="@UnitHelperText"
-                              Placeholder="@WeightPlaceholder"
-                              InputType="InputType.Number"
-                              Margin="Margin.Dense" />
+            <MudDatePicker Label="Fecha"
+                           @bind-Date="_date"
+                           Required="true"
+                           MaxDate="DateTime.Today"
+                           Color="Color.Primary"
+                           Variant="Variant.Outlined"
+                           Class="mb-4" />
 
-                @* Date and Time - Responsive Grid *@
-                <MudGrid Spacing="2">
-                    <MudItem xs="12" sm="6">
-                        <MudDatePicker Label="@DateLabel"
-                                       @bind-Date="_date"
-                                       Required="true"
-                                       MaxDate="DateTime.Today"
-                                       Color="Color.Primary"
-                                       Variant="Variant.Outlined"
-                                       Margin="Margin.Dense" />
-                    </MudItem>
+            <MudTimePicker Label="Hora"
+                           @bind-Time="_time"
+                           Required="true"
+                           Color="Color.Primary"
+                           Variant="Variant.Outlined"
+                           Class="mb-4"
+                           AmPm="false" />
 
-                    <MudItem xs="12" sm="6">
-                        <MudTimePicker Label="@TimeLabel"
-                                       @bind-Time="_time"
-                                       Required="true"
-                                       Color="Color.Primary"
-                                       Variant="Variant.Outlined"
-                                       Margin="Margin.Dense"
-                                       AmPm="true" />
-                    </MudItem>
-                </MudGrid>
+            <MudNumericField @bind-Value="_weight"
+                             Label="Peso"
+                             Adornment="Adornment.End"
+                             AdornmentText="kg"
+                             Required="true"
+                             Min="20"
+                             Max="500"
+                             Step="0.1M"
+                             Variant="Variant.Outlined"
+                             Class="mb-4"
+                             HelperText="Ingrese su peso en kilogramos" />
 
-                @* Notes Field *@
-                <MudTextField @bind-Value="_note"
-                              Label="@NotesLabel"
-                              Lines="3"
-                              MaxLength="500"
-                              Variant="Variant.Outlined"
-                              Placeholder="@NotesPlaceholder"
-                              HelperText="@NotesHelperText"
-                              Margin="Margin.Dense" />
-
-                @* Info Badge *@
-                <MudAlert Severity="Severity.Info" 
-                          Dense="true" 
-                          NoIcon="false"
-                          Variant="Variant.Text">
-                    <MudText Typo="Typo.caption">
-                        @InfoMessage
-                    </MudText>
-                </MudAlert>
-            </MudStack>
+            <MudTextField @bind-Value="_note"
+                          Label="Nota (opcional)"
+                          Lines="3"
+                          MaxLength="500"
+                          Variant="Variant.Outlined"
+                          Counter="500"
+                          HelperText="Agregue una nota sobre su registro" />
         </MudForm>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel" 
-                   Variant="Variant.Text"
-                   Color="Color.Default">
-            @CancelButton
+                   Variant="Variant.Text">
+            Cancelar
         </MudButton>
         <MudButton Color="Color.Primary" 
                    Variant="Variant.Filled" 
-                   StartIcon="@Icons.Material.Filled.Save"
                    OnClick="Submit"
                    Disabled="@(!_isValid || _isSubmitting)">
             @if (_isSubmitting)
             {
                 <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
             }
-            else
-            {
-                <span>@SaveButton</span>
-            }
+            Guardar
         </MudButton>
     </DialogActions>
 </MudDialog>

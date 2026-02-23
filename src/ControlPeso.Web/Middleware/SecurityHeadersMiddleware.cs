@@ -7,76 +7,42 @@ namespace ControlPeso.Web.Middleware;
 public sealed class SecurityHeadersMiddleware
 {
     private readonly RequestDelegate _next;
-    private readonly ILogger<SecurityHeadersMiddleware> _logger;
 
-    public SecurityHeadersMiddleware(RequestDelegate next, ILogger<SecurityHeadersMiddleware> logger)
+    public SecurityHeadersMiddleware(RequestDelegate next)
     {
         ArgumentNullException.ThrowIfNull(next);
-        ArgumentNullException.ThrowIfNull(logger);
-
         _next = next;
-        _logger = logger;
     }
 
     public Task InvokeAsync(HttpContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        // NO aplicar CSP a archivos estáticos (imágenes, CSS, JS, fuentes)
-        // Esto permite que las imágenes de /uploads/avatars/ se carguen sin restricciones
-        var path = context.Request.Path.Value?.ToLowerInvariant() ?? string.Empty;
-        var isStaticFile = path.StartsWith("/uploads/") || 
-                          path.StartsWith("/_content/") || 
-                          path.StartsWith("/css/") || 
-                          path.StartsWith("/js/") || 
-                          path.StartsWith("/images/") ||
-                          path.StartsWith("/fonts/") ||
-                          path.EndsWith(".css") || 
-                          path.EndsWith(".js") || 
-                          path.EndsWith(".png") || 
-                          path.EndsWith(".jpg") || 
-                          path.EndsWith(".jpeg") || 
-                          path.EndsWith(".gif") || 
-                          path.EndsWith(".svg") || 
-                          path.EndsWith(".ico") ||
-                          path.EndsWith(".woff") ||
-                          path.EndsWith(".woff2") ||
-                          path.EndsWith(".ttf") ||
-                          path.EndsWith(".eot");
+        // X-Content-Type-Options: Previene MIME type sniffing
+        // El navegador debe respetar el Content-Type declarado
+        context.Response.Headers["X-Content-Type-Options"] = "nosniff";
 
-        if (!isStaticFile)
-        {
-            // Solo aplicar headers de seguridad a respuestas HTML/API
+        // X-Frame-Options: Previene clickjacking
+        // DENY: La página NO puede ser embebida en iframes
+        context.Response.Headers["X-Frame-Options"] = "DENY";
 
-            // X-Content-Type-Options: Previene MIME type sniffing
-            // El navegador debe respetar el Content-Type declarado
-            context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+        // X-XSS-Protection: Deshabilitado (legacy, reemplazado por CSP)
+        // Valor "0" previene activación inconsistente en navegadores antiguos
+        context.Response.Headers["X-XSS-Protection"] = "0";
 
-            // X-Frame-Options: Previene clickjacking
-            // DENY: La página NO puede ser embebida en iframes
-            context.Response.Headers["X-Frame-Options"] = "DENY";
+        // Referrer-Policy: Controla qué información de referrer se envía
+        // strict-origin-when-cross-origin: Envía origin completo solo en same-origin
+        context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
 
-            // X-XSS-Protection: Deshabilitado (legacy, reemplazado por CSP)
-            // Valor "0" previene activación inconsistente en navegadores antiguos
-            context.Response.Headers["X-XSS-Protection"] = "0";
+        // Permissions-Policy: Controla qué APIs del navegador pueden usarse
+        // Deshabilita APIs no necesarias (cámara, micrófono, geolocalización, etc)
+        context.Response.Headers["Permissions-Policy"] = 
+            "camera=(), microphone=(), geolocation=(), payment=(), usb=()";
 
-            // Referrer-Policy: Controla qué información de referrer se envía
-            // strict-origin-when-cross-origin: Envía origin completo solo en same-origin
-            context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
-
-            // Permissions-Policy: Controla qué APIs del navegador pueden usarse
-            // Deshabilita APIs no necesarias (cámara, micrófono, geolocalización, etc)
-            context.Response.Headers["Permissions-Policy"] = 
-                "camera=(), microphone=(), geolocation=(), payment=(), usb=()";
-
-            // Content-Security-Policy: Política de seguridad de contenido
-            // Define fuentes permitidas para scripts, estilos, imágenes, etc
-            var csp = BuildContentSecurityPolicy();
-            context.Response.Headers["Content-Security-Policy"] = csp;
-
-            // DEBUG: Log CSP to verify it's being applied correctly
-            _logger.LogDebug("CSP applied to {Path}: {CSP}", path, csp);
-        }
+        // Content-Security-Policy: Política de seguridad de contenido
+        // Define fuentes permitidas para scripts, estilos, imágenes, etc
+        var csp = BuildContentSecurityPolicy();
+        context.Response.Headers["Content-Security-Policy"] = csp;
 
         return _next(context);
     }
@@ -113,16 +79,14 @@ public sealed class SecurityHeadersMiddleware
             // data: Data URIs (usado por MudBlazor para iconos)
             // https://*.googleusercontent.com: Avatares de Google OAuth
             // https://*.licdn.com: Avatares de LinkedIn OAuth
-            // https://flagcdn.com: Banderas de países (Flagpedia API - w40, w20, etc)
-            "img-src 'self' data: https://*.googleusercontent.com https://*.licdn.com https://flagcdn.com",
+            "img-src 'self' data: https://*.googleusercontent.com https://*.licdn.com",
 
             // connect-src: Conexiones AJAX/WebSocket permitidas
             // 'self': Conexiones al mismo origen
             // wss:: WebSocket (requerido por Blazor Server SignalR)
-            // https://www.googletagmanager.com: Google Tag Manager (gtag.js)
             // https://*.google-analytics.com: Google Analytics (incluye region1, region2, etc.)
             // https://cloudflareinsights.com: Cloudflare Analytics
-            "connect-src 'self' wss: https://www.googletagmanager.com https://*.google-analytics.com https://cloudflareinsights.com",
+            "connect-src 'self' wss: https://*.google-analytics.com https://cloudflareinsights.com",
 
             // frame-ancestors: Quién puede embeber esta página en iframe
             // 'none': Nadie puede embeber (equivalente a X-Frame-Options: DENY)

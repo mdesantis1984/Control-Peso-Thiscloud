@@ -4,76 +4,21 @@ using ControlPeso.Web.Components;
 using ControlPeso.Web.Extensions;
 using ControlPeso.Web.Middleware;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Components.Server;
-using Microsoft.AspNetCore.Components.Server.Circuits;
 using MudBlazor.Services;
 using System.Threading.RateLimiting;
-using Serilog;
-using Serilog.Events;
 using ThisCloud.Framework.Loggings.Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure ThisCloud.Framework.Loggings.Serilog
-// This should write to logs/controlpeso-.ndjson
+// 1. Configure Serilog FIRST (before any other service registration)
 builder.Host.UseThisCloudFrameworkSerilog(
     builder.Configuration,
     serviceName: "ControlPeso.Thiscloud");
 
-// Register ThisCloud logging services
+// 2. Register ThisCloud logging services
 builder.Services.AddThisCloudFrameworkLoggings(
     builder.Configuration,
     serviceName: "ControlPeso.Thiscloud");
-
-// Log immediately after registration to verify initialization
-Log.Information("ThisCloud.Framework.Loggings initialized successfully");
-
-// ============================================================================
-// 2. LOCALIZATION CONFIGURATION (FASE 10)
-// ============================================================================
-
-// 2.1. Add Localization services
-builder.Services.AddLocalization(options =>
-{
-    // ResourcesPath: carpeta donde se buscan los archivos .resx
-    // Relativo a la raíz del proyecto Web
-    options.ResourcesPath = "Resources";
-});
-
-// 2.2. Configure supported cultures
-var supportedCultures = new[]
-{
-    new System.Globalization.CultureInfo("es-AR"),  // Español (Argentina) - DEFAULT
-    new System.Globalization.CultureInfo("en-US")   // English (United States)
-};
-
-builder.Services.Configure<Microsoft.AspNetCore.Builder.RequestLocalizationOptions>(options =>
-{
-    // Cultura default si no se puede determinar la del usuario
-    options.DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture("es-AR");
-
-    // Culturas soportadas para formateo de números, fechas, monedas
-    options.SupportedCultures = supportedCultures;
-
-    // Culturas soportadas para textos de UI (IStringLocalizer)
-    options.SupportedUICultures = supportedCultures;
-
-    // Request culture provider order (intenta en este orden):
-    // 1. CookieRequestCultureProvider: Cookie persistida por LanguageSelector
-    // 2. AcceptLanguageHeaderRequestCultureProvider: Browser default (Accept-Language header)
-    // 3. DefaultRequestCulture: es-AR (fallback final)
-    options.RequestCultureProviders = new Microsoft.AspNetCore.Localization.IRequestCultureProvider[]
-    {
-        new Microsoft.AspNetCore.Localization.CookieRequestCultureProvider(),
-        new Microsoft.AspNetCore.Localization.AcceptLanguageHeaderRequestCultureProvider()
-    };
-
-    // Nombre de la cookie (default: .AspNetCore.Culture)
-    // Personalizamos para claridad en DevTools
-    options.SetDefaultCulture("es-AR");
-});
-
-// ============================================================================
 
 // 3. Register Infrastructure services (DbContext, repositories)
 builder.Services.AddInfrastructureServices(builder.Configuration, builder.Environment);
@@ -81,57 +26,12 @@ builder.Services.AddInfrastructureServices(builder.Configuration, builder.Enviro
 // 4. Register Application services (business logic, DTOs, validators)
 builder.Services.AddApplicationServices();
 
-// 5. Add Blazor services with SignalR configuration for debugging
+// 5. Add Blazor services
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// 5.0.5. Configure Blazor Server options for large payloads (image cropping)
-builder.Services.AddServerSideBlazor(options =>
-{
-    // DEBUGGING: Enable detailed errors to see JavaScript exceptions in logs
-    options.DetailedErrors = builder.Environment.IsDevelopment();
-
-    // Increase timeouts to prevent premature disconnections during debugging
-    options.DisconnectedCircuitRetentionPeriod = TimeSpan.FromMinutes(3);
-    options.DisconnectedCircuitMaxRetained = 100;
-    options.JSInteropDefaultCallTimeout = TimeSpan.FromMinutes(1);
-
-    // CRÍTICO: Increase buffered batches for large DialogResult payloads
-    // Default 10 is too small for Base64 images from MudDialog
-    // Set to 50 to accommodate cropped images (typically 20-500KB as Base64)
-    options.MaxBufferedUnacknowledgedRenderBatches = 50;
-});
-
-// 5.0.6. Configure Circuit Options for large message payloads
-builder.Services.Configure<CircuitOptions>(options =>
-{
-    // CRÍTICO: Must also configure CircuitOptions (used by Blazor Server rendering)
-    // This setting affects the SignalR circuit used for component communication
-    options.MaxBufferedUnacknowledgedRenderBatches = 50;
-});
-
-// 5.1. Add Circuit Handler for global error monitoring in Blazor Server
-builder.Services.AddScoped<CircuitHandler, ControlPeso.Web.Services.GlobalCircuitHandler>();
-
-// 5.5. Add HttpContextAccessor (necesario para cookies en Blazor Server)
-builder.Services.AddHttpContextAccessor();
-
 // 6. Add MudBlazor services
 builder.Services.AddMudServices();
-
-// 6.5. Add Theme Service (gestión de tema con persistencia en cookies)
-builder.Services.AddScoped<ControlPeso.Web.Services.ThemeService>();
-
-// 6.5.5. Add User Notification Service (wrapper para Snackbar con verificación de preferencias)
-builder.Services.AddScoped<ControlPeso.Web.Services.NotificationService>();
-
-// 6.6. Add Notification Services (Telegram)
-builder.Services.AddHttpClient<ControlPeso.Web.Services.INotificationService, ControlPeso.Web.Services.TelegramNotificationService>();
-builder.Services.Configure<ControlPeso.Web.Services.TelegramOptions>(
-    builder.Configuration.GetSection(ControlPeso.Web.Services.TelegramOptions.ConfigSection));
-
-// 6.7. Add User State Service (shared state across components)
-builder.Services.AddScoped<ControlPeso.Web.Services.UserStateService>();
 
 // 7. Add Authentication & Authorization (Google OAuth + LinkedIn OAuth)
 builder.Services.AddOAuthAuthentication(builder.Configuration);
@@ -170,35 +70,15 @@ builder.Services.AddRateLimiter(options =>
 
 var app = builder.Build();
 
-// 1. Global exception handler - catches unhandled exceptions and sends to Telegram
+// 1. Global exception handler - MUST BE FIRST middleware to catch all exceptions
 app.UseGlobalExceptionHandler();
-app.Logger.LogInformation("=== APP BUILT SUCCESSFULLY ===");
 
 // Seed database in Development environment
 if (app.Environment.IsDevelopment())
 {
-    try
-    {
-        using var scope = app.Services.CreateScope();
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-
-        logger.LogInformation("=== DATABASE SEEDING START ===");
-
-        var seeder = scope.ServiceProvider.GetRequiredService<ControlPeso.Infrastructure.Data.IDbSeeder>();
-
-        logger.LogInformation("DbSeeder instance created successfully");
-
-        await seeder.SeedAsync();
-
-        logger.LogInformation("=== DATABASE SEEDING COMPLETED ===");
-    }
-    catch (Exception ex)
-    {
-        // Log the error but DON'T crash the app
-        var logger = app.Services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "=== DATABASE SEEDING FAILED - App will continue without seed data ===");
-        // Continue execution - the app should work even if seeding fails
-    }
+    using var scope = app.Services.CreateScope();
+    var seeder = scope.ServiceProvider.GetRequiredService<ControlPeso.Infrastructure.Data.IDbSeeder>();
+    await seeder.SeedAsync();
 }
 
 // Configure the HTTP request pipeline.
@@ -211,36 +91,13 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// 2. Static files - serve BEFORE security headers to avoid CSP blocking local uploads
-app.UseStaticFiles();
-
-// 3. Security headers - after static files, before authentication
+// 2. Security headers - after HTTPS redirection, before authentication
 app.UseSecurityHeaders();
 
-// 4. Rate limiting - protect against brute force attacks
+// 3. Rate limiting - protect against brute force attacks
 app.UseRateLimiter();
 
-// 5. Request duration tracking - identify slow operations
-app.UseRequestDurationTracking();
-
-// ============================================================================
-// 6. LOCALIZATION MIDDLEWARE (FASE 10)
-// CRÍTICO: UseRequestLocalization DEBE ir:
-// - DESPUÉS de UseStaticFiles (para no procesar archivos estáticos)
-// - ANTES de UseAuthentication (para que claims tengan cultura correcta)
-// - ANTES de MapRazorComponents (para que componentes tengan cultura correcta)
-// ============================================================================
-app.UseRequestLocalization(
-    app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<Microsoft.AspNetCore.Builder.RequestLocalizationOptions>>().Value
-);
-
 app.UseAuthentication();
-
-// DEVELOPMENT ONLY: Fake authentication middleware para bypass Google OAuth durante debugging con Chrome MCP
-// Google detecta Chrome automatizado (MCP) como bot y bloquea login
-// Este middleware simula usuario autenticado para permitir testing de páginas [Authorize]
-app.UseDevelopmentAuth(app.Environment);
-
 app.UseAuthorization();
 
 app.UseAntiforgery();
@@ -262,16 +119,5 @@ app.MapGet("/health", () => Results.Ok(new
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
-
-// Capture application stopping event to ensure logs are flushed
-var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
-lifetime.ApplicationStopping.Register(() =>
-{
-    var shutdownLogger = app.Services.GetRequiredService<ILogger<Program>>();
-    shutdownLogger.LogInformation("Application shutting down - flushing logs");
-
-    // Force Serilog flush (if using Serilog.Log static)
-    Serilog.Log.CloseAndFlush();
-});
 
 app.Run();

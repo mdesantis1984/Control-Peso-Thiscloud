@@ -1,13 +1,10 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Localization;
 using MudBlazor;
 
 namespace ControlPeso.Web.Components.Shared;
 
 public partial class TrendCard
 {
-    [Inject] private IStringLocalizer<TrendCard> Localizer { get; set; } = null!;
-
     [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
     [Parameter, EditorRequired] public decimal CurrentValue { get; set; }
     [Parameter] public decimal? PreviousValue { get; set; }
@@ -22,9 +19,6 @@ public partial class TrendCard
     /// Para otras métricas: false = mayor es mejor (verde cuando sube)
     /// </summary>
     [Parameter] public bool LowerIsBetter { get; set; } = true;
-
-    // Localized Properties
-    private string NoPreviousData => Localizer[nameof(NoPreviousData)];
 
     private decimal? PercentageChange
     {
@@ -69,7 +63,7 @@ public partial class TrendCard
     private string GetChangeText()
     {
         if (PercentageChange is null)
-            return NoPreviousData;
+            return "Sin datos previos";
 
         var absChange = Math.Abs(PercentageChange.Value);
         var direction = PercentageChange > 0 ? "↑" : "↓";

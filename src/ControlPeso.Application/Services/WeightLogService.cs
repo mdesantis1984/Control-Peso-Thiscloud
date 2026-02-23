@@ -1,7 +1,6 @@
 using ControlPeso.Application.DTOs;
 using ControlPeso.Application.Filters;
 using ControlPeso.Application.Interfaces;
-using ControlPeso.Application.Logging;
 using ControlPeso.Application.Mapping;
 using ControlPeso.Domain.Entities;
 using ControlPeso.Domain.Enums;
@@ -32,7 +31,6 @@ public sealed class WeightLogService : IWeightLogService
 
     public async Task<WeightLogDto?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
-        using var scope = _logger.BeginBusinessScope("GetWeightLogById");
         _logger.LogInformation("Getting weight log by Id: {WeightLogId}", id);
 
         try
@@ -79,10 +77,9 @@ public sealed class WeightLogService : IWeightLogService
                 var startDateStr = filter.DateRange.StartDate.ToString("yyyy-MM-dd");
                 var endDateStr = filter.DateRange.EndDate.ToString("yyyy-MM-dd");
 
-                // Direct string comparison works correctly with ISO 8601 format (YYYY-MM-DD) in SQLite
                 query = query.Where(w =>
-                    w.Date.CompareTo(startDateStr) >= 0
-                    && w.Date.CompareTo(endDateStr) <= 0);
+                    string.Compare(w.Date, startDateStr, StringComparison.Ordinal) >= 0
+                    && string.Compare(w.Date, endDateStr, StringComparison.Ordinal) <= 0);
             }
 
             // Apply sorting
@@ -249,12 +246,11 @@ public sealed class WeightLogService : IWeightLogService
             var startDateStr = range.StartDate.ToString("yyyy-MM-dd");
             var endDateStr = range.EndDate.ToString("yyyy-MM-dd");
 
-            // Direct string comparison works correctly with ISO 8601 format (YYYY-MM-DD) in SQLite
             var weights = await _context.Set<WeightLogs>()
                 .AsNoTracking()
                 .Where(w => w.UserId == userId.ToString()
-                    && w.Date.CompareTo(startDateStr) >= 0
-                    && w.Date.CompareTo(endDateStr) <= 0)
+                    && string.Compare(w.Date, startDateStr, StringComparison.Ordinal) >= 0
+                    && string.Compare(w.Date, endDateStr, StringComparison.Ordinal) <= 0)
                 .Select(w => w.Weight)
                 .ToListAsync(ct);
 
@@ -316,11 +312,10 @@ public sealed class WeightLogService : IWeightLogService
     {
         var beforeDateStr = beforeDate.ToString("yyyy-MM-dd");
 
-        // Direct string comparison works correctly with ISO 8601 format (YYYY-MM-DD) in SQLite
         var lastWeight = await _context.Set<WeightLogs>()
             .AsNoTracking()
             .Where(w => w.UserId == userId.ToString()
-                && w.Date.CompareTo(beforeDateStr) < 0)
+                && string.Compare(w.Date, beforeDateStr, StringComparison.Ordinal) < 0)
             .OrderByDescending(w => w.Date)
             .ThenByDescending(w => w.Time)
             .Select(w => (double?)w.Weight)

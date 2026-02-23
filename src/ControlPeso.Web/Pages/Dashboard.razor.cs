@@ -4,9 +4,7 @@ using ControlPeso.Application.Interfaces;
 using ControlPeso.Web.Components.Shared;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.Extensions.Localization;
 using MudBlazor;
-using System.Security.Claims;
 
 namespace ControlPeso.Web.Pages;
 
@@ -17,103 +15,24 @@ namespace ControlPeso.Web.Pages;
 /// </summary>
 public partial class Dashboard
 {
-    [Inject] private IStringLocalizer<Dashboard> Localizer { get; set; } = null!;
     [Inject] private IWeightLogService WeightLogService { get; set; } = null!;
     [Inject] private IUserService UserService { get; set; } = null!;
     [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
-    [Inject] private NavigationManager Navigation { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
-    [Inject] private Services.NotificationService Snackbar { get; set; } = null!; // User notification service con verificación de preferencias
+    [Inject] private ISnackbar Snackbar { get; set; } = null!;
     [Inject] private ILogger<Dashboard> Logger { get; set; } = null!;
 
     private decimal _currentWeight = 0;
     private decimal _weeklyChange = 0;
     private decimal? _goalWeight = 0;
-    private decimal _startingWeight = 0;
     private decimal _progress = 0;
 
     private List<WeightLogDto> _weightLogs = new();
-    private List<WeightLogDto> _filteredWeightLogs = new();
-    private List<WeightLogDto> _filteredTableLogs = new();
     private List<WeightLogDto> _recentLogs = new();
     private WeightStatsDto? _stats = null;
 
     private Guid _currentUserId;
-    private string _userName = string.Empty;
     private bool _isLoading = true;
-
-    // Period selector state
-    private int _selectedPeriod = 30; // Default: 1M
-
-    // Search functionality
-    private string _searchString = string.Empty;
-
-    // ========================================================================
-    // LOCALIZED PROPERTIES
-    // ========================================================================
-
-    // Page metadata
-    private string PageTitle => Localizer["PageTitle"];
-    private string MetaDescription => Localizer["MetaDescription"];
-    private string MetaKeywords => Localizer["MetaKeywords"];
-    private string OgTitle => Localizer["OgTitle"];
-    private string OgDescription => Localizer["OgDescription"];
-
-    // Empty state
-    private string WelcomeTitle => Localizer["WelcomeTitle"];
-    private string WelcomeSubtitle => Localizer["WelcomeSubtitle"];
-    private string WelcomeDescription => Localizer["WelcomeDescription"];
-    private string AddFirstWeightButton => Localizer["AddFirstWeightButton"];
-
-    // Header section
-    private string WelcomeBack => Localizer["WelcomeBack", _userName];
-    private string ProgressSubtitle => Localizer["ProgressSubtitle"];
-    private string ExportButton => Localizer["ExportButton"];
-
-    // Stats cards
-    private string CurrentWeightLabel => Localizer["CurrentWeightLabel"];
-    private string LastMeasured => Localizer["LastMeasured", GetLastMeasuredText()];
-    private string WeeklyChangeLabel => Localizer["WeeklyChangeLabel"];
-    private string OnTrack => Localizer["OnTrack"];
-    private string AboveTarget => Localizer["AboveTarget"];
-    private string GoalProgressLabel => Localizer["GoalProgressLabel"];
-    private string ToTarget => Localizer["ToTarget", GetRemainingWeight()];
-
-    // Chart section
-    private string WeightEvolutionTitle => Localizer["WeightEvolutionTitle"];
-    private string WeightEvolutionSubtitle => Localizer["WeightEvolutionSubtitle"];
-    private string Period1W => Localizer["Period1W"];
-    private string Period1M => Localizer["Period1M"];
-    private string Period3M => Localizer["Period3M"];
-    private string PeriodAll => Localizer["PeriodAll"];
-
-    // Table section
-    private string MeasurementLogTitle => Localizer["MeasurementLogTitle"];
-    private string SearchPlaceholder => Localizer["SearchPlaceholder"];
-    private string TableHeaderDateTime => Localizer["TableHeaderDateTime"];
-    private string TableHeaderWeight => Localizer["TableHeaderWeight"];
-    private string TableHeaderTrend => Localizer["TableHeaderTrend"];
-    private string TableHeaderNotes => Localizer["TableHeaderNotes"];
-    private string TableHeaderActions => Localizer["TableHeaderActions"];
-    private string PagerShowing => Localizer["PagerShowing", Math.Min(_filteredTableLogs.Count, 1), Math.Min(_filteredTableLogs.Count, 5), _filteredTableLogs.Count];
-
-    // Accessibility
-    private string FabAriaLabel => Localizer["FabAriaLabel"];
-    private string MoreActionsAriaLabel => Localizer["MoreActionsAriaLabel"];
-
-    // Error messages
-    private string ErrorLoadingDashboard => Localizer["ErrorLoadingDashboard"];
-    private string ErrorLoadingData(string details) => Localizer["ErrorLoadingData", details];
-
-    // Success/info messages
-    private string ExportComingSoon => Localizer["ExportComingSoon"];
-    private string AddWeightDialogTitle => Localizer["AddWeightDialogTitle"];
-    private string WeightSavedSuccess => Localizer["WeightSavedSuccess"];
-
-    // Relative time
-    private string TimeAgoMinutes => Localizer["TimeAgoMinutes"];
-    private string TimeAgoHours(int hours) => Localizer["TimeAgoHours", hours];
-    private string TimeAgoDays(int days) => Localizer["TimeAgoDays", days];
 
     protected override async Task OnInitializedAsync()
     {
@@ -122,21 +41,12 @@ public partial class Dashboard
         try
         {
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-
-            // Verificar si el usuario está autenticado
-            if (!authState.User.Identity?.IsAuthenticated ?? true)
-            {
-                Logger.LogWarning("Dashboard: User is not authenticated - Redirecting to login");
-                Navigation.NavigateTo("/login", forceLoad: true);
-                return;
-            }
-
-            var userIdClaim = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userIdClaim = authState.User.FindFirst("sub")?.Value;
 
             if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out _currentUserId))
             {
-                Logger.LogWarning("Dashboard: Invalid or missing user ID claim - Redirecting to login");
-                Navigation.NavigateTo("/login", forceLoad: true);
+                Logger.LogWarning("Dashboard: Invalid or missing user ID claim");
+                Snackbar.Add("Error: Usuario no válido", Severity.Error);
                 return;
             }
 
@@ -146,7 +56,7 @@ public partial class Dashboard
         catch (Exception ex)
         {
             Logger.LogError(ex, "Dashboard: Error initializing");
-            Snackbar.Add(ErrorLoadingDashboard, Severity.Error);
+            Snackbar.Add($"Error al cargar dashboard: {ex.Message}", Severity.Error);
         }
         finally
         {
@@ -196,9 +106,7 @@ public partial class Dashboard
             var user = await UserService.GetByIdAsync(_currentUserId);
             if (user != null)
             {
-                _userName = user.Name;
                 _goalWeight = user.GoalWeight;
-                _startingWeight = user.StartingWeight ?? 0;
 
                 if (_goalWeight.HasValue && user.StartingWeight.HasValue && _currentWeight > 0)
                 {
@@ -209,10 +117,6 @@ public partial class Dashboard
                     Logger.LogDebug("Dashboard: Progress calculated - {Progress}%", _progress);
                 }
             }
-
-            // Aplicar filtros iniciales
-            _filteredWeightLogs = FilterByPeriod(_selectedPeriod);
-            _filteredTableLogs = _weightLogs; // Inicialmente sin filtrar
 
             // Obtener estadísticas
             var dateRange = new Application.Filters.DateRange
@@ -229,84 +133,21 @@ public partial class Dashboard
         catch (Exception ex)
         {
             Logger.LogError(ex, "Dashboard: Error loading data for user {UserId}", _currentUserId);
-            Snackbar.Add(ErrorLoadingData(ex.Message), Severity.Error);
+            Snackbar.Add($"Error al cargar datos: {ex.Message}", Severity.Error);
         }
-    }
-
-    /// <summary>
-    /// Cambia el período de visualización del gráfico
-    /// </summary>
-    private void ChangePeriod(int days)
-    {
-        Logger.LogDebug("Dashboard: Changing period to {Days} days", days);
-        _selectedPeriod = days;
-        _filteredWeightLogs = FilterByPeriod(days);
-        StateHasChanged();
-    }
-
-    /// <summary>
-    /// Filtra los registros de peso por período en días
-    /// </summary>
-    private List<WeightLogDto> FilterByPeriod(int days)
-    {
-        var startDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-days));
-        return _weightLogs.Where(l => l.Date >= startDate).ToList();
-    }
-
-    /// <summary>
-    /// Obtiene el texto formateado para "Last measured"
-    /// </summary>
-    private string GetLastMeasuredText()
-    {
-        if (_weightLogs.Count == 0)
-            return "N/A";
-
-        var lastLog = _weightLogs.First();
-        var lastDateTime = lastLog.Date.ToDateTime(lastLog.Time);
-        var diff = DateTime.Now - lastDateTime;
-
-        if (diff.TotalHours < 1)
-            return TimeAgoMinutes;
-        if (diff.TotalHours < 24)
-            return TimeAgoHours((int)diff.TotalHours);
-        if (diff.TotalDays < 7)
-            return TimeAgoDays((int)diff.TotalDays);
-
-        return lastLog.Date.ToString("MMM dd, yyyy");
-    }
-
-    /// <summary>
-    /// Obtiene el peso restante para alcanzar la meta
-    /// </summary>
-    private string GetRemainingWeight()
-    {
-        if (!_goalWeight.HasValue || _currentWeight == 0)
-            return "N/A";
-
-        var remaining = _currentWeight - _goalWeight.Value;
-        return Math.Abs(remaining).ToString("F1");
-    }
-
-    /// <summary>
-    /// Exporta los datos a CSV
-    /// </summary>
-    private void ExportData()
-    {
-        Logger.LogInformation("Dashboard: Exporting data for user {UserId}", _currentUserId);
-        Snackbar.Add(ExportComingSoon, Severity.Info);
     }
 
     private async Task OpenAddWeightDialog()
     {
         Logger.LogInformation("Dashboard: Opening AddWeightDialog for user {UserId}", _currentUserId);
 
-        var dialog = await DialogService.ShowAsync<AddWeightDialog>(AddWeightDialogTitle);
+        var dialog = await DialogService.ShowAsync<AddWeightDialog>("Registrar Peso");
         var result = await dialog.Result;
 
         if (result != null && !result.Canceled)
         {
             Logger.LogInformation("Dashboard: Weight added successfully, reloading data");
-            Snackbar.Add(WeightSavedSuccess, Severity.Success);
+            Snackbar.Add("Peso registrado correctamente", Severity.Success);
             await LoadDataAsync();
             StateHasChanged();
         }

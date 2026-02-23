@@ -2,28 +2,12 @@ using ControlPeso.Application.DTOs;
 using ControlPeso.Application.Validators;
 using ControlPeso.Domain.Enums;
 using FluentValidation.TestHelper;
-using Microsoft.Extensions.Localization;
-using Moq;
 
 namespace ControlPeso.Application.Tests.Validators;
 
 public sealed class UpdateWeightLogValidatorTests
 {
-    private readonly UpdateWeightLogValidator _validator;
-
-    public UpdateWeightLogValidatorTests()
-    {
-        // Mock IStringLocalizer - devuelve el key como valor para tests
-        var mockLocalizer = new Mock<IStringLocalizer<UpdateWeightLogValidator>>();
-        mockLocalizer
-            .Setup(x => x[It.IsAny<string>()])
-            .Returns((string key) => new LocalizedString(key, key));
-        mockLocalizer
-            .Setup(x => x[It.IsAny<string>(), It.IsAny<object[]>()])
-            .Returns((string key, object[] args) => new LocalizedString(key, string.Format(key, args)));
-
-        _validator = new UpdateWeightLogValidator(mockLocalizer.Object);
-    }
+    private readonly UpdateWeightLogValidator _validator = new();
 
     [Fact]
     public void ValidDto_ShouldPass()

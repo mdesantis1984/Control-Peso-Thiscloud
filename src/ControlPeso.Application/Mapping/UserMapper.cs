@@ -86,21 +86,12 @@ public static class UserMapper
         entity.DateOfBirth = dto.DateOfBirth?.ToString("yyyy-MM-dd");
         entity.Language = dto.Language;
         entity.GoalWeight = dto.GoalWeight.HasValue ? (double)dto.GoalWeight.Value : null;
-
-        // Actualizar AvatarUrl si se proporciona
-        if (dto.AvatarUrl is not null)
-        {
-            entity.AvatarUrl = dto.AvatarUrl;
-        }
-
         entity.UpdatedAt = DateTime.UtcNow.ToString("O");
     }
 
     /// <summary>
     /// Actualiza campos sincronizables desde Google (nombre, avatar) si han cambiado.
     /// Se usa en el callback OAuth para mantener datos actualizados.
-    /// IMPORTANTE: Preserva avatares personalizados (subidos localmente) y solo actualiza
-    /// con el avatar de Google si el usuario no tiene un avatar personalizado.
     /// </summary>
     public static void UpdateFromGoogle(Users entity, GoogleUserInfo info)
     {
@@ -121,12 +112,7 @@ public static class UserMapper
             changed = true;
         }
 
-        // Preservar avatares personalizados: solo actualizar si NO es un avatar local personalizado
-        // Avatares personalizados empiezan con "/uploads/avatars/"
-        // Avatares de Google empiezan con "https://" o son NULL
-        var isCustomAvatar = entity.AvatarUrl?.StartsWith("/uploads/avatars/") == true;
-
-        if (!isCustomAvatar && entity.AvatarUrl != info.AvatarUrl)
+        if (entity.AvatarUrl != info.AvatarUrl)
         {
             entity.AvatarUrl = info.AvatarUrl;
             changed = true;
@@ -179,8 +165,6 @@ public static class UserMapper
     /// <summary>
     /// Actualiza campos sincronizables desde OAuth genérico (nombre, email, avatar) si han cambiado.
     /// Funciona con cualquier provider (Google, LinkedIn, etc.).
-    /// IMPORTANTE: Preserva avatares personalizados (subidos localmente) y solo actualiza
-    /// con el avatar del proveedor OAuth si el usuario no tiene un avatar personalizado.
     /// </summary>
     public static void UpdateFromOAuth(Users entity, OAuthUserInfo info)
     {
@@ -201,12 +185,7 @@ public static class UserMapper
             changed = true;
         }
 
-        // Preservar avatares personalizados: solo actualizar si NO es un avatar local personalizado
-        // Avatares personalizados empiezan con "/uploads/avatars/"
-        // Avatares de OAuth empiezan con "https://" o son NULL
-        var isCustomAvatar = entity.AvatarUrl?.StartsWith("/uploads/avatars/") == true;
-
-        if (!isCustomAvatar && entity.AvatarUrl != info.AvatarUrl)
+        if (entity.AvatarUrl != info.AvatarUrl)
         {
             entity.AvatarUrl = info.AvatarUrl;
             changed = true;

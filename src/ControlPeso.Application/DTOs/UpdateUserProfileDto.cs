@@ -23,9 +23,4 @@ public sealed record UpdateUserProfileDto
     /// Peso objetivo en kilogramos (siempre kg).
     /// </summary>
     public decimal? GoalWeight { get; init; }
-
-    /// <summary>
-    /// URL o ruta de la foto de perfil.
-    /// </summary>
-    public string? AvatarUrl { get; init; }
 }

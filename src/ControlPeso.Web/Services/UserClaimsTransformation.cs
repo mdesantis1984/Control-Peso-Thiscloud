@@ -29,28 +29,18 @@ internal sealed class UserClaimsTransformation : IClaimsTransformation
         // Si el usuario no está autenticado, no hay nada que transformar
         if (principal.Identity?.IsAuthenticated != true)
         {
-            _logger.LogDebug("UserClaimsTransformation: User not authenticated, skipping transformation");
             return principal;
         }
 
         var identity = principal.Identity as ClaimsIdentity;
         if (identity == null)
         {
-            _logger.LogWarning("UserClaimsTransformation: Identity is not ClaimsIdentity, skipping transformation");
             return principal;
         }
 
-        // Log ALL existing claims BEFORE transformation
-        _logger.LogInformation("UserClaimsTransformation: BEFORE - Claims count: {Count}", principal.Claims.Count());
-        foreach (var claim in principal.Claims)
+        // Si ya tiene el claim de UserId, no transformar de nuevo (evitar queries redundantes)
+        if (principal.HasClaim(c => c.Type == "UserId"))
         {
-            _logger.LogInformation("  BEFORE - Claim: {Type} = {Value}", claim.Type, claim.Value);
-        }
-
-        // Si ya transformamos este principal, skip (evitar queries redundantes y loops)
-        if (principal.HasClaim(c => c.Type == "claims_transformed"))
-        {
-            _logger.LogDebug("UserClaimsTransformation: Already transformed, skipping");
             return principal;
         }
 
@@ -60,58 +50,31 @@ internal sealed class UserClaimsTransformation : IClaimsTransformation
             var email = principal.FindFirst(ClaimTypes.Email)?.Value;
             if (string.IsNullOrWhiteSpace(email))
             {
-                _logger.LogWarning("UserClaimsTransformation: Email claim not found during claims transformation");
+                _logger.LogWarning("Email claim not found during claims transformation");
                 return principal;
             }
-
-            _logger.LogInformation("UserClaimsTransformation: Looking up user by email: {Email}", email);
 
             // Buscar usuario en DB por email
             var user = await _userService.GetByEmailAsync(email);
             if (user == null)
             {
-                _logger.LogWarning("UserClaimsTransformation: User not found in DB - Email: {Email}", email);
+                _logger.LogWarning("User not found in DB during claims transformation - Email: {Email}", email);
                 return principal;
             }
 
-            _logger.LogInformation("UserClaimsTransformation: User found in DB - UserId: {UserId}, Email: {Email}", 
-                user.Id, user.Email);
-
-            // CRÍTICO: REMOVER claim NameIdentifier existente (GoogleId/LinkedInId del proveedor OAuth)
-            var existingNameIdentifier = identity.FindFirst(ClaimTypes.NameIdentifier);
-            if (existingNameIdentifier != null)
-            {
-                identity.RemoveClaim(existingNameIdentifier);
-                _logger.LogInformation("UserClaimsTransformation: Removed existing NameIdentifier claim: {Value}", 
-                    existingNameIdentifier.Value);
-            }
-
-            // Agregar claim NameIdentifier con UserId GUID del sistema (este es el que buscan las páginas)
-            identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
-            _logger.LogInformation("UserClaimsTransformation: Added new NameIdentifier claim: {UserId}", user.Id);
-
-            // Agregar claims adicionales personalizados
+            // Agregar claims personalizados
+            identity.AddClaim(new Claim("UserId", user.Id.ToString()));
             identity.AddClaim(new Claim(ClaimTypes.Role, user.Role.ToString()));
             identity.AddClaim(new Claim("UserStatus", user.Status.ToString()));
             identity.AddClaim(new Claim("Language", user.Language));
 
-            // Marcar como transformado para evitar re-transformaciones
-            identity.AddClaim(new Claim("claims_transformed", "true"));
-
-            // Log ALL claims AFTER transformation
-            _logger.LogInformation("UserClaimsTransformation: AFTER - Claims count: {Count}", principal.Claims.Count());
-            foreach (var claim in principal.Claims)
-            {
-                _logger.LogInformation("  AFTER - Claim: {Type} = {Value}", claim.Type, claim.Value);
-            }
-
             _logger.LogInformation(
-                "UserClaimsTransformation: ✅ Claims transformed successfully - UserId: {UserId}, Email: {Email}, Role: {Role}",
+                "Claims transformed successfully - UserId: {UserId}, Email: {Email}, Role: {Role}",
                 user.Id, user.Email, user.Role);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "UserClaimsTransformation: ❌ Error transforming claims for authenticated user");
+            _logger.LogError(ex, "Error transforming claims for authenticated user");
         }
 
         return principal;

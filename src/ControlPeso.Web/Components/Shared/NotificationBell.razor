@@ -2,23 +2,14 @@
 
 <AuthorizeView>
     <Authorized>
-        <MudStack Row AlignItems="AlignItems.Center" Spacing="1" Class="@Class">
+        <MudBadge Content="@_notificationCount"
+                  Color="Color.Error" 
+                  Overlap="true" 
+                  Visible="@(_notificationCount > 0)">
             <MudIconButton Icon="@Icons.Material.Filled.Notifications" 
                            Color="Color.Inherit"
-                           OnClick="@ToggleNotificationPanel"
-                           aria-label="@NotificationsAriaLabel" />
-            @if (_unreadNotificationCount > 0)
-            {
-                <MudText Typo="Typo.caption" 
-                         Style="background-color: #f44336; color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.7rem; font-weight: 600; min-width: 20px; text-align: center;">
-                    @_unreadNotificationCount
-                </MudText>
-            }
-        </MudStack>
-
-        <!-- Notification Panel Popover -->
-        <NotificationPanel IsOpen="@_notificationPanelOpen" 
-                           IsOpenChanged="@((bool open) => _notificationPanelOpen = open)"
-                           OnUnreadCountChanged="@UpdateUnreadCount" />
+                           OnClick="@OpenNotifications"
+                           aria-label="Notifications" />
+        </MudBadge>
     </Authorized>
 </AuthorizeView>

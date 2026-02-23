@@ -1,6 +1,5 @@
 using ControlPeso.Application.DTOs;
 using FluentValidation;
-using Microsoft.Extensions.Localization;
 
 namespace ControlPeso.Application.Validators;
 
@@ -10,39 +9,34 @@ namespace ControlPeso.Application.Validators;
 /// </summary>
 public sealed class CreateWeightLogValidator : AbstractValidator<CreateWeightLogDto>
 {
-    private readonly IStringLocalizer<CreateWeightLogValidator> _localizer;
-
-    public CreateWeightLogValidator(IStringLocalizer<CreateWeightLogValidator> localizer)
+    public CreateWeightLogValidator()
     {
-        ArgumentNullException.ThrowIfNull(localizer);
-        _localizer = localizer;
-
         RuleFor(x => x.UserId)
             .NotEmpty()
-            .WithMessage(_localizer["UserIdRequired"]);
+            .WithMessage("UserId es requerido.");
 
         RuleFor(x => x.Date)
             .NotEmpty()
-            .WithMessage(_localizer["DateRequired"])
+            .WithMessage("Date es requerida.")
             .LessThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow))
-            .WithMessage(_localizer["DateCannotBeFuture"]);
+            .WithMessage("Date no puede ser una fecha futura.");
 
         RuleFor(x => x.Time)
             .NotEmpty()
-            .WithMessage(_localizer["TimeRequired"]);
+            .WithMessage("Time es requerido.");
 
         RuleFor(x => x.Weight)
             .GreaterThanOrEqualTo(20m)
-            .WithMessage(_localizer["WeightMinimum", 20])
+            .WithMessage("Weight debe ser al menos 20 kg (rango razonable para humanos).")
             .LessThanOrEqualTo(500m)
-            .WithMessage(_localizer["WeightMaximum", 500]);
+            .WithMessage("Weight no puede exceder 500 kg (rango razonable para humanos).");
 
         RuleFor(x => x.DisplayUnit)
             .IsInEnum()
-            .WithMessage(_localizer["DisplayUnitInvalid"]);
+            .WithMessage("DisplayUnit debe ser un valor válido (Kg o Lb).");
 
         RuleFor(x => x.Note)
             .MaximumLength(500)
-            .WithMessage(_localizer["NoteMaxLength", 500]);
+            .WithMessage("Note no puede exceder 500 caracteres.");
     }
 }
