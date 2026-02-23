@@ -2,6 +2,7 @@ using ControlPeso.Application.DTOs;
 using ControlPeso.Application.Interfaces;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.Localization;
 using MudBlazor;
 using System.Security.Claims;
 using ControlPeso.Web.Services;
@@ -15,6 +16,7 @@ namespace ControlPeso.Web.Components.Layout;
 public partial class MainLayout : IDisposable
 {
     [Inject] private ILogger<MainLayout> Logger { get; set; } = null!;
+    [Inject] private IStringLocalizer<MainLayout> Localizer { get; set; } = null!;
     [Inject] private IUserService UserService { get; set; } = null!;
     [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
     [Inject] private ThemeService ThemeService { get; set; } = null!;
@@ -25,6 +27,17 @@ public partial class MainLayout : IDisposable
     private MudThemeProvider _themeProvider = null!; // Referencia al provider
     private UserDto? _currentUser;
     private bool _userMenuOpen = false; // Estado del menú de usuario
+
+    // Localized Properties
+    private string AppTitle => Localizer[nameof(AppTitle)];
+    private string ToggleMenuAriaLabel => Localizer[nameof(ToggleMenuAriaLabel)];
+    private string ToggleDarkModeAriaLabel => Localizer[nameof(ToggleDarkModeAriaLabel)];
+    private string ProfileMenuItem => Localizer[nameof(ProfileMenuItem)];
+    private string LogoutMenuItem => Localizer[nameof(LogoutMenuItem)];
+    private string LoginButton => Localizer[nameof(LoginButton)];
+    private string ErrorTitle => Localizer[nameof(ErrorTitle)];
+    private string ReloadButton => Localizer[nameof(ReloadButton)];
+    private string DismissButton => Localizer[nameof(DismissButton)];
 
     protected override async Task OnInitializedAsync()
     {
