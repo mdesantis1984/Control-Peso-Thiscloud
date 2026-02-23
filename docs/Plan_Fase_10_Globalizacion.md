@@ -4,8 +4,8 @@
 - Rama: `feature/fase-9-pixel-perfect` (working branch)
 - Fase: **10 - Globalización (i18n)**
 - Fecha inicio: **2026-02-19**
-- Última actualización: **2026-02-23 20:00**
-- Estado: 🟡 **EN PROGRESO** — 11/20 tareas (55% ejecutado)
+- Última actualización: **2026-02-23 20:30**
+- Estado: 🟡 **EN PROGRESO** — 12/20 tareas (60% ejecutado)
 - Duración estimada: **4-6 días** (40-60 horas de trabajo)
 
 ---
@@ -810,13 +810,36 @@ public partial class LanguageSelector
 
 **Duración Estimada**: 45 minutos
 
+**Resultado**:
+- ✅ Completado 2026-02-23 19:45
+- ✅ 15 propiedades localizadas (7 Page/Meta, 5 Main Content, 4 Footer Links)
+- ✅ Corrección de baseline: Error.es-AR.resx tenía strings en inglés → corregidos 8 strings a español
+- ✅ Meta tags completos (SEO + Open Graph + Twitter Card)
+- ✅ ZERO strings hardcoded
+- ✅ Code-behind pattern correcto
+- ✅ Build exitoso
+- ✅ Commit: `4ba01a7`
+- ✅ Plan actualizado: `dbb57c7`
+
 ---
 
-### P10.12 — Refactorizar Error.razor
+### P10.12 — Refactorizar Error.razor + Error.razor.cs
 
-**Objetivo**: Igual que P10.6 pero para Error (página sin code-behind complejo).
+**Objetivo**: Igual que P10.6 pero para Error (página simple de errores).
 
 **Duración Estimada**: 30 minutos
+
+**Resultado**:
+- ✅ Completado 2026-02-23 20:25
+- ✅ 7 propiedades localizadas (PageTitle, ErrorTitle, ErrorMessage, RequestIdLabel, DevelopmentModeTitle, DevelopmentModeDescription, DevelopmentModeWarning)
+- ✅ Corrección de baseline: Error.es-AR.resx tenía 7 strings en inglés → traducidos a español
+- ✅ **Code-behind pattern fix**: Creado Error.razor.cs extrayendo @code block (violación corregida)
+- ✅ HTML tags preservados en traducciones (<strong> en DevelopmentModeDescription/Warning)
+- ✅ MarkupString para renderizar HTML en strings localizados
+- ✅ ZERO strings hardcoded
+- ✅ Build exitoso
+- ✅ Commit: `a2eeb67`
+- ✅ **MILESTONE**: 🎯 **100% páginas refactorizadas** (7/8 excluyendo Home, o 7/7 páginas principales)
 
 ---
 
@@ -1009,7 +1032,7 @@ public partial class LanguageSelector
 | P10.9 | Refactorizar Trends con IStringLocalizer | 1.5 h | 100% | ✅ |
 | P10.10 | Refactorizar Admin con IStringLocalizer | 2 h | 100% | ✅ |
 | P10.11 | Refactorizar Login con IStringLocalizer | 45 min | 100% | ✅ |
-| P10.12 | Refactorizar Error con IStringLocalizer | 30 min | 0% | 🔵 |
+| P10.12 | Refactorizar Error con IStringLocalizer | 30 min | 100% | ✅ |
 | P10.13 | Refactorizar MainLayout + NavMenu | 1 h | 0% | 🔵 |
 | P10.14 | Refactorizar componentes compartidos | 2 h | 0% | 🔵 |
 | P10.15 | Refactorizar validators FluentValidation | 1 h | 0% | 🔵 |
@@ -1019,7 +1042,7 @@ public partial class LanguageSelector
 | P10.19 | Verificar persistencia cross-session | 30 min | 0% | 🔵 |
 | P10.20 | Build + tests + commit + push | 1 h | 0% | 🔵 |
 
-**Total**: 20 tareas | **Progreso**: 11/20 completadas (55%) | **Duración**: ~26-28 horas (4-6 días de trabajo)
+**Total**: 20 tareas | **Progreso**: 12/20 completadas (60%) | **Duración**: ~26-28 horas (4-6 días de trabajo)
 
 ---
 
