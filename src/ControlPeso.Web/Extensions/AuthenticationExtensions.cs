@@ -25,19 +25,31 @@ public static class AuthenticationExtensions
         ArgumentNullException.ThrowIfNull(configuration);
 
         // 1. Configurar esquema de autenticación con Cookies como principal
-        services.AddAuthentication(options =>
+        var authBuilder = services.AddAuthentication(options =>
         {
             options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = "Google"; // Default challenge (puede ser Google o LinkedIn)
+            options.DefaultChallengeScheme = "Google"; // Default challenge es Google
         })
-        .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, ConfigureCookieOptions)
-        .AddGoogle("Google", options => ConfigureGoogleOptions(options, configuration))
-        .AddLinkedIn(options => ConfigureLinkedInOptions(options, configuration));
+        .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, ConfigureCookieOptions);
 
-        // 2. Agregar servicios de autorización
+        // 2. Agregar Google OAuth (si está configurado)
+        var googleClientId = configuration.GetValue<string>("Authentication:Google:ClientId");
+        if (!string.IsNullOrWhiteSpace(googleClientId))
+        {
+            authBuilder.AddGoogle("Google", options => ConfigureGoogleOptions(options, configuration));
+        }
+
+        // 3. Agregar LinkedIn OAuth (solo si está configurado - OPCIONAL)
+        var linkedInClientId = configuration.GetValue<string>("Authentication:LinkedIn:ClientId");
+        if (!string.IsNullOrWhiteSpace(linkedInClientId))
+        {
+            authBuilder.AddLinkedIn(options => ConfigureLinkedInOptions(options, configuration));
+        }
+
+        // 4. Agregar servicios de autorización
         services.AddAuthorization();
 
-        // 3. Agregar cascading authentication state para Blazor
+        // 5. Agregar cascading authentication state para Blazor
         services.AddCascadingAuthenticationState();
 
         return services;
@@ -70,13 +82,9 @@ public static class AuthenticationExtensions
         Microsoft.AspNetCore.Authentication.Google.GoogleOptions options,
         IConfiguration configuration)
     {
-        var googleConfig = configuration.GetSection("Authentication:Google");
-
-        options.ClientId = googleConfig["ClientId"]
-            ?? throw new InvalidOperationException("Google ClientId not configured in appsettings.json");
-
-        options.ClientSecret = googleConfig["ClientSecret"]
-            ?? throw new InvalidOperationException("Google ClientSecret not configured in appsettings.json");
+        // Configuración ya validada en AddOAuthAuthentication (ClientId no nulo)
+        options.ClientId = configuration.GetValue<string>("Authentication:Google:ClientId")!;
+        options.ClientSecret = configuration.GetValue<string>("Authentication:Google:ClientSecret")!;
 
         options.SaveTokens = true;
 
