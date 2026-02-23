@@ -7,11 +7,15 @@ namespace ControlPeso.Web.Middleware;
 public sealed class SecurityHeadersMiddleware
 {
     private readonly RequestDelegate _next;
+    private readonly ILogger<SecurityHeadersMiddleware> _logger;
 
-    public SecurityHeadersMiddleware(RequestDelegate next)
+    public SecurityHeadersMiddleware(RequestDelegate next, ILogger<SecurityHeadersMiddleware> logger)
     {
         ArgumentNullException.ThrowIfNull(next);
+        ArgumentNullException.ThrowIfNull(logger);
+
         _next = next;
+        _logger = logger;
     }
 
     public Task InvokeAsync(HttpContext context)
@@ -69,6 +73,9 @@ public sealed class SecurityHeadersMiddleware
             // Define fuentes permitidas para scripts, estilos, imágenes, etc
             var csp = BuildContentSecurityPolicy();
             context.Response.Headers["Content-Security-Policy"] = csp;
+
+            // DEBUG: Log CSP to verify it's being applied correctly
+            _logger.LogDebug("CSP applied to {Path}: {CSP}", path, csp);
         }
 
         return _next(context);
@@ -106,7 +113,8 @@ public sealed class SecurityHeadersMiddleware
             // data: Data URIs (usado por MudBlazor para iconos)
             // https://*.googleusercontent.com: Avatares de Google OAuth
             // https://*.licdn.com: Avatares de LinkedIn OAuth
-            "img-src 'self' data: https://*.googleusercontent.com https://*.licdn.com",
+            // https://flagcdn.com: Banderas de países (Flagpedia API - w40, w20, etc)
+            "img-src 'self' data: https://*.googleusercontent.com https://*.licdn.com https://flagcdn.com",
 
             // connect-src: Conexiones AJAX/WebSocket permitidas
             // 'self': Conexiones al mismo origen

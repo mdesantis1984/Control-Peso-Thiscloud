@@ -25,13 +25,15 @@
 
             <MudSpacer />
 
+            <LanguageSelector Class="mr-2" />
+
             <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
                            Color="Color.Inherit"
                            OnClick="@ToggleDarkModeAsync"
                            aria-label="Toggle dark mode"
-                           Class="mr-3" />
+                           Class="mr-2" />
 
-            <NotificationBell Class="mr-3" />
+            <NotificationBell Class="mr-2" />
 
         <AuthorizeView>
             <Authorized>

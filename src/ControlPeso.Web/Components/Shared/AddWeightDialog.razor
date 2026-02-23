@@ -1,9 +1,9 @@
 @namespace ControlPeso.Web.Components.Shared
 @using MudBlazor
 
-<MudDialog MaxWidth="MaxWidth.Medium" Style="min-width: 500px;">
+<MudDialog MaxWidth="MaxWidth.Small" Class="add-weight-dialog">
     <TitleContent>
-        <div class="d-flex flex-column gap-1">
+        <MudStack Spacing="1">
             <MudText Typo="Typo.h6" Class="font-weight-bold">
                 <MudIcon Icon="@Icons.Material.Filled.MonitorWeight" Class="mr-2" />
                 Add Weight Entry
@@ -11,62 +11,69 @@
             <MudText Typo="Typo.body2" Color="Color.Secondary">
                 Track your progress and keep your goals in sight.
             </MudText>
-        </div>
+        </MudStack>
     </TitleContent>
     <DialogContent>
-        <MudForm @ref="_form" @bind-IsValid="@_isValid" Class="d-flex flex-column gap-4">
-            @* Weight Input con Adornment clickeable kg/lb *@
-            <MudTextField @bind-Value="_weightText"
-                          Label="Weight"
-                          Required="true"
-                          Variant="Variant.Outlined"
-                          Adornment="Adornment.End"
-                          AdornmentText="@(_isKg ? "Kg" : "Lb")"
-                          AdornmentColor="Color.Primary"
-                          OnAdornmentClick="ToggleUnit"
-                          AdornmentAriaLabel="Toggle weight unit"
-                          HelperText="Click the unit to switch between Kg and Lb"
-                          Placeholder="0.0"
-                          InputType="InputType.Number" />
+        <MudForm @ref="_form" @bind-IsValid="@_isValid">
+            <MudStack Spacing="3">
+                @* Weight Input con Adornment clickeable kg/lb *@
+                <MudTextField @bind-Value="_weightText"
+                              Label="Weight"
+                              Required="true"
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.End"
+                              AdornmentText="@(_isKg ? "Kg" : "Lb")"
+                              AdornmentColor="Color.Primary"
+                              OnAdornmentClick="ToggleUnit"
+                              AdornmentAriaLabel="Toggle weight unit"
+                              HelperText="Click the unit to switch between Kg and Lb"
+                              Placeholder="0.0"
+                              InputType="InputType.Number"
+                              Margin="Margin.Dense" />
 
-            @* Date and Time side by side *@
-            <div class="d-flex gap-3">
-                <MudDatePicker Label="Date"
-                               @bind-Date="_date"
-                               Required="true"
-                               MaxDate="DateTime.Today"
-                               Color="Color.Primary"
-                               Variant="Variant.Outlined"
-                               Style="flex: 1;" />
+                @* Date and Time - Responsive Grid *@
+                <MudGrid Spacing="2">
+                    <MudItem xs="12" sm="6">
+                        <MudDatePicker Label="Date"
+                                       @bind-Date="_date"
+                                       Required="true"
+                                       MaxDate="DateTime.Today"
+                                       Color="Color.Primary"
+                                       Variant="Variant.Outlined"
+                                       Margin="Margin.Dense" />
+                    </MudItem>
 
-                <MudTimePicker Label="Time"
-                               @bind-Time="_time"
-                               Required="true"
-                               Color="Color.Primary"
-                               Variant="Variant.Outlined"
-                               Style="flex: 1;"
-                               AmPm="true" />
-            </div>
+                    <MudItem xs="12" sm="6">
+                        <MudTimePicker Label="Time"
+                                       @bind-Time="_time"
+                                       Required="true"
+                                       Color="Color.Primary"
+                                       Variant="Variant.Outlined"
+                                       Margin="Margin.Dense"
+                                       AmPm="true" />
+                    </MudItem>
+                </MudGrid>
 
-            @* Notes Field - Más amplio *@
-            <MudTextField @bind-Value="_note"
-                          Label="Notes (Optional)"
-                          Lines="4"
-                          MaxLength="500"
-                          Variant="Variant.Outlined"
-                          Placeholder="How are you feeling? E.g. Post-workout, morning weight..."
-                          HelperText="Add any relevant details about this measurement" />
+                @* Notes Field *@
+                <MudTextField @bind-Value="_note"
+                              Label="Notes (Optional)"
+                              Lines="3"
+                              MaxLength="500"
+                              Variant="Variant.Outlined"
+                              Placeholder="How are you feeling? E.g. Post-workout, morning weight..."
+                              HelperText="Add any relevant details about this measurement"
+                              Margin="Margin.Dense" />
 
-            @* Info Badge *@
-            <MudAlert Severity="Severity.Info" 
-                      Dense="true" 
-                      NoIcon="false"
-                      Variant="Variant.Text"
-                      Class="mt-2">
-                <MudText Typo="Typo.caption">
-                    For the most accurate results, try to weigh yourself at the same time each day, preferably in the morning before eating.
-                </MudText>
-            </MudAlert>
+                @* Info Badge *@
+                <MudAlert Severity="Severity.Info" 
+                          Dense="true" 
+                          NoIcon="false"
+                          Variant="Variant.Text">
+                    <MudText Typo="Typo.caption">
+                        For the most accurate results, try to weigh yourself at the same time each day, preferably in the morning before eating.
+                    </MudText>
+                </MudAlert>
+            </MudStack>
         </MudForm>
     </DialogContent>
     <DialogActions>

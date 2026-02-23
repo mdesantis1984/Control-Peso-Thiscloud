@@ -2,7 +2,7 @@ using ControlPeso.Application.DTOs;
 using ControlPeso.Application.Filters;
 using ControlPeso.Application.Interfaces;
 using ControlPeso.Application.Mapping;
-using ControlPeso.Infrastructure;
+using ControlPeso.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 

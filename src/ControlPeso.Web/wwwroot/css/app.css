@@ -198,6 +198,48 @@
     gap: 0.5rem;
 }
 
+/* ============================================
+   Add Weight Dialog - Mobile Responsive
+   ============================================ */
+
+/* Optimización general para dialog en mobile */
+.add-weight-dialog .mud-dialog-content {
+    padding: 20px;
+}
+
+/* Mobile (XS) - 0-599px */
+@media (max-width: 599px) {
+    /* Dialog toma ancho completo con margen mínimo */
+    .add-weight-dialog {
+        max-width: calc(100vw - 16px) !important;
+        margin: 8px !important;
+    }
+
+    /* Reducir padding interno en mobile */
+    .add-weight-dialog .mud-dialog-content {
+        padding: 16px !important;
+    }
+
+    /* Reducir padding en dialog actions */
+    .add-weight-dialog .mud-dialog-actions {
+        padding: 12px 16px !important;
+    }
+
+    /* Asegurar que los campos no se desborden */
+    .add-weight-dialog .mud-input,
+    .add-weight-dialog .mud-select,
+    .add-weight-dialog .mud-picker {
+        width: 100% !important;
+    }
+}
+
+/* Tablet (SM) - 600-959px */
+@media (min-width: 600px) and (max-width: 959px) {
+    .add-weight-dialog {
+        max-width: 500px !important;
+    }
+}
+
 .gap-4 {
     gap: 1rem;
 }

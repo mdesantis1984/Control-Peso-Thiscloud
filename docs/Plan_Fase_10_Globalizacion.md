@@ -1003,7 +1003,7 @@ public partial class LanguageSelector
 | P10.3 | Crear .resx páginas (16 archivos) | 4-5 h | 100% | ✅ |
 | P10.4 | Crear .resx componentes (14 archivos) | 2-3 h | 100% | ✅ |
 | P10.5 | Crear .resx validators (6 archivos) | 1 h | 100% | ✅ |
-| P10.6 | Refactorizar Dashboard con IStringLocalizer | 1.5 h | 0% | 🔵 |
+| P10.6 | Refactorizar Dashboard con IStringLocalizer | 1.5 h | 100% | ✅ |
 | P10.7 | Refactorizar Profile con IStringLocalizer | 1.5 h | 0% | 🔵 |
 | P10.8 | Refactorizar History con IStringLocalizer | 1 h | 0% | 🔵 |
 | P10.9 | Refactorizar Trends con IStringLocalizer | 1.5 h | 0% | 🔵 |
@@ -1019,7 +1019,7 @@ public partial class LanguageSelector
 | P10.19 | Verificar persistencia cross-session | 30 min | 0% | 🔵 |
 | P10.20 | Build + tests + commit + push | 1 h | 0% | 🔵 |
 
-**Total**: 20 tareas | **Progreso**: 5/20 completadas (25%) | **Duración**: ~26-28 horas (4-6 días de trabajo)
+**Total**: 20 tareas | **Progreso**: 6/20 completadas (30%) | **Duración**: ~26-28 horas (4-6 días de trabajo)
 
 ---
 

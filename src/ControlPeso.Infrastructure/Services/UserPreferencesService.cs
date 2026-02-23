@@ -1,4 +1,5 @@
 using ControlPeso.Application.Interfaces;
+using ControlPeso.Domain.Entities;
 using ControlPeso.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
