@@ -10,7 +10,7 @@
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   
   <data name="NavigationTitle" xml:space="preserve"><value>Navegación</value><comment>Navigation section title</comment></data>
-  <data name="Dashboard" xml:space="preserve"><value>Dashboard</value><comment>Dashboard link</comment></data>
+  <data name="Dashboard" xml:space="preserve"><value>Panel Principal</value><comment>Dashboard link</comment></data>
   <data name="History" xml:space="preserve"><value>Historial</value><comment>History link</comment></data>
   <data name="Trends" xml:space="preserve"><value>Tendencias</value><comment>Trends link</comment></data>
   <data name="Profile" xml:space="preserve"><value>Perfil</value><comment>Profile link</comment></data>
