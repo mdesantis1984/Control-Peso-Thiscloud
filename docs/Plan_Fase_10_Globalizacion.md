@@ -4,8 +4,8 @@
 - Rama: `feature/fase-9-pixel-perfect` (working branch)
 - Fase: **10 - Globalización (i18n)**
 - Fecha inicio: **2026-02-19**
-- Última actualización: **2026-02-23 21:00**
-- Estado: 🟡 **EN PROGRESO** — 13/20 tareas (65% ejecutado)
+- Última actualización: **2026-02-23 22:30**
+- Estado: 🟡 **EN PROGRESO** — 14/20 tareas (70% ejecutado)
 - Duración estimada: **4-6 días** (40-60 horas de trabajo)
 
 ---
@@ -867,6 +867,43 @@ public partial class LanguageSelector
 
 **Duración Estimada**: 2 horas (5 componentes)
 
+**Resultado**:
+- ✅ Completado 2026-02-23 22:30
+- ✅ **5 componentes analizados/refactorizados**:
+
+  **1. AddWeightDialog** (REFACTORIZADO - commit separado `a06e102`):
+  - ✅ 19 propiedades localizadas (DialogTitle, DialogSubtitle, WeightLabel, ToggleUnitAriaLabel, UnitHelperText, WeightPlaceholder, DateLabel, TimeLabel, NotesLabel, NotesPlaceholder, NotesHelperText, InfoMessage, CancelButton, SaveButton, SuccessMessage, ErrorInvalidUser, ErrorDateTimeRequired, ErrorInvalidWeight, GetErrorSaving method con placeholder {0})
+  - ✅ Baseline expandido: 9→19 strings (agregados labels, placeholders, helpers, errors)
+  - ✅ Build exitoso (1 error corregido: placeholder method pattern)
+  - ✅ Commit solo: `a06e102`
+
+  **2. StatsCard** (ANALIZADO - NO refactorizado):
+  - ✅ Componente puro de presentación con ZERO hardcoded strings
+  - ✅ TODO el contenido vía [Parameter] properties (Title, Value, Unit, Icon, Color, ShowTrend, TrendValue)
+  - ✅ **Optimización**: Skipped refactoring - componente ya 100% parametrizado (parents pasan strings localizados)
+
+  **3. TrendCard** (REFACTORIZADO - commit grupal `e96a984`):
+  - ✅ 1 propiedad localizada (NoPreviousData)
+  - ✅ Baseline actualizado: 0→1 string en ambos .resx (es-AR "Sin datos previos", en-US "No previous data")
+  - ✅ Hardcoded string línea 66 GetChangeText() reemplazado
+
+  **4. WeightChart** (REFACTORIZADO - commit grupal `e96a984`):
+  - ✅ 1 propiedad localizada (NoDataAvailable)
+  - ✅ Baseline ya correcto (verificado desde P10.3 - no correcciones)
+  - ✅ Hardcoded string línea 13 markup reemplazado con @NoDataAvailable
+
+  **5. NotificationBell** (REFACTORIZADO - commit grupal `e96a984`):
+  - ✅ 1 propiedad localizada (NotificationsAriaLabel)
+  - ✅ Baseline ya correcto (verificado desde P10.3)
+  - ✅ Hardcoded string línea 9 aria-label reemplazado con @NotificationsAriaLabel
+
+- ✅ **Estrategia de commits**: Componente complejo (AddWeightDialog 19 strings) commit solo, componentes simples (TrendCard + WeightChart + NotificationBell 3 strings total) commit grupal
+- ✅ **Total strings refactorizados**: 22 strings (19 AddWeightDialog + 1 TrendCard + 1 WeightChart + 1 NotificationBell)
+- ✅ Build exitoso (ZERO errores compilación)
+- ✅ Commits: 2 (`a06e102` AddWeightDialog solo, `e96a984` grupo TrendCard+WeightChart+NotificationBell)
+- ✅ **MILESTONE**: 🎯 **100% componentes Shared refactorizados** (5/5)
+- ✅ Plan actualizado
+
 ---
 
 ### P10.15 — Refactorizar Validators FluentValidation
@@ -1044,7 +1081,7 @@ public partial class LanguageSelector
 | P10.11 | Refactorizar Login con IStringLocalizer | 45 min | 100% | ✅ |
 | P10.12 | Refactorizar Error con IStringLocalizer | 30 min | 100% | ✅ |
 | P10.13 | Refactorizar MainLayout + NavMenu | 1 h | 100% | ✅ |
-| P10.14 | Refactorizar componentes compartidos | 2 h | 0% | 🔵 |
+| P10.14 | Refactorizar componentes compartidos | 2 h | 100% | ✅ |
 | P10.15 | Refactorizar validators FluentValidation | 1 h | 0% | 🔵 |
 | P10.16 | Modificar LanguageSelector (CultureInfo + cookie) | 1 h | 0% | 🔵 |
 | P10.17 | Actualizar meta tags SEO dinámicos | 1 h | 0% | 🔵 |
@@ -1052,7 +1089,7 @@ public partial class LanguageSelector
 | P10.19 | Verificar persistencia cross-session | 30 min | 0% | 🔵 |
 | P10.20 | Build + tests + commit + push | 1 h | 0% | 🔵 |
 
-**Total**: 20 tareas | **Progreso**: 13/20 completadas (65%) | **Duración**: ~26-28 horas (4-6 días de trabajo)
+**Total**: 20 tareas | **Progreso**: 14/20 completadas (70%) | **Duración**: ~26-28 horas (4-6 días de trabajo)
 
 ---
 
@@ -1147,17 +1184,17 @@ Antes de crear PR de Fase 10 a `develop`, verificar:
 
 ---
 
-**Última actualización**: 2026-02-19 22:30
+**Última actualización**: 2026-02-23 22:30
 
 **Responsable**: Equipo ControlPeso.Thiscloud
 
-**Estado**: 🟡 **EN PROGRESO** — 7/20 tareas completadas (35%)
+**Estado**: 🟡 **EN PROGRESO** — 14/20 tareas completadas (70%)
 
 ---
 
 ## 📊 Resumen de Progreso
 
-### ✅ Tareas Completadas (7/20)
+### ✅ Tareas Completadas (14/20)
 
 **P10.1 — Configurar Localization en Program.cs** ✅
 - ✅ Localization services registrados (`AddLocalization` con `ResourcesPath="Resources"`)
@@ -1265,30 +1302,68 @@ Antes de crear PR de Fase 10 a `develop`, verificar:
 - ✅ Build exitoso sin errores (112 format warnings - no afectan funcionalidad)
 - 📦 Commits: `4ba01a7`
 
-**Total Strings en .resx**: ~367 entries (páginas + componentes + validators) | **Total Archivos Creados**: 40 archivos (4 .gitkeep + 36 .resx)
+**P10.12 — Refactorizar Error con IStringLocalizer** ✅
+- ✅ Inyectado `IStringLocalizer<Error>` en code-behind
+- ✅ Creadas 7 properties localizadas (PageTitle, ErrorTitle, ErrorMessage, RequestIdLabel, DevelopmentModeTitle, DevelopmentModeDescription, DevelopmentModeWarning)
+- ✅ Corrección de baseline: Error.es-AR.resx tenía 7 strings en inglés → traducidos a español
+- ✅ **Code-behind pattern fix**: Creado Error.razor.cs extrayendo @code block (violación corregida)
+- ✅ HTML tags preservados en traducciones (<strong> en DevelopmentModeDescription/Warning)
+- ✅ MarkupString para renderizar HTML en strings localizados
+- ✅ CERO strings hardcoded restantes en Error.razor / Error.razor.cs
+- ✅ Página 100% localizable (es-AR / en-US)
+- ✅ Build exitoso sin errores
+- 📦 Commits: `a2eeb67`
+- 🎯 **MILESTONE**: **100% páginas refactorizadas** (7/7 páginas principales)
 
-### 🔵 Tareas Pendientes (9/20)
+**P10.13 — Refactorizar MainLayout + NavMenu con IStringLocalizer** ✅
+- ✅ **MainLayout** inyectado `IStringLocalizer<MainLayout>` en code-behind
+- ✅ MainLayout 9 properties localizadas (AppTitle, ToggleDrawerAriaLabel, OpenNotificationsAriaLabel, LogoutAriaLabel, LogoutButton, ToggleThemeAriaLabel, ThemeTooltipDark, ThemeTooltipLight, LanguageSelectorAriaLabel)
+- ✅ **NavMenu** inyectado `IStringLocalizer<NavMenu>` en code-behind
+- ✅ NavMenu 11 properties localizadas (Dashboard, DashboardIcon, Profile, ProfileIcon, History, HistoryIcon, Trends, TrendsIcon, Admin, AdminIcon, AdminRoleRequired)
+- ✅ Reemplazados TODOS los strings hardcoded en markup de ambos componentes
+- ✅ CERO strings hardcoded restantes en MainLayout/NavMenu
+- ✅ Build exitoso sin errores
+- 📦 Commits: `0fc1216`, `790ddfc` (plan update)
+- 🎯 **MILESTONE**: **100% layout refactorizado** (2/2 componentes layout)
 
-**Próxima Tarea**: P10.12 — Refactorizar Error con IStringLocalizer
-- Inyectar `IStringLocalizer<Error>` en code-behind (si existe lógica)
-- Reemplazar TODOS los strings hardcoded por localizer keys
-- Duración estimada: 30 minutos (página más simple con error message + back button)
+**P10.14 — Refactorizar Componentes Shared** ✅
+- ✅ **AddWeightDialog** (commit separado `a06e102`): 19 properties localizadas (DialogTitle, DialogSubtitle, WeightLabel, ToggleUnitAriaLabel, UnitHelperText, WeightPlaceholder, DateLabel, TimeLabel, NotesLabel, NotesPlaceholder, NotesHelperText, InfoMessage, CancelButton, SaveButton, SuccessMessage, ErrorInvalidUser, ErrorDateTimeRequired, ErrorInvalidWeight, GetErrorSaving method)
+- ✅ **StatsCard** (análisis): ZERO hardcoded strings - componente puro parámetros - skipped refactoring ⏭️
+- ✅ **TrendCard** (commit grupal `e96a984`): 1 property localizada (NoPreviousData)
+- ✅ **WeightChart** (commit grupal `e96a984`): 1 property localizada (NoDataAvailable)
+- ✅ **NotificationBell** (commit grupal `e96a984`): 1 property localizada (NotificationsAriaLabel)
+- ✅ Total 22 strings refactorizados (19 AddWeightDialog + 1 TrendCard + 1 WeightChart + 1 NotificationBell)
+- ✅ Build exitoso ZERO errores
+- 📦 Commits: `a06e102` (AddWeightDialog), `e96a984` (TrendCard+WeightChart+NotificationBell)
+- 🎯 **MILESTONE**: **100% componentes Shared refactorizados** (5/5 componentes)
+
+**Total Strings en .resx**: ~411 entries (páginas + componentes + validators) | **Total Archivos Creados**: 36 archivos .resx | **Total Commits**: 23
+
+### 🔵 Tareas Pendientes (6/20)
+
+**Próxima Tarea**: P10.15 — Refactorizar Validators FluentValidation
+- Inyectar `IStringLocalizer<ValidatorName>` en constructores de validators
+- Reemplazar TODOS los strings hardcoded en `.WithMessage()` por localizer keys
+- Duración estimada: 1 hora (3 validators: CreateWeightLogValidator, UpdateWeightLogValidator, UpdateUserProfileValidator)
 
 ### 📈 Métricas de Progreso
 
 | Métrica | Valor | Progreso |
 |---------|-------|----------|
-| **Tareas Completadas** | 11/20 | 55% |
+| **Tareas Completadas** | 14/20 | 70% |
 | **Archivos .resx Creados** | 36/36 | 100% ✅ |
-| **Páginas Refactorizadas** | 6/8 | 75% (Dashboard ✅, Profile ✅, History ✅, Trends ✅, Admin ✅, Login ✅) |
-| **Strings Traducidos** | ~367 | - |
-| **Commits** | 17 | - |
+| **Páginas Refactorizadas** | 7/7 | 100% ✅ (Dashboard, Profile, History, Trends, Admin, Login, Error) |
+| **Layout Componentes** | 2/2 | 100% ✅ (MainLayout, NavMenu) |
+| **Shared Componentes** | 5/5 | 100% ✅ (AddWeightDialog, StatsCard skip, TrendCard, WeightChart, NotificationBell) |
+| **Validators Refactorizados** | 0/3 | 0% (CreateWeightLog, UpdateWeightLog, UpdateUserProfile pending) |
+| **Strings Traducidos** | ~411 | - |
+| **Commits** | 23 | - |
 | **Build Status** | ✅ Passing | 100% |
-| **Tiempo Invertido** | ~11.5 horas | - |
+| **Tiempo Invertido** | ~14 horas | - |
 
 ### 🎯 Siguiente Hito
 
-**Completar P10.12** → Todas las páginas refactorizadas con IStringLocalizer (1 tarea restante: Error) → **100% páginas completas**
+**Completar P10.15** → Validators con IStringLocalizer (3 validators) → **100% infraestructura i18n completa** → P10.16 LanguageSelector integration → P10.17-P10.20 testing/finalization
 
 ---
 
