@@ -6,10 +6,10 @@
         <MudStack Spacing="1">
             <MudText Typo="Typo.h6" Class="font-weight-bold">
                 <MudIcon Icon="@Icons.Material.Filled.MonitorWeight" Class="mr-2" />
-                Add Weight Entry
+                @DialogTitle
             </MudText>
             <MudText Typo="Typo.body2" Color="Color.Secondary">
-                Track your progress and keep your goals in sight.
+                @DialogSubtitle
             </MudText>
         </MudStack>
     </TitleContent>
@@ -18,23 +18,23 @@
             <MudStack Spacing="3">
                 @* Weight Input con Adornment clickeable kg/lb *@
                 <MudTextField @bind-Value="_weightText"
-                              Label="Weight"
+                              Label="@WeightLabel"
                               Required="true"
                               Variant="Variant.Outlined"
                               Adornment="Adornment.End"
                               AdornmentText="@(_isKg ? "Kg" : "Lb")"
                               AdornmentColor="Color.Primary"
                               OnAdornmentClick="ToggleUnit"
-                              AdornmentAriaLabel="Toggle weight unit"
-                              HelperText="Click the unit to switch between Kg and Lb"
-                              Placeholder="0.0"
+                              AdornmentAriaLabel="@ToggleUnitAriaLabel"
+                              HelperText="@UnitHelperText"
+                              Placeholder="@WeightPlaceholder"
                               InputType="InputType.Number"
                               Margin="Margin.Dense" />
 
                 @* Date and Time - Responsive Grid *@
                 <MudGrid Spacing="2">
                     <MudItem xs="12" sm="6">
-                        <MudDatePicker Label="Date"
+                        <MudDatePicker Label="@DateLabel"
                                        @bind-Date="_date"
                                        Required="true"
                                        MaxDate="DateTime.Today"
@@ -44,7 +44,7 @@
                     </MudItem>
 
                     <MudItem xs="12" sm="6">
-                        <MudTimePicker Label="Time"
+                        <MudTimePicker Label="@TimeLabel"
                                        @bind-Time="_time"
                                        Required="true"
                                        Color="Color.Primary"
@@ -56,12 +56,12 @@
 
                 @* Notes Field *@
                 <MudTextField @bind-Value="_note"
-                              Label="Notes (Optional)"
+                              Label="@NotesLabel"
                               Lines="3"
                               MaxLength="500"
                               Variant="Variant.Outlined"
-                              Placeholder="How are you feeling? E.g. Post-workout, morning weight..."
-                              HelperText="Add any relevant details about this measurement"
+                              Placeholder="@NotesPlaceholder"
+                              HelperText="@NotesHelperText"
                               Margin="Margin.Dense" />
 
                 @* Info Badge *@
@@ -70,7 +70,7 @@
                           NoIcon="false"
                           Variant="Variant.Text">
                     <MudText Typo="Typo.caption">
-                        For the most accurate results, try to weigh yourself at the same time each day, preferably in the morning before eating.
+                        @InfoMessage
                     </MudText>
                 </MudAlert>
             </MudStack>
@@ -80,7 +80,7 @@
         <MudButton OnClick="Cancel" 
                    Variant="Variant.Text"
                    Color="Color.Default">
-            Cancel
+            @CancelButton
         </MudButton>
         <MudButton Color="Color.Primary" 
                    Variant="Variant.Filled" 
@@ -93,7 +93,7 @@
             }
             else
             {
-                <span>Save Entry</span>
+                <span>@SaveButton</span>
             }
         </MudButton>
     </DialogActions>
