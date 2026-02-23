@@ -1,5 +1,7 @@
+using System.Globalization;
 using ControlPeso.Web.Models;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.JSInterop;
 using MudBlazor;
 
@@ -16,13 +18,14 @@ public partial class LanguageSelector
     [Inject]
     private ISnackbar Snackbar { get; set; } = default!;
 
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = default!;
+
+    // Fase 10: Solo es-AR y en-US (zh, fr, it removidos por scope)
     private readonly List<LanguageOption> _languages = new()
     {
         new() { Code = "es", Label = "Español (ARG)", CountryCode = "ar" },
-        new() { Code = "en", Label = "English (USA)", CountryCode = "us" },
-        new() { Code = "zh", Label = "中文 (China)", CountryCode = "cn" },
-        new() { Code = "fr", Label = "Français (France)", CountryCode = "fr" },
-        new() { Code = "it", Label = "Italiano (Italia)", CountryCode = "it" }
+        new() { Code = "en", Label = "English (USA)", CountryCode = "us" }
     };
 
     // Inicializar con valor por defecto INMEDIATO para evitar NullReferenceException
@@ -64,14 +67,42 @@ public partial class LanguageSelector
 
         try
         {
-            // Guardar en localStorage
+            // 1. Guardar en localStorage (persistencia client-side)
             await JSRuntime.InvokeVoidAsync("localStorage.setItem", "language", language.Code);
 
-            // Mostrar confirmación
-            Snackbar.Add($"Idioma cambiado a {language.Label}", Severity.Success);
+            // 2. Mapear código corto (es/en) a cultura completa (es-AR/en-US)
+            var cultureName = language.Code switch
+            {
+                "es" => "es-AR",
+                "en" => "en-US",
+                _ => "es-AR" // fallback default
+            };
 
-            // TODO: Implementar cambio real de idioma con IStringLocalizer en Fase 10
-            // Por ahora solo guardamos la preferencia
+            var culture = new CultureInfo(cultureName);
+
+            // 3. Cambiar CultureInfo del thread actual (Blazor Server)
+            // IMPORTANTE: Esto solo afecta al request actual, NO persiste entre requests
+            CultureInfo.CurrentCulture = culture;
+            CultureInfo.CurrentUICulture = culture;
+
+            // 4. Persistir en cookie para RequestLocalization middleware
+            // La cookie sobrevive a refresh y nuevas sesiones (1 año max-age)
+            var cookieName = CookieRequestCultureProvider.DefaultCookieName; // ".AspNetCore.Culture"
+            var cookieValue = CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture));
+
+            // Cookie: nombre=.AspNetCore.Culture, value=c=es-AR|uic=es-AR, path=/, max-age=1 año, SameSite=Strict
+            await JSRuntime.InvokeVoidAsync(
+                "eval",
+                $"document.cookie = '{cookieName}={cookieValue}; path=/; max-age=31536000; SameSite=Strict'");
+
+            // 5. Forzar recarga COMPLETA de la página para aplicar nuevas strings
+            // forceLoad=true: recarga desde servidor, NO usa cache
+            // Esto hace que RequestLocalization middleware lea la cookie y establezca cultura correcta
+            NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+
+            // Nota: El Snackbar NO se verá porque hacemos forceLoad inmediato
+            // Pero lo dejamos por si en el futuro se hace reload sin forceLoad
+            // Snackbar.Add($"Idioma cambiado a {language.Label}", Severity.Success);
         }
         catch (Exception ex)
         {
