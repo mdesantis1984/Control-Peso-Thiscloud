@@ -120,30 +120,9 @@ public static class AuthenticationExtensions
                 };
 
                 // Crear o actualizar usuario en DB
-                var user = await userService.CreateOrUpdateFromOAuthAsync(oauthInfo);
-
-                // Agregar claims personalizados a la identidad del usuario
-                var identity = context.Principal?.Identity as ClaimsIdentity;
-                if (identity != null)
-                {
-                    // Claim del User ID (GUID) - principal para identificar al usuario en la app
-                    identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
-
-                    // Claim del Role (User o Administrator)
-                    identity.AddClaim(new Claim(ClaimTypes.Role, user.Role.ToString()));
-
-                    // Claim del Email (si no existe ya)
-                    if (!identity.HasClaim(c => c.Type == ClaimTypes.Email))
-                    {
-                        identity.AddClaim(new Claim(ClaimTypes.Email, user.Email));
-                    }
-
-                    // Claim del Name (si no existe ya)
-                    if (!identity.HasClaim(c => c.Type == ClaimTypes.Name))
-                    {
-                        identity.AddClaim(new Claim(ClaimTypes.Name, user.Name));
-                    }
-                }
+                // NOTA: Los claims personalizados (UserId, Role) se agregan en UserClaimsTransformation
+                // para evitar duplicación y asegurar timing correcto con Blazor Server
+                await userService.CreateOrUpdateFromOAuthAsync(oauthInfo);
             }
         };
     }
@@ -202,30 +181,9 @@ public static class AuthenticationExtensions
                 };
 
                 // Crear o actualizar usuario en DB
-                var user = await userService.CreateOrUpdateFromOAuthAsync(oauthInfo);
-
-                // Agregar claims personalizados a la identidad del usuario
-                var identity = context.Principal?.Identity as ClaimsIdentity;
-                if (identity != null)
-                {
-                    // Claim del User ID (GUID) - principal para identificar al usuario en la app
-                    identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
-
-                    // Claim del Role (User o Administrator)
-                    identity.AddClaim(new Claim(ClaimTypes.Role, user.Role.ToString()));
-
-                    // Claim del Email (si no existe ya)
-                    if (!identity.HasClaim(c => c.Type == ClaimTypes.Email))
-                    {
-                        identity.AddClaim(new Claim(ClaimTypes.Email, user.Email));
-                    }
-
-                    // Claim del Name (si no existe ya)
-                    if (!identity.HasClaim(c => c.Type == ClaimTypes.Name))
-                    {
-                        identity.AddClaim(new Claim(ClaimTypes.Name, user.Name));
-                    }
-                }
+                // NOTA: Los claims personalizados (UserId, Role) se agregan en UserClaimsTransformation
+                // para evitar duplicación y asegurar timing correcto con Blazor Server
+                await userService.CreateOrUpdateFromOAuthAsync(oauthInfo);
             }
         };
     }

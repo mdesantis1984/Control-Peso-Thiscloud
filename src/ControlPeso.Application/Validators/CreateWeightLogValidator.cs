@@ -1,5 +1,6 @@
 using ControlPeso.Application.DTOs;
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace ControlPeso.Application.Validators;
 
@@ -9,34 +10,39 @@ namespace ControlPeso.Application.Validators;
 /// </summary>
 public sealed class CreateWeightLogValidator : AbstractValidator<CreateWeightLogDto>
 {
-    public CreateWeightLogValidator()
+    private readonly IStringLocalizer<CreateWeightLogValidator> _localizer;
+
+    public CreateWeightLogValidator(IStringLocalizer<CreateWeightLogValidator> localizer)
     {
+        ArgumentNullException.ThrowIfNull(localizer);
+        _localizer = localizer;
+
         RuleFor(x => x.UserId)
             .NotEmpty()
-            .WithMessage("UserId es requerido.");
+            .WithMessage(_localizer["UserIdRequired"]);
 
         RuleFor(x => x.Date)
             .NotEmpty()
-            .WithMessage("Date es requerida.")
+            .WithMessage(_localizer["DateRequired"])
             .LessThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow))
-            .WithMessage("Date no puede ser una fecha futura.");
+            .WithMessage(_localizer["DateCannotBeFuture"]);
 
         RuleFor(x => x.Time)
             .NotEmpty()
-            .WithMessage("Time es requerido.");
+            .WithMessage(_localizer["TimeRequired"]);
 
         RuleFor(x => x.Weight)
             .GreaterThanOrEqualTo(20m)
-            .WithMessage("Weight debe ser al menos 20 kg (rango razonable para humanos).")
+            .WithMessage(_localizer["WeightMinimum", 20])
             .LessThanOrEqualTo(500m)
-            .WithMessage("Weight no puede exceder 500 kg (rango razonable para humanos).");
+            .WithMessage(_localizer["WeightMaximum", 500]);
 
         RuleFor(x => x.DisplayUnit)
             .IsInEnum()
-            .WithMessage("DisplayUnit debe ser un valor válido (Kg o Lb).");
+            .WithMessage(_localizer["DisplayUnitInvalid"]);
 
         RuleFor(x => x.Note)
             .MaximumLength(500)
-            .WithMessage("Note no puede exceder 500 caracteres.");
+            .WithMessage(_localizer["NoteMaxLength", 500]);
     }
 }

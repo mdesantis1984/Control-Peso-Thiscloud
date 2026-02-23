@@ -1,5 +1,6 @@
 using ControlPeso.Application.DTOs;
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace ControlPeso.Application.Validators;
 
@@ -9,44 +10,49 @@ namespace ControlPeso.Application.Validators;
 /// </summary>
 public sealed class UpdateUserProfileValidator : AbstractValidator<UpdateUserProfileDto>
 {
-    public UpdateUserProfileValidator()
+    private readonly IStringLocalizer<UpdateUserProfileValidator> _localizer;
+
+    public UpdateUserProfileValidator(IStringLocalizer<UpdateUserProfileValidator> localizer)
     {
+        ArgumentNullException.ThrowIfNull(localizer);
+        _localizer = localizer;
+
         RuleFor(x => x.Name)
             .NotEmpty()
-            .WithMessage("Name es requerido.")
+            .WithMessage(_localizer["NameRequired"])
             .MinimumLength(1)
-            .WithMessage("Name debe tener al menos 1 carácter.")
+            .WithMessage(_localizer["NameMinLength", 1])
             .MaximumLength(200)
-            .WithMessage("Name no puede exceder 200 caracteres.");
+            .WithMessage(_localizer["NameMaxLength", 200]);
 
         RuleFor(x => x.Height)
             .GreaterThanOrEqualTo(50m)
-            .WithMessage("Height debe ser al menos 50 cm (rango razonable para humanos).")
+            .WithMessage(_localizer["HeightMinimum", 50])
             .LessThanOrEqualTo(300m)
-            .WithMessage("Height no puede exceder 300 cm (rango razonable para humanos).");
+            .WithMessage(_localizer["HeightMaximum", 300]);
 
         RuleFor(x => x.UnitSystem)
             .IsInEnum()
-            .WithMessage("UnitSystem debe ser un valor válido (Metric o Imperial).");
+            .WithMessage(_localizer["UnitSystemInvalid"]);
 
         RuleFor(x => x.DateOfBirth)
             .LessThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow))
-            .WithMessage("DateOfBirth no puede ser una fecha futura.")
+            .WithMessage(_localizer["DateOfBirthCannotBeFuture"])
             .GreaterThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-150)))
-            .WithMessage("DateOfBirth no puede ser anterior a 150 años atrás.")
+            .WithMessage(_localizer["DateOfBirthTooOld", 150])
             .When(x => x.DateOfBirth.HasValue);
 
         RuleFor(x => x.Language)
             .NotEmpty()
-            .WithMessage("Language es requerido.")
+            .WithMessage(_localizer["LanguageRequired"])
             .Must(lang => lang == "es" || lang == "en")
-            .WithMessage("Language debe ser 'es' o 'en'.");
+            .WithMessage(_localizer["LanguageInvalid"]);
 
         RuleFor(x => x.GoalWeight)
             .GreaterThanOrEqualTo(20m)
-            .WithMessage("GoalWeight debe ser al menos 20 kg (rango razonable para humanos).")
+            .WithMessage(_localizer["GoalWeightMinimum", 20])
             .LessThanOrEqualTo(500m)
-            .WithMessage("GoalWeight no puede exceder 500 kg (rango razonable para humanos).")
+            .WithMessage(_localizer["GoalWeightMaximum", 500])
             .When(x => x.GoalWeight.HasValue);
     }
 }

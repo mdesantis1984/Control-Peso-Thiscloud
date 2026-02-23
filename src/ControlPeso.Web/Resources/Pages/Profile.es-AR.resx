@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true"><xsd:complexType><xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" /></xsd:sequence><xsd:attribute name="name" use="required" type="xsd:string" /><xsd:attribute name="type" type="xsd:string" /><xsd:attribute name="mimetype" type="xsd:string" /><xsd:attribute ref="xml:space" /></xsd:complexType></xsd:element>
+          <xsd:element name="assembly"><xsd:complexType><xsd:attribute name="alias" type="xsd:string" /><xsd:attribute name="name" type="xsd:string" /></xsd:complexType></xsd:element>
+          <xsd:element name="data"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /><xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" /><xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" /><xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" /><xsd:attribute ref="xml:space" msdata:Ordinal="5" /></xsd:complexType></xsd:element>
+          <xsd:element name="resheader"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" /></xsd:complexType></xsd:element>
+        </xsd:choice></xsd:complexType></xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  
+  <data name="PageTitle" xml:space="preserve"><value>Perfil - Control Peso Thiscloud</value></data>
+  <data name="MetaDescription" xml:space="preserve"><value>Gestiona tu perfil personal, preferencias y configuración de cuenta en Control Peso Thiscloud.</value></data>
+  <data name="MetaKeywords" xml:space="preserve"><value>perfil usuario, configuración cuenta, preferencias, datos personales, control peso</value></data>
+  <data name="OgTitle" xml:space="preserve"><value>Perfil - Control Peso Thiscloud</value></data>
+  <data name="OgDescription" xml:space="preserve"><value>Gestiona tu perfil personal, preferencias y configuración de cuenta en Control Peso Thiscloud.</value></data>
+
+  <!-- Header Section -->
+  <data name="ClickToChangePhotoTooltip" xml:space="preserve"><value>Click para cambiar foto</value></data>
+  <data name="MemberSince" xml:space="preserve"><value>Miembro desde {0}</value><comment>{0} = Month year (e.g., February 2026)</comment></data>
+  <data name="SaveChangesButton" xml:space="preserve"><value>GUARDAR CAMBIOS</value></data>
+  <data name="SavingButton" xml:space="preserve"><value>GUARDANDO...</value></data>
+
+  <!-- Stats Cards -->
+  <data name="StartingWeightLabel" xml:space="preserve"><value>PESO INICIAL</value></data>
+  <data name="CurrentWeightLabel" xml:space="preserve"><value>PESO ACTUAL</value></data>
+  <data name="TotalLossLabel" xml:space="preserve"><value>PÉRDIDA TOTAL</value></data>
+  <data name="KgUnit" xml:space="preserve"><value>kg</value></data>
+  <data name="NoData" xml:space="preserve"><value>--</value></data>
+
+  <!-- Personal Details Card -->
+  <data name="PersonalDetailsTitle" xml:space="preserve"><value>Detalles Personales</value></data>
+  <data name="NameLabel" xml:space="preserve"><value>Nombre</value></data>
+  <data name="NameRequired" xml:space="preserve"><value>El nombre es requerido</value></data>
+  <data name="HeightLabel" xml:space="preserve"><value>Altura</value></data>
+  <data name="HeightRequired" xml:space="preserve"><value>La altura es requerida</value></data>
+  <data name="CmUnit" xml:space="preserve"><value>cm</value></data>
+  <data name="UnitSystemLabel" xml:space="preserve"><value>Sistema de Unidades</value></data>
+  <data name="UnitSystemMetric" xml:space="preserve"><value>Métrico (kg, cm)</value></data>
+  <data name="UnitSystemImperial" xml:space="preserve"><value>Imperial (lb, in)</value></data>
+  <data name="DateOfBirthLabel" xml:space="preserve"><value>Fecha de Nacimiento</value></data>
+  <data name="GoalWeightLabel" xml:space="preserve"><value>Peso Objetivo</value></data>
+  <data name="LanguageLabel" xml:space="preserve"><value>Idioma</value></data>
+  <data name="LanguageSpanish" xml:space="preserve"><value>Español</value></data>
+  <data name="LanguageEnglish" xml:space="preserve"><value>English</value></data>
+  <data name="DarkModeLabel" xml:space="preserve"><value>Modo Oscuro</value></data>
+  <data name="NotificationsLabel" xml:space="preserve"><value>Notificaciones</value></data>
+
+  <!-- Account Settings Card -->
+  <data name="AccountSettingsTitle" xml:space="preserve"><value>Configuración de Cuenta</value></data>
+  <data name="EmailAddressLabel" xml:space="preserve"><value>DIRECCIÓN DE EMAIL</value></data>
+  <data name="SignOutButton" xml:space="preserve"><value>Cerrar Sesión</value></data>
+  <data name="DeleteAccountButton" xml:space="preserve"><value>Eliminar Cuenta</value></data>
+
+  <!-- Error Messages -->
+  <data name="ErrorLoadingProfile" xml:space="preserve"><value>No se pudo cargar el perfil del usuario.</value></data>
+  <data name="ErrorUserNotIdentified" xml:space="preserve"><value>No se pudo identificar al usuario</value></data>
+  <data name="ErrorUserNotFound" xml:space="preserve"><value>Usuario no encontrado</value></data>
+  <data name="ErrorLoadingProfileGeneral" xml:space="preserve"><value>Error al cargar el perfil</value></data>
+  <data name="ErrorUpdatingProfile" xml:space="preserve"><value>Error al actualizar el perfil</value></data>
+  <data name="ErrorChangingTheme" xml:space="preserve"><value>Error al cambiar el tema</value></data>
+  <data name="ErrorChangingNotificationPreference" xml:space="preserve"><value>Error al cambiar preferencia de notificaciones</value></data>
+  <data name="ErrorSigningOut" xml:space="preserve"><value>Error al cerrar sesión</value></data>
+  <data name="ErrorDeletingAccount" xml:space="preserve"><value>Error al eliminar la cuenta</value></data>
+  <data name="ErrorUploadingPhoto" xml:space="preserve"><value>Error al subir la foto: {0}</value><comment>{0} = error message</comment></data>
+
+  <!-- Success Messages -->
+  <data name="ProfileSavedSuccess" xml:space="preserve"><value>Cambios guardados correctamente</value></data>
+  <data name="AccountDeletedSuccess" xml:space="preserve"><value>Cuenta eliminada exitosamente</value></data>
+  <data name="PhotoUploadedSuccess" xml:space="preserve"><value>Foto de perfil actualizada correctamente</value></data>
+
+  <!-- Delete Account Dialog -->
+  <data name="DeleteAccountConfirmation" xml:space="preserve"><value>¿Está seguro que quiere eliminar su cuenta? Esta acción no se puede deshacer y todos sus datos (registros de peso, preferencias, etc.) se perderán permanentemente.</value></data>
+  <data name="DeleteAccountButtonText" xml:space="preserve"><value>Eliminar</value></data>
+
+  <!-- Photo Upload -->
+  <data name="PhotoSizeTooLarge" xml:space="preserve"><value>La foto es demasiado grande. Tamaño máximo: 5 MB</value></data>
+  <data name="PhotoInvalidFormat" xml:space="preserve"><value>Formato de foto inválido. Solo se permiten: JPG, JPEG, PNG</value></data>
+  <data name="CropImageDialogTitle" xml:space="preserve"><value>Recortar Imagen</value></data>
+  <data name="DeleteAccountDialogTitle" xml:space="preserve"><value>Eliminar Cuenta</value></data>
+  <data name="AccountDeletionNotImplemented" xml:space="preserve"><value>La eliminación de cuenta aún no está implementada. Contacta al soporte.</value></data>
+</root>

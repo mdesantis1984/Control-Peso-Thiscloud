@@ -1,7 +1,7 @@
 @namespace ControlPeso.Web.Components.Layout
 
 <MudNavMenu>
-    <MudText Typo="Typo.h6" Class="px-4 py-4">Navegación</MudText>
+    <MudText Typo="Typo.h6" Class="px-4 py-4">@NavigationTitle</MudText>
     <MudDivider Class="mb-2" />
 
     <AuthorizeView>
@@ -9,33 +9,39 @@
             <MudNavLink Href="/dashboard" 
                         Icon="@Icons.Material.Filled.Dashboard" 
                         Match="NavLinkMatch.All">
-                Dashboard
+                @Dashboard
             </MudNavLink>
 
             <MudNavLink Href="/history" 
                         Icon="@Icons.Material.Filled.History">
-                Historial
+                @History
             </MudNavLink>
 
             <MudNavLink Href="/trends" 
                         Icon="@Icons.Material.Filled.TrendingUp">
-                Tendencias
+                @Trends
             </MudNavLink>
 
             <MudNavLink Href="/profile" 
                         Icon="@Icons.Material.Filled.Person">
-                Perfil
+                @Profile
             </MudNavLink>
 
             @if (_isAdmin)
             {
                 <MudDivider Class="my-4" />
-                <MudText Typo="Typo.caption" Class="px-4 mud-text-secondary">Administración</MudText>
+                <MudText Typo="Typo.caption" Class="px-4 mud-text-secondary">@AdminSection</MudText>
 
                 <MudNavLink Href="/admin" 
                             Icon="@Icons.Material.Filled.AdminPanelSettings"
                             IconColor="Color.Warning">
-                    Panel Admin
+                    @AdminPanel
+                </MudNavLink>
+
+                <MudNavLink Href="/diagnostics/telegram" 
+                            Icon="@Icons.Material.Filled.Settings"
+                            IconColor="Color.Info">
+                    @TelegramDiagnostics
                 </MudNavLink>
             }
         </Authorized>
@@ -43,12 +49,12 @@
             <MudNavLink Href="/" 
                         Icon="@Icons.Material.Filled.Home" 
                         Match="NavLinkMatch.All">
-                Inicio
+                @Home
             </MudNavLink>
 
             <MudNavLink Href="/login" 
                         Icon="@Icons.Material.Filled.Login">
-                Iniciar Sesión
+                @Login
             </MudNavLink>
         </NotAuthorized>
     </AuthorizeView>
@@ -57,9 +63,8 @@
 
     <div class="px-4 py-4">
         <MudText Typo="Typo.caption" Class="mud-text-secondary">
-            Control Peso Thiscloud v1.0
+            @AppVersion
         </MudText>
     </div>
 </MudNavMenu>
-
 
