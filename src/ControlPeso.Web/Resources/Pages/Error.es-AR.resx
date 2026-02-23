@@ -62,32 +62,32 @@
   <!-- Page Metadata -->
   <data name="PageTitle" xml:space="preserve">
     <value>Error - Control Peso Thiscloud</value>
-    <comment>Browser tab title</comment>
+    <comment>Título de pestaña del navegador</comment>
   </data>
-  
+
   <!-- Error Content -->
   <data name="ErrorTitle" xml:space="preserve">
     <value>Error.</value>
-    <comment>Main error heading</comment>
+    <comment>Encabezado principal de error</comment>
   </data>
   <data name="ErrorMessage" xml:space="preserve">
-    <value>An error occurred while processing your request.</value>
-    <comment>Error description message</comment>
+    <value>Ocurrió un error al procesar tu solicitud.</value>
+    <comment>Mensaje de descripción del error</comment>
   </data>
   <data name="RequestIdLabel" xml:space="preserve">
-    <value>Request ID:</value>
-    <comment>Label for request ID display</comment>
+    <value>ID de Solicitud:</value>
+    <comment>Etiqueta para mostrar ID de solicitud</comment>
   </data>
   <data name="DevelopmentModeTitle" xml:space="preserve">
-    <value>Development Mode</value>
-    <comment>Development mode section heading</comment>
+    <value>Modo de Desarrollo</value>
+    <comment>Encabezado de sección de modo desarrollo</comment>
   </data>
   <data name="DevelopmentModeDescription" xml:space="preserve">
-    <value>Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.</value>
-    <comment>Description of development mode benefits</comment>
+    <value>Cambiar al entorno de <strong>Desarrollo</strong> mostrará información más detallada sobre el error que ocurrió.</value>
+    <comment>Descripción de los beneficios del modo desarrollo</comment>
   </data>
   <data name="DevelopmentModeWarning" xml:space="preserve">
-    <value><strong>The Development environment shouldn't be enabled for deployed applications.</strong> It can result in displaying sensitive information from exceptions to end users. For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong> and restarting the app.</value>
-    <comment>Security warning about development environment</comment>
+    <value><strong>El entorno de Desarrollo no debería estar habilitado para aplicaciones desplegadas.</strong> Puede resultar en mostrar información sensible de excepciones a usuarios finales. Para depuración local, habilite el entorno de <strong>Desarrollo</strong> estableciendo la variable de entorno <strong>ASPNETCORE_ENVIRONMENT</strong> en <strong>Development</strong> y reiniciando la aplicación.</value>
+    <comment>Advertencia de seguridad sobre entorno desarrollo</comment>
   </data>
 </root>
