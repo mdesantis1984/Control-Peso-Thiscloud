@@ -1,25 +1,25 @@
 @page "/login"
 @layout EmptyLayout
 
-<PageTitle>Iniciar Sesión - Control Peso Thiscloud</PageTitle>
+<PageTitle>@PageTitle</PageTitle>
 
 <HeadContent>
-    <meta name="description" content="Inicia sesión en Control Peso Thiscloud con tu cuenta de Google para comenzar a registrar y analizar tu peso corporal." />
-    <meta name="keywords" content="login, iniciar sesión, control peso, seguimiento peso, google oauth" />
+    <meta name="description" content="@MetaDescription" />
+    <meta name="keywords" content="@MetaKeywords" />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://controlpeso.thiscloud.com.ar/login" />
 
     @* Open Graph *@
-    <meta property="og:title" content="Iniciar Sesión - Control Peso Thiscloud" />
-    <meta property="og:description" content="Inicia sesión en Control Peso Thiscloud con tu cuenta de Google para comenzar a registrar y analizar tu peso corporal." />
+    <meta property="og:title" content="@OgTitle" />
+    <meta property="og:description" content="@OgDescription" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://controlpeso.thiscloud.com.ar/login" />
     <meta property="og:image" content="https://controlpeso.thiscloud.com.ar/images/og-image.png" />
 
     @* Twitter Card *@
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Iniciar Sesión - Control Peso Thiscloud" />
-    <meta name="twitter:description" content="Inicia sesión en Control Peso Thiscloud con tu cuenta de Google." />
+    <meta name="twitter:title" content="@TwitterTitle" />
+    <meta name="twitter:description" content="@TwitterDescription" />
     <meta name="twitter:image" content="https://controlpeso.thiscloud.com.ar/images/og-image.png" />
 </HeadContent>
 
@@ -48,10 +48,10 @@
             @* Títulos *@
             <MudStack Spacing="2" AlignItems="AlignItems.Center">
                 <MudText Typo="Typo.h4" Align="Align.Center" Class="font-weight-bold">
-                    Track Your Progress
+                    @MainTitle
                 </MudText>
                 <MudText Typo="Typo.body1" Align="Align.Center" Color="Color.Secondary">
-                    Sign in to continue your journey
+                    @MainSubtitle
                 </MudText>
             </MudStack>
 
@@ -68,7 +68,7 @@
                 StartIcon="@Icons.Custom.Brands.Google"
                 OnClick="LoginWithGoogle"
                 Class="login-google-button">
-                <MudText Class="font-weight-medium">Sign in with Google</MudText>
+                <MudText Class="font-weight-medium">@GoogleSignInButton</MudText>
             </MudButton>
 
             @* Security Badge *@
@@ -82,7 +82,7 @@
                              Size="Size.Small" 
                              Color="Color.Success" />
                     <MudText Typo="Typo.body2" Class="flex-grow-1">
-                        Your data is stored securely and persists in your user account.
+                        @SecurityBadge
                     </MudText>
                 </div>
             </MudAlert>
@@ -94,18 +94,18 @@
                     Color="Color.Primary" 
                     FullWidth="true"
                     Class="text-transform-none font-weight-bold">
-                    New here? Create an account
+                    @CreateAccountButton
                 </MudButton>
 
                 <MudDivider Style="opacity: 0.1;" />
 
                 <div class="d-flex justify-center align-center gap-4">
                     <MudLink Href="/terms" Typo="Typo.caption" Color="Color.Secondary" Underline="Underline.Hover">
-                        Terms of Service
+                        @TermsLink
                     </MudLink>
                     <MudText Typo="Typo.caption" Color="Color.Secondary" Style="opacity: 0.3;">•</MudText>
                     <MudLink Href="/privacy" Typo="Typo.caption" Color="Color.Secondary" Underline="Underline.Hover">
-                        Privacy Policy
+                        @PrivacyLink
                     </MudLink>
                 </div>
             </MudStack>
@@ -114,9 +114,9 @@
 
     @* Support/Help Text *@
     <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Secondary" Class="mt-8">
-        Need help? 
+        @NeedHelp 
         <MudLink Href="/support" Color="Color.Primary" Underline="Underline.Hover">
-            Contact support
+            @ContactSupport
         </MudLink>
     </MudText>
 </MudContainer>

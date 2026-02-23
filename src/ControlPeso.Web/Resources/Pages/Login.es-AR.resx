@@ -91,39 +91,39 @@
   
   <!-- Main Content -->
   <data name="MainTitle" xml:space="preserve">
-    <value>Track Your Progress</value>
+    <value>Registra Tu Progreso</value>
     <comment>Main heading on login page</comment>
   </data>
   <data name="MainSubtitle" xml:space="preserve">
-    <value>Sign in to continue your journey</value>
+    <value>Inicia sesión para continuar tu camino</value>
     <comment>Subtitle below main heading</comment>
   </data>
   <data name="GoogleSignInButton" xml:space="preserve">
-    <value>Sign in with Google</value>
+    <value>Iniciar sesión con Google</value>
     <comment>Google OAuth button text</comment>
   </data>
   <data name="SecurityBadge" xml:space="preserve">
-    <value>Your data is stored securely and persists in your user account.</value>
+    <value>Tus datos se almacenan de forma segura y persisten en tu cuenta de usuario.</value>
     <comment>Security assurance message</comment>
   </data>
   <data name="CreateAccountButton" xml:space="preserve">
-    <value>New here? Create an account</value>
+    <value>¿Nuevo aquí? Crear una cuenta</value>
     <comment>Create account button text</comment>
   </data>
   <data name="TermsLink" xml:space="preserve">
-    <value>Terms of Service</value>
+    <value>Términos de Servicio</value>
     <comment>Terms of service link</comment>
   </data>
   <data name="PrivacyLink" xml:space="preserve">
-    <value>Privacy Policy</value>
+    <value>Política de Privacidad</value>
     <comment>Privacy policy link</comment>
   </data>
   <data name="NeedHelp" xml:space="preserve">
-    <value>Need help?</value>
+    <value>¿Necesitas ayuda?</value>
     <comment>Support text prefix</comment>
   </data>
   <data name="ContactSupport" xml:space="preserve">
-    <value>Contact support</value>
+    <value>Contactar soporte</value>
     <comment>Support link text</comment>
   </data>
 </root>
