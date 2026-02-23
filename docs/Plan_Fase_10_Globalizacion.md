@@ -4,8 +4,8 @@
 - Rama: `feature/fase-9-pixel-perfect` (working branch)
 - Fase: **10 - Globalización (i18n)**
 - Fecha inicio: **2026-02-19**
-- Última actualización: **2026-02-23 22:30**
-- Estado: 🟡 **EN PROGRESO** — 14/20 tareas (70% ejecutado)
+- Última actualización: **2026-02-23 23:00**
+- Estado: 🟡 **EN PROGRESO** — 15/20 tareas (75% ejecutado)
 - Duración estimada: **4-6 días** (40-60 horas de trabajo)
 
 ---
@@ -910,6 +910,40 @@ public partial class LanguageSelector
 
 **Objetivo**: Inyectar `IStringLocalizer` en constructores de validators y usar en `.WithMessage()`.
 
+**Duración Estimada**: 1 hora (3 validators: CreateWeightLogValidator, UpdateWeightLogValidator, UpdateUserProfileValidator)
+
+**Resultado**:
+- ✅ Completado 2026-02-23 23:00
+- ✅ **3 validators refactorizados con IStringLocalizer**:
+
+  **1. CreateWeightLogValidator**:
+  - ✅ Inyectado `IStringLocalizer<CreateWeightLogValidator>` en constructor
+  - ✅ 8 mensajes refactorizados (UserIdRequired, DateRequired, DateCannotBeFuture, TimeRequired, WeightMinimum con placeholder {0}, WeightMaximum con placeholder {0}, DisplayUnitInvalid, NoteMaxLength con placeholder {0})
+  - ✅ ZERO strings hardcoded en `.WithMessage()`
+
+  **2. UpdateWeightLogValidator**:
+  - ✅ Inyectado `IStringLocalizer<UpdateWeightLogValidator>` en constructor
+  - ✅ 7 mensajes refactorizados (DateRequired, DateCannotBeFuture, TimeRequired, WeightMinimum con placeholder {0}, WeightMaximum con placeholder {0}, DisplayUnitInvalid, NoteMaxLength con placeholder {0})
+  - ✅ ZERO strings hardcoded en `.WithMessage()`
+
+  **3. UpdateUserProfileValidator**:
+  - ✅ Inyectado `IStringLocalizer<UpdateUserProfileValidator>` en constructor
+  - ✅ 12 mensajes refactorizados (NameRequired, NameMinLength con placeholder {0}, NameMaxLength con placeholder {0}, HeightMinimum con placeholder {0}, HeightMaximum con placeholder {0}, UnitSystemInvalid, DateOfBirthCannotBeFuture, DateOfBirthTooOld con placeholder {0}, LanguageRequired, LanguageInvalid, GoalWeightMinimum con placeholder {0}, GoalWeightMaximum con placeholder {0})
+  - ✅ ZERO strings hardcoded en `.WithMessage()`
+
+- ✅ **Agregada dependencia a Application layer**: `Microsoft.Extensions.Localization.Abstractions` v10.0.3 en `Directory.Packages.props`
+- ✅ **Tests actualizados**: 3 test files refactorizados con mock de IStringLocalizer (Moq setup devuelve key como valor)
+- ✅ **Total mensajes localizados**: 27 (8 CreateWeightLog + 7 UpdateWeightLog + 12 UpdateUserProfile)
+- ✅ Build exitoso ZERO errores (validators + tests compilan correctamente)
+- ✅ Commit: `c56ec91`
+- 🎯 **MILESTONE**: **100% validators refactorizados** (3/3)
+
+---
+
+### P10.16 — Modificar LanguageSelector (CultureInfo + cookie)
+
+**Objetivo**: Inyectar `IStringLocalizer` en constructores de validators y usar en `.WithMessage()`.
+
 **Pasos**:
 1. Agregar parámetro `IStringLocalizer<ValidatorName>` en constructor
 2. Reemplazar strings hardcoded en `.WithMessage()` por `_localizer["Key", params]`
@@ -1082,14 +1116,14 @@ public partial class LanguageSelector
 | P10.12 | Refactorizar Error con IStringLocalizer | 30 min | 100% | ✅ |
 | P10.13 | Refactorizar MainLayout + NavMenu | 1 h | 100% | ✅ |
 | P10.14 | Refactorizar componentes compartidos | 2 h | 100% | ✅ |
-| P10.15 | Refactorizar validators FluentValidation | 1 h | 0% | 🔵 |
+| P10.15 | Refactorizar validators FluentValidation | 1 h | 100% | ✅ |
 | P10.16 | Modificar LanguageSelector (CultureInfo + cookie) | 1 h | 0% | 🔵 |
 | P10.17 | Actualizar meta tags SEO dinámicos | 1 h | 0% | 🔵 |
 | P10.18 | Testing manual cambio idioma | 1 h | 0% | 🔵 |
 | P10.19 | Verificar persistencia cross-session | 30 min | 0% | 🔵 |
 | P10.20 | Build + tests + commit + push | 1 h | 0% | 🔵 |
 
-**Total**: 20 tareas | **Progreso**: 14/20 completadas (70%) | **Duración**: ~26-28 horas (4-6 días de trabajo)
+**Total**: 20 tareas | **Progreso**: 15/20 completadas (75%) | **Duración**: ~26-28 horas (4-6 días de trabajo)
 
 ---
 
@@ -1341,29 +1375,31 @@ Antes de crear PR de Fase 10 a `develop`, verificar:
 
 ### 🔵 Tareas Pendientes (6/20)
 
-**Próxima Tarea**: P10.15 — Refactorizar Validators FluentValidation
-- Inyectar `IStringLocalizer<ValidatorName>` en constructores de validators
-- Reemplazar TODOS los strings hardcoded en `.WithMessage()` por localizer keys
-- Duración estimada: 1 hora (3 validators: CreateWeightLogValidator, UpdateWeightLogValidator, UpdateUserProfileValidator)
+**Próxima Tarea**: P10.16 — Modificar LanguageSelector (CultureInfo + cookie)
+- Integrar cambio de `CultureInfo` + cookie persistente + `forceLoad` en `SelectLanguageAsync()`
+- Mapear `es` → `es-AR`, `en` → `en-US`
+- Persistir cookie con `CookieRequestCultureProvider.MakeCookieValue()`
+- Remover idiomas zh, fr, it (solo es/en en Fase 10)
+- Duración estimada: 1 hora
 
 ### 📈 Métricas de Progreso
 
 | Métrica | Valor | Progreso |
 |---------|-------|----------|
-| **Tareas Completadas** | 14/20 | 70% |
+| **Tareas Completadas** | 15/20 | 75% |
 | **Archivos .resx Creados** | 36/36 | 100% ✅ |
 | **Páginas Refactorizadas** | 7/7 | 100% ✅ (Dashboard, Profile, History, Trends, Admin, Login, Error) |
 | **Layout Componentes** | 2/2 | 100% ✅ (MainLayout, NavMenu) |
 | **Shared Componentes** | 5/5 | 100% ✅ (AddWeightDialog, StatsCard skip, TrendCard, WeightChart, NotificationBell) |
-| **Validators Refactorizados** | 0/3 | 0% (CreateWeightLog, UpdateWeightLog, UpdateUserProfile pending) |
-| **Strings Traducidos** | ~411 | - |
-| **Commits** | 23 | - |
+| **Validators Refactorizados** | 3/3 | 100% ✅ (CreateWeightLog, UpdateWeightLog, UpdateUserProfile) |
+| **Strings Traducidos** | ~438 | - (411 UI + 27 validators) |
+| **Commits** | 24 | - |
 | **Build Status** | ✅ Passing | 100% |
-| **Tiempo Invertido** | ~14 horas | - |
+| **Tiempo Invertido** | ~15 horas | - |
 
 ### 🎯 Siguiente Hito
 
-**Completar P10.15** → Validators con IStringLocalizer (3 validators) → **100% infraestructura i18n completa** → P10.16 LanguageSelector integration → P10.17-P10.20 testing/finalization
+**Completar P10.16** → LanguageSelector integration (CultureInfo + cookie + forceLoad) → **100% infraestructura i18n completa** → P10.17-P10.20 testing/finalization/PR
 
 ---
 
