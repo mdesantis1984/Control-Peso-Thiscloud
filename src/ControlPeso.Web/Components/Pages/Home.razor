@@ -1,24 +1,25 @@
 @page "/"
+@namespace ControlPeso.Web.Components.Pages
 
-<PageTitle>Control Peso Thiscloud - Seguimiento de Peso Corporal Simple y Efectivo</PageTitle>
+<PageTitle>@PageTitle</PageTitle>
 
 <HeadContent>
-    <meta name="description" content="Control Peso Thiscloud es una aplicación web gratuita para registrar y analizar tu peso corporal. Dashboard con métricas, gráficos de evolución, análisis de tendencias y proyecciones." />
-    <meta name="keywords" content="control peso, seguimiento peso, registro peso, app peso, gráfico peso, análisis peso, IMC, tendencias peso, peso corporal" />
+    <meta name="description" content="@MetaDescription" />
+    <meta name="keywords" content="@MetaKeywords" />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://controlpeso.thiscloud.com.ar/" />
 
     @* Open Graph *@
-    <meta property="og:title" content="Control Peso Thiscloud - Seguimiento de Peso Corporal" />
-    <meta property="og:description" content="Aplicación web gratuita para registrar y analizar tu peso corporal con dashboard, gráficos y análisis de tendencias." />
+    <meta property="og:title" content="@OgTitle" />
+    <meta property="og:description" content="@OgDescription" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://controlpeso.thiscloud.com.ar/" />
     <meta property="og:image" content="https://controlpeso.thiscloud.com.ar/images/og-image.png" />
 
     @* Twitter Card *@
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Control Peso Thiscloud - Seguimiento de Peso Corporal" />
-    <meta name="twitter:description" content="Aplicación web gratuita para registrar y analizar tu peso corporal." />
+    <meta name="twitter:title" content="@TwitterTitle" />
+    <meta name="twitter:description" content="@TwitterDescription" />
     <meta name="twitter:image" content="https://controlpeso.thiscloud.com.ar/images/og-image.png" />
 
     <style>
@@ -128,11 +129,11 @@
                      Class="hero-icon" />
 
             <MudText Class="hero-title">
-                Control Peso Thiscloud
+                @HeroTitle
             </MudText>
 
             <MudText Class="hero-subtitle">
-                Seguimiento inteligente de tu peso corporal con análisis en tiempo real
+                @HeroSubtitle
             </MudText>
 
             <AuthorizeView>
@@ -143,7 +144,7 @@
                                Href="/dashboard"
                                StartIcon="@Icons.Material.Filled.Dashboard"
                                Class="hero-cta">
-                        Ir al Dashboard
+                        @GoToDashboardButton
                     </MudButton>
                 </Authorized>
                 <NotAuthorized>
@@ -153,14 +154,14 @@
                                Href="/login"
                                StartIcon="@Icons.Material.Filled.Login"
                                Class="hero-cta">
-                        Comenzar Ahora
+                        @GetStartedButton
                     </MudButton>
                 </NotAuthorized>
             </AuthorizeView>
 
             <div class="stats-badge">
                 <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" />
-                <span>100% Gratuito · Privado · Seguro</span>
+                <span>@StatsBadge</span>
             </div>
         </MudStack>
     </MudContainer>
@@ -176,12 +177,12 @@
                              Color="Color.Success" 
                              Class="feature-icon" />
                     <MudText Typo="Typo.h5" Class="feature-title">
-                        Registro Rápido
+                        @FeatureFastRegistrationTitle
                     </MudText>
                     <MudText Typo="Typo.body1" 
                              Align="Align.Center" 
                              Class="feature-description">
-                        Añade tu peso en segundos con una interfaz intuitiva y fluida
+                        @FeatureFastRegistrationDescription
                     </MudText>
                 </MudStack>
             </MudPaper>
@@ -194,12 +195,12 @@
                              Color="Color.Info" 
                              Class="feature-icon" />
                     <MudText Typo="Typo.h5" Class="feature-title">
-                        Análisis Avanzado
+                        @FeatureAdvancedAnalysisTitle
                     </MudText>
                     <MudText Typo="Typo.body1" 
                              Align="Align.Center" 
                              Class="feature-description">
-                        Gráficos interactivos y estadísticas detalladas de tu evolución
+                        @FeatureAdvancedAnalysisDescription
                     </MudText>
                 </MudStack>
             </MudPaper>
@@ -212,12 +213,12 @@
                              Color="Color.Warning" 
                              Class="feature-icon" />
                     <MudText Typo="Typo.h5" Class="feature-title">
-                        Máxima Privacidad
+                        @FeatureMaxPrivacyTitle
                     </MudText>
                     <MudText Typo="Typo.body1" 
                              Align="Align.Center" 
                              Class="feature-description">
-                        Autenticación OAuth segura y cifrado de datos end-to-end
+                        @FeatureMaxPrivacyDescription
                     </MudText>
                 </MudStack>
             </MudPaper>
@@ -230,12 +231,12 @@
                              Color="Color.Primary" 
                              Class="feature-icon" />
                     <MudText Typo="Typo.h5" Class="feature-title">
-                        Predicciones IA
+                        @FeatureAiPredictionsTitle
                     </MudText>
                     <MudText Typo="Typo.body1" 
                              Align="Align.Center" 
                              Class="feature-description">
-                        Proyecciones inteligentes basadas en tus patrones históricos
+                        @FeatureAiPredictionsDescription
                     </MudText>
                 </MudStack>
             </MudPaper>
@@ -248,12 +249,12 @@
                              Color="Color.Secondary" 
                              Class="feature-icon" />
                     <MudText Typo="Typo.h5" Class="feature-title">
-                        Multi-dispositivo
+                        @FeatureMultiDeviceTitle
                     </MudText>
                     <MudText Typo="Typo.body1" 
                              Align="Align.Center" 
                              Class="feature-description">
-                        Accede desde cualquier dispositivo con sincronización automática
+                        @FeatureMultiDeviceDescription
                     </MudText>
                 </MudStack>
             </MudPaper>
@@ -266,12 +267,12 @@
                              Color="Color.Tertiary" 
                              Class="feature-icon" />
                     <MudText Typo="Typo.h5" Class="feature-title">
-                        Metas Personalizadas
+                        @FeaturePersonalizedGoalsTitle
                     </MudText>
                     <MudText Typo="Typo.body1" 
                              Align="Align.Center" 
                              Class="feature-description">
-                        Define objetivos y recibe notificaciones de progreso en tiempo real
+                        @FeaturePersonalizedGoalsDescription
                     </MudText>
                 </MudStack>
             </MudPaper>

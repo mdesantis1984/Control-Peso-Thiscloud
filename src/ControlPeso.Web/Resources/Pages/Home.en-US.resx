@@ -18,13 +18,29 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   
+
   <data name="PageTitle" xml:space="preserve"><value>Control Peso Thiscloud - Smart Weight Tracking</value></data>
-  <data name="HeroTitle" xml:space="preserve"><value>Track Your Weight Journey</value></data>
-  <data name="HeroSubtitle" xml:space="preserve"><value>Simple, powerful, and free weight tracking app</value></data>
-  <data name="GetStartedButton" xml:space="preserve"><value>Get Started</value></data>
-  <data name="LearnMoreButton" xml:space="preserve"><value>Learn More</value></data>
-  <data name="FeaturesTitle" xml:space="preserve"><value>Features</value></data>
-  <data name="FeatureCharts" xml:space="preserve"><value>Beautiful Charts</value></data>
-  <data name="FeatureGoals" xml:space="preserve"><value>Goal Tracking</value></data>
-  <data name="FeaturePrivacy" xml:space="preserve"><value>Your Data, Your Privacy</value></data>
+  <data name="MetaDescription" xml:space="preserve"><value>Control Peso Thiscloud is a free web application to record and analyze your body weight. Dashboard with metrics, evolution charts, trend analysis and projections.</value></data>
+  <data name="MetaKeywords" xml:space="preserve"><value>weight control, weight tracking, weight log, weight app, weight chart, weight analysis, BMI, weight trends, body weight</value></data>
+  <data name="OgTitle" xml:space="preserve"><value>Control Peso Thiscloud - Body Weight Tracking</value></data>
+  <data name="OgDescription" xml:space="preserve"><value>Free web application to record and analyze your body weight with dashboard, charts and trend analysis.</value></data>
+  <data name="TwitterTitle" xml:space="preserve"><value>Control Peso Thiscloud - Body Weight Tracking</value></data>
+  <data name="TwitterDescription" xml:space="preserve"><value>Free web application to record and analyze your body weight.</value></data>
+  <data name="HeroTitle" xml:space="preserve"><value>Control Peso Thiscloud</value></data>
+  <data name="HeroSubtitle" xml:space="preserve"><value>Smart body weight tracking with real-time analysis</value></data>
+  <data name="GoToDashboardButton" xml:space="preserve"><value>Go to Dashboard</value></data>
+  <data name="GetStartedButton" xml:space="preserve"><value>Get Started Now</value></data>
+  <data name="StatsBadge" xml:space="preserve"><value>100% Free · Private · Secure</value></data>
+  <data name="FeatureFastRegistrationTitle" xml:space="preserve"><value>Fast Registration</value></data>
+  <data name="FeatureFastRegistrationDescription" xml:space="preserve"><value>Add your weight in seconds with an intuitive and fluid interface</value></data>
+  <data name="FeatureAdvancedAnalysisTitle" xml:space="preserve"><value>Advanced Analysis</value></data>
+  <data name="FeatureAdvancedAnalysisDescription" xml:space="preserve"><value>Interactive charts and detailed statistics of your evolution</value></data>
+  <data name="FeatureMaxPrivacyTitle" xml:space="preserve"><value>Maximum Privacy</value></data>
+  <data name="FeatureMaxPrivacyDescription" xml:space="preserve"><value>Secure OAuth authentication and end-to-end data encryption</value></data>
+  <data name="FeatureAiPredictionsTitle" xml:space="preserve"><value>AI Predictions</value></data>
+  <data name="FeatureAiPredictionsDescription" xml:space="preserve"><value>Smart projections based on your historical patterns</value></data>
+  <data name="FeatureMultiDeviceTitle" xml:space="preserve"><value>Multi-device</value></data>
+  <data name="FeatureMultiDeviceDescription" xml:space="preserve"><value>Access from any device with automatic synchronization</value></data>
+  <data name="FeaturePersonalizedGoalsTitle" xml:space="preserve"><value>Personalized Goals</value></data>
+  <data name="FeaturePersonalizedGoalsDescription" xml:space="preserve"><value>Set goals and receive real-time progress notifications</value></data>
 </root>

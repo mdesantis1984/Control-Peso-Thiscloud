@@ -18,13 +18,29 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   
+
   <data name="PageTitle" xml:space="preserve"><value>Control Peso Thiscloud - Seguimiento de Peso Inteligente</value></data>
-  <data name="HeroTitle" xml:space="preserve"><value>Seguí Tu Camino de Peso</value></data>
-  <data name="HeroSubtitle" xml:space="preserve"><value>Aplicación simple, potente y gratuita para seguir tu peso</value></data>
-  <data name="GetStartedButton" xml:space="preserve"><value>Comenzar</value></data>
-  <data name="LearnMoreButton" xml:space="preserve"><value>Conocer Más</value></data>
-  <data name="FeaturesTitle" xml:space="preserve"><value>Características</value></data>
-  <data name="FeatureCharts" xml:space="preserve"><value>Gráficos Hermosos</value></data>
-  <data name="FeatureGoals" xml:space="preserve"><value>Seguimiento de Objetivos</value></data>
-  <data name="FeaturePrivacy" xml:space="preserve"><value>Tus Datos, Tu Privacidad</value></data>
+  <data name="MetaDescription" xml:space="preserve"><value>Control Peso Thiscloud es una aplicación web gratuita para registrar y analizar tu peso corporal. Dashboard con métricas, gráficos de evolución, análisis de tendencias y proyecciones.</value></data>
+  <data name="MetaKeywords" xml:space="preserve"><value>control peso, seguimiento peso, registro peso, app peso, gráfico peso, análisis peso, IMC, tendencias peso, peso corporal</value></data>
+  <data name="OgTitle" xml:space="preserve"><value>Control Peso Thiscloud - Seguimiento de Peso Corporal</value></data>
+  <data name="OgDescription" xml:space="preserve"><value>Aplicación web gratuita para registrar y analizar tu peso corporal con dashboard, gráficos y análisis de tendencias.</value></data>
+  <data name="TwitterTitle" xml:space="preserve"><value>Control Peso Thiscloud - Seguimiento de Peso Corporal</value></data>
+  <data name="TwitterDescription" xml:space="preserve"><value>Aplicación web gratuita para registrar y analizar tu peso corporal.</value></data>
+  <data name="HeroTitle" xml:space="preserve"><value>Control Peso Thiscloud</value></data>
+  <data name="HeroSubtitle" xml:space="preserve"><value>Seguimiento inteligente de tu peso corporal con análisis en tiempo real</value></data>
+  <data name="GoToDashboardButton" xml:space="preserve"><value>Ir al Dashboard</value></data>
+  <data name="GetStartedButton" xml:space="preserve"><value>Comenzar Ahora</value></data>
+  <data name="StatsBadge" xml:space="preserve"><value>100% Gratuito · Privado · Seguro</value></data>
+  <data name="FeatureFastRegistrationTitle" xml:space="preserve"><value>Registro Rápido</value></data>
+  <data name="FeatureFastRegistrationDescription" xml:space="preserve"><value>Añade tu peso en segundos con una interfaz intuitiva y fluida</value></data>
+  <data name="FeatureAdvancedAnalysisTitle" xml:space="preserve"><value>Análisis Avanzado</value></data>
+  <data name="FeatureAdvancedAnalysisDescription" xml:space="preserve"><value>Gráficos interactivos y estadísticas detalladas de tu evolución</value></data>
+  <data name="FeatureMaxPrivacyTitle" xml:space="preserve"><value>Máxima Privacidad</value></data>
+  <data name="FeatureMaxPrivacyDescription" xml:space="preserve"><value>Autenticación OAuth segura y cifrado de datos end-to-end</value></data>
+  <data name="FeatureAiPredictionsTitle" xml:space="preserve"><value>Predicciones IA</value></data>
+  <data name="FeatureAiPredictionsDescription" xml:space="preserve"><value>Proyecciones inteligentes basadas en tus patrones históricos</value></data>
+  <data name="FeatureMultiDeviceTitle" xml:space="preserve"><value>Multi-dispositivo</value></data>
+  <data name="FeatureMultiDeviceDescription" xml:space="preserve"><value>Accede desde cualquier dispositivo con sincronización automática</value></data>
+  <data name="FeaturePersonalizedGoalsTitle" xml:space="preserve"><value>Metas Personalizadas</value></data>
+  <data name="FeaturePersonalizedGoalsDescription" xml:space="preserve"><value>Define objetivos y recibe notificaciones de progreso en tiempo real</value></data>
 </root>
