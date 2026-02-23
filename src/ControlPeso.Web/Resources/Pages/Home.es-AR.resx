@@ -19,12 +19,12 @@
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   
   <data name="PageTitle" xml:space="preserve"><value>Control Peso Thiscloud - Seguimiento de Peso Inteligente</value></data>
-  <data name="HeroTitle" xml:space="preserve"><value>Track Your Weight Journey</value></data>
-  <data name="HeroSubtitle" xml:space="preserve"><value>Simple, powerful, and free weight tracking app</value></data>
-  <data name="GetStartedButton" xml:space="preserve"><value>Get Started</value></data>
-  <data name="LearnMoreButton" xml:space="preserve"><value>Learn More</value></data>
-  <data name="FeaturesTitle" xml:space="preserve"><value>Features</value></data>
-  <data name="FeatureCharts" xml:space="preserve"><value>Beautiful Charts</value></data>
-  <data name="FeatureGoals" xml:space="preserve"><value>Goal Tracking</value></data>
-  <data name="FeaturePrivacy" xml:space="preserve"><value>Your Data, Your Privacy</value></data>
+  <data name="HeroTitle" xml:space="preserve"><value>Seguí Tu Camino de Peso</value></data>
+  <data name="HeroSubtitle" xml:space="preserve"><value>Aplicación simple, potente y gratuita para seguir tu peso</value></data>
+  <data name="GetStartedButton" xml:space="preserve"><value>Comenzar</value></data>
+  <data name="LearnMoreButton" xml:space="preserve"><value>Conocer Más</value></data>
+  <data name="FeaturesTitle" xml:space="preserve"><value>Características</value></data>
+  <data name="FeatureCharts" xml:space="preserve"><value>Gráficos Hermosos</value></data>
+  <data name="FeatureGoals" xml:space="preserve"><value>Seguimiento de Objetivos</value></data>
+  <data name="FeaturePrivacy" xml:space="preserve"><value>Tus Datos, Tu Privacidad</value></data>
 </root>
