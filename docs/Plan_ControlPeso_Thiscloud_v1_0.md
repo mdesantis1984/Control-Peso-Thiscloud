@@ -4,10 +4,12 @@
 - Rama: `main` → `develop` → `feature/*`
 - Versión: **1.0.0**
 - Fecha inicio: **2026-02-15**
-- Última actualización: **2026-02-19 16:00**
-- Estado global: 🟢 **COMPLETADO** — Fase 0 ✅ | Fase 1 ✅ | Fase 1.5 ✅ | Fase 2 ✅ | Fase 3 ✅ | Fase 4 ✅ | Fase 5 ✅ | Fase 6 ✅ | Fase 7 ✅ | Fase 8 ✅ (63/63 tareas = **100%** ejecutado)
+- Última actualización: **2026-02-19 22:30**
+- Estado global: 🟢 **EN PROGRESO** — Fase 0 ✅ | Fase 1 ✅ | Fase 1.5 ✅ | Fase 2 ✅ | Fase 3 ✅ | Fase 4 ✅ | Fase 5 ✅ | Fase 6 ✅ | Fase 7 ✅ | Fase 8 ✅ | Fase 10 🔵 (63/83 tareas = **75.9%** ejecutado)
 
-**🆕 ACTUALIZACIÓN 2026-02-19**: Google OAuth 2.0 completamente funcional con Claims Transformation + Rendermode global configurado en App.razor + LinkedIn UI removida (backend preservado) + Docker deployment ready + Documentación actualizada (SECURITY.md, DEPLOYMENT.md, DOCKER.md, ARCHITECTURE.md).
+**🆕 ACTUALIZACIÓN 2026-02-19 22:30**: **Fase 10 (Globalización)** agregada al plan - Implementación completa de i18n con IStringLocalizer + archivos .resx para soporte bilingüe Español (es-AR) / Inglés (en-US). 20 nuevas tareas (P10.1-P10.20) - total 83 tareas. Sistema actualmente tiene textos hardcoded en español - Fase 10 convertirá TODO a recursos localizables con cambio de idioma en tiempo real vía LanguageSelector component + CultureInfo + RequestLocalization middleware.
+
+**NOTA IMPORTANTE FASE 10**: El componente `LanguageSelector.razor` YA EXISTE (creado en P5.8) y persiste idioma en localStorage, pero NO cambia la cultura actual de la aplicación. Fase 10 modifica el componente para integrar con ASP.NET Core localization (cambiar CultureInfo + cookie + forceLoad) y refactoriza TODOS los componentes/páginas para usar IStringLocalizer en lugar de strings hardcoded.
 
 ## Objetivo
 
@@ -1047,6 +1049,221 @@ Criterios de aceptación:
 - Accesibilidad WCAG AA verificada.
 - Documentación completa.
 
+### Fase 10 — Globalización (Multilanguage Support)
+
+**Estado**: 🔵 **PENDIENTE** (2026-02-19)
+
+**Contexto**: Implementar soporte completo de internacionalización (i18n) para **Español (es-AR)** e **Inglés (en-US)** usando ASP.NET Core `IStringLocalizer` + archivos de recursos `.resx`. La app ya tiene `LanguageSelector` component (implementado en P5.8) que persiste selección en localStorage, pero los textos están hardcoded en español. Esta fase convierte TODOS los textos de UI en recursos localizables, configura RequestLocalization middleware, y sincroniza la selección del usuario con `CultureInfo`.
+
+**Filosofía de i18n**:
+- **Single Source of Truth**: Archivos `.resx` en `Resources/Pages/` y `Resources/Components/`
+- **Naming Convention**: `ComponentName.{culture}.resx` (ej: `Dashboard.es-AR.resx`, `Dashboard.en-US.resx`)
+- **Scope**: 1 archivo `.resx` por página/componente (evitar un Resources.resx gigante)
+- **Fallback**: `es-AR` es la cultura default; si falta traducción en `en-US`, cae a default
+- **Format**: Mensajes con placeholders tipo `MessageFormat` (ej: `"Welcome back, {0}!"`)
+- **Performance**: `IStringLocalizer<T>` con caching automático, sin impacto en rendering
+
+**Alcance de traducciones**:
+1. **Páginas principales** (8): Login, Dashboard, Profile, History, Trends, Admin, Error, Home
+2. **Componentes compartidos** (7): MainLayout, NavMenu, AddWeightDialog, StatsCard, TrendCard, WeightChart, NotificationBell
+3. **Mensajes de validación**: FluentValidation validators (CreateWeightLogValidator, UpdateWeightLogValidator, UpdateUserProfileValidator)
+4. **Mensajes de Snackbar**: Success, Error, Warning notifications
+5. **Meta tags SEO**: PageTitle, meta description (dinámicos según cultura)
+
+**Arquitectura propuesta**:
+```
+src/ControlPeso.Web/
+├── Resources/
+│   ├── Pages/
+│   │   ├── Dashboard.es-AR.resx           ← "Dashboard", "Welcome back, {0}!", "Current Weight", "Weekly Change", etc.
+│   │   ├── Dashboard.en-US.resx
+│   │   ├── Profile.es-AR.resx
+│   │   ├── Profile.en-US.resx
+│   │   ├── History.es-AR.resx
+│   │   ├── History.en-US.resx
+│   │   ├── Trends.es-AR.resx
+│   │   ├── Trends.en-US.resx
+│   │   ├── Admin.es-AR.resx
+│   │   ├── Admin.en-US.resx
+│   │   ├── Login.es-AR.resx
+│   │   ├── Login.en-US.resx
+│   │   ├── Error.es-AR.resx
+│   │   └── Error.en-US.resx
+│   ├── Components/
+│   │   ├── Layout/
+│   │   │   ├── MainLayout.es-AR.resx      ← "Control Peso Thiscloud" (app name)
+│   │   │   ├── MainLayout.en-US.resx
+│   │   │   ├── NavMenu.es-AR.resx         ← "Dashboard", "Profile", "History", "Trends", "Admin"
+│   │   │   └── NavMenu.en-US.resx
+│   │   └── Shared/
+│   │       ├── AddWeightDialog.es-AR.resx ← "Add Weight", "Weight (kg)", "Date", "Time", "Notes", "Save", "Cancel"
+│   │       ├── AddWeightDialog.en-US.resx
+│   │       ├── StatsCard.es-AR.resx
+│   │       ├── StatsCard.en-US.resx
+│   │       ├── TrendCard.es-AR.resx
+│   │       ├── TrendCard.en-US.resx
+│   │       ├── WeightChart.es-AR.resx
+│   │       ├── WeightChart.en-US.resx
+│   │       ├── NotificationBell.es-AR.resx
+│   │       └── NotificationBell.en-US.resx
+│   └── Validators/
+│       ├── CreateWeightLogValidator.es-AR.resx  ← "'Weight' must be between {0} and {1} kg."
+│       ├── CreateWeightLogValidator.en-US.resx
+│       ├── UpdateWeightLogValidator.es-AR.resx
+│       ├── UpdateWeightLogValidator.en-US.resx
+│       ├── UpdateUserProfileValidator.es-AR.resx
+│       └── UpdateUserProfileValidator.en-US.resx
+```
+
+**Configuración Program.cs**:
+```csharp
+// 1. Add Localization services
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+// 2. Configure supported cultures
+var supportedCultures = new[] 
+{ 
+    new CultureInfo("es-AR"),  // Español (Argentina) - DEFAULT
+    new CultureInfo("en-US")   // English (United States)
+};
+
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    options.DefaultRequestCulture = new RequestCulture("es-AR");
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+
+    // Request culture provider order (intenta en este orden):
+    // 1. Cookie (persistido desde LanguageSelector)
+    // 2. Accept-Language header (browser default)
+    // 3. Default culture (es-AR)
+    options.RequestCultureProviders = new IRequestCultureProvider[]
+    {
+        new CookieRequestCultureProvider(),
+        new AcceptLanguageHeaderRequestCultureProvider()
+    };
+});
+
+// 3. Use RequestLocalization middleware (DESPUÉS de UseRouting, ANTES de UseAuthorization)
+app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
+```
+
+**Uso en componentes Blazor** (code-behind pattern):
+```csharp
+// Dashboard.razor.cs
+using Microsoft.Extensions.Localization;
+
+public partial class Dashboard
+{
+    [Inject]
+    private IStringLocalizer<Dashboard> Localizer { get; set; } = default!;
+
+    private string GetWelcomeMessage()
+    {
+        // Uso con placeholder
+        return Localizer["WelcomeBack", _userName];  // "Welcome back, {0}!" → "Welcome back, Marco!"
+    }
+
+    private string CurrentWeightLabel => Localizer["CurrentWeight"];  // "Current Weight" (en-US) | "Peso Actual" (es-AR)
+}
+```
+
+```razor
+@* Dashboard.razor *@
+<MudText Typo="Typo.h4" Class="mb-1">
+    @Localizer["WelcomeBack", _userName]
+</MudText>
+<MudText Typo="Typo.body2" Color="Color.Secondary">
+    @Localizer["CurrentWeight"]
+</MudText>
+```
+
+**Integración LanguageSelector**: Modificar para cambiar CultureInfo + Cookie persistente:
+```csharp
+// LanguageSelector.razor.cs
+private async Task SelectLanguageAsync(LanguageOption language)
+{
+    _currentLanguage = language;
+
+    // 1. Guardar en localStorage (ya implementado)
+    await JSRuntime.InvokeVoidAsync("localStorage.setItem", "language", language.Code);
+
+    // 2. Cambiar CultureInfo del thread actual
+    var culture = new CultureInfo(language.Code == "es" ? "es-AR" : "en-US");
+    CultureInfo.CurrentCulture = culture;
+    CultureInfo.CurrentUICulture = culture;
+
+    // 3. Persistir en cookie para RequestLocalization middleware
+    var cookieName = CookieRequestCultureProvider.DefaultCookieName;
+    var cookieValue = CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture));
+    await JSRuntime.InvokeVoidAsync("document.cookie", $"{cookieName}={cookieValue}; path=/; max-age=31536000");
+
+    // 4. Forzar recarga de componentes para aplicar nuevas strings
+    NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+
+    Snackbar.Add(Localizer["LanguageChanged", language.Label], Severity.Success);
+}
+```
+
+**Validación con FluentValidation i18n**:
+```csharp
+// CreateWeightLogValidator.cs
+using Microsoft.Extensions.Localization;
+
+public class CreateWeightLogValidator : AbstractValidator<CreateWeightLogDto>
+{
+    private readonly IStringLocalizer<CreateWeightLogValidator> _localizer;
+
+    public CreateWeightLogValidator(IStringLocalizer<CreateWeightLogValidator> localizer)
+    {
+        ArgumentNullException.ThrowIfNull(localizer);
+        _localizer = localizer;
+
+        RuleFor(x => x.Weight)
+            .InclusiveBetween(20, 500)
+            .WithMessage(_localizer["WeightRange", 20, 500]);  // "'Weight' must be between {0} and {1} kg."
+
+        RuleFor(x => x.Date)
+            .LessThanOrEqualTo(DateOnly.FromDateTime(DateTime.Now))
+            .WithMessage(_localizer["DateInPast"]);  // "'Date' cannot be in the future."
+    }
+}
+```
+
+Tareas:
+- P10.1 Configurar localization en Program.cs (RequestLocalizationOptions, supported cultures, cookie provider, middleware).
+- P10.2 Crear estructura de carpetas Resources/ (Pages/, Components/Layout/, Components/Shared/, Validators/).
+- P10.3 Crear archivos .resx para páginas principales (Dashboard, Profile, History, Trends, Admin, Login, Error, Home) - **16 archivos** (8 páginas × 2 culturas).
+- P10.4 Crear archivos .resx para componentes compartidos (MainLayout, NavMenu, AddWeightDialog, StatsCard, TrendCard, WeightChart, NotificationBell) - **14 archivos** (7 componentes × 2 culturas).
+- P10.5 Crear archivos .resx para validators FluentValidation (CreateWeightLogValidator, UpdateWeightLogValidator, UpdateUserProfileValidator) - **6 archivos** (3 validators × 2 culturas).
+- P10.6 Refactorizar Dashboard.razor + Dashboard.razor.cs para usar IStringLocalizer (inyectar, reemplazar strings hardcoded, placeholders).
+- P10.7 Refactorizar Profile.razor + Profile.razor.cs para usar IStringLocalizer.
+- P10.8 Refactorizar History.razor + History.razor.cs para usar IStringLocalizer.
+- P10.9 Refactorizar Trends.razor + Trends.razor.cs para usar IStringLocalizer.
+- P10.10 Refactorizar Admin.razor + Admin.razor.cs para usar IStringLocalizer.
+- P10.11 Refactorizar Login.razor + Login.razor.cs para usar IStringLocalizer.
+- P10.12 Refactorizar Error.razor para usar IStringLocalizer.
+- P10.13 Refactorizar MainLayout.razor.cs + NavMenu.razor.cs para usar IStringLocalizer.
+- P10.14 Refactorizar AddWeightDialog.razor.cs + componentes compartidos (StatsCard, TrendCard, WeightChart, NotificationBell) para usar IStringLocalizer.
+- P10.15 Refactorizar validators FluentValidation para usar IStringLocalizer en mensajes de error.
+- P10.16 Modificar LanguageSelector.razor.cs para cambiar CultureInfo + cookie persistente + forceLoad NavigationManager.
+- P10.17 Actualizar meta tags SEO (PageTitle, meta description) para ser dinámicos según cultura.
+- P10.18 Testing manual: cambiar idioma desde LanguageSelector, verificar que TODO el UI cambia (páginas, componentes, validaciones, snackbar).
+- P10.19 Verificar persistencia cross-session: cerrar navegador, reabrir, verificar idioma persistido.
+- P10.20 Build final + tests passing + commit + push.
+
+Criterios de aceptación:
+- Localization configurado correctamente en Program.cs (RequestLocalizationOptions + middleware).
+- 36 archivos .resx creados (16 pages + 14 components + 6 validators) con traducciones completas es-AR/en-US.
+- TODOS los textos hardcoded en páginas principales reemplazados por IStringLocalizer (0 strings hardcoded en Dashboard, Profile, History, Trends, Admin, Login, Error).
+- TODOS los textos hardcoded en componentes reemplazados por IStringLocalizer (MainLayout, NavMenu, AddWeightDialog, StatsCard, TrendCard, WeightChart, NotificationBell).
+- Mensajes de validación FluentValidation traducidos y funcionando.
+- LanguageSelector cambia cultura actual + cookie + forceLoad → UI completo se traduce instantáneamente.
+- Meta tags SEO (PageTitle, meta description) dinámicos según cultura.
+- Persistencia funciona: idioma seleccionado sobrevive refresh + cerrar/reabrir navegador.
+- Build exitoso, tests pasando (176/176 → validar que no se rompió nada).
+- Documentación actualizada (README.md con sección i18n, ARCHITECTURE.md con localization pattern).
+
 ---
 
 ## Tabla de progreso (por tarea)
@@ -1125,6 +1342,26 @@ Criterios de aceptación:
 | P8.8  | 8 | Open Graph tags | 100% | ✅ |
 | P8.9  | 8 | Auditoría accesibilidad | 100% | ✅ |
 | P8.10 | 8 | Documentación final | 100% | ✅ |
+| P10.1  | 10 | Configurar localization en Program.cs | 0% | 🔵 |
+| P10.2  | 10 | Crear estructura Resources/ | 0% | 🔵 |
+| P10.3  | 10 | Crear .resx páginas (16 archivos) | 0% | 🔵 |
+| P10.4  | 10 | Crear .resx componentes (14 archivos) | 0% | 🔵 |
+| P10.5  | 10 | Crear .resx validators (6 archivos) | 0% | 🔵 |
+| P10.6  | 10 | Refactorizar Dashboard con IStringLocalizer | 0% | 🔵 |
+| P10.7  | 10 | Refactorizar Profile con IStringLocalizer | 0% | 🔵 |
+| P10.8  | 10 | Refactorizar History con IStringLocalizer | 0% | 🔵 |
+| P10.9  | 10 | Refactorizar Trends con IStringLocalizer | 0% | 🔵 |
+| P10.10 | 10 | Refactorizar Admin con IStringLocalizer | 0% | 🔵 |
+| P10.11 | 10 | Refactorizar Login con IStringLocalizer | 0% | 🔵 |
+| P10.12 | 10 | Refactorizar Error con IStringLocalizer | 0% | 🔵 |
+| P10.13 | 10 | Refactorizar MainLayout + NavMenu | 0% | 🔵 |
+| P10.14 | 10 | Refactorizar componentes compartidos | 0% | 🔵 |
+| P10.15 | 10 | Refactorizar validators FluentValidation | 0% | 🔵 |
+| P10.16 | 10 | Modificar LanguageSelector (CultureInfo + cookie) | 0% | 🔵 |
+| P10.17 | 10 | Actualizar meta tags SEO dinámicos | 0% | 🔵 |
+| P10.18 | 10 | Testing manual cambio idioma | 0% | 🔵 |
+| P10.19 | 10 | Verificar persistencia cross-session | 0% | 🔵 |
+| P10.20 | 10 | Build + tests + commit + push | 0% | 🔵 |
 
 ---
 
@@ -1154,6 +1391,7 @@ Criterios de aceptación:
 | 2026-02-18 15:30 | **Calidad de código - Erradicación masiva de warnings sin atajos** | Corrección comprehensiva de warnings de compilación: **reducción de 464 a 7 warnings (98.5%)**. Estrategia sin `#pragma warning disable` ni `NoWarn` en .csproj según instrucción del usuario. **Correcciones aplicadas**: (1) **MUD0002 (24)** - Atributos ilegales MudBlazor corregidos: `Image→src` (lowercase) en MudAvatar, `Title→title` (lowercase HTML5) en MudIconButton, `Suffix→Adornment+AdornmentText` en MudNumericField, eliminado `Color` no soportado en MudNumericField, `Checked+CheckedChanged→@bind-Value` en MudSwitch. Archivos: Admin.razor (2 fixes), AddWeightDialog.razor (2 fixes), Profile.razor (3 fixes). (2) **CS8601/CS8604 (6)** - Nullability violations corregidos: null-coalescing `?? string.Empty` en UserMapper.ToDto() para GoogleId scaffolded nullable, null-forgiving `!` operator en tests (datos seed NOT NULL). Archivos: UserMapper.cs, UserServiceIntegrationTests.cs. (3) **CS1030 (2)** - Directiva `#warning` scaffolded eliminada en ControlPesoDbContext.OnConfiguring(), agregado comment explicativo connection string fallback. (4) **CS8618 (4)** - DbSet properties non-nullable: agregado `= null!;` a AuditLog/UserPreferences/Users/WeightLogs en ControlPesoDbContext. (5) **RZ10012 (20)** - Componentes sin namespace: agregado `@using Microsoft.AspNetCore.Components` + `@using ControlPeso.Web.Components.Shared` en Components/_Imports.razor, **creado** Pages/_Imports.razor (copy para resolver scope). (6) **IDE0055 (414)** - Formatting: ejecutado `dotnet format` para auto-fix indentation/spacing/line breaks. **Warnings restantes (7)**: EnableGenerateDocumentationFile (informativos Roslyn) - NO corregibles sin generar CS1591 (358 XML comment warnings) o usar `NoWarn` (prohibido). **Verificación**: Build exitoso, tests 176/176 passing. **10 archivos modificados** (7 razor + 2 cs + 1 _Imports nuevo). Branch: feature/fase-7 (pendiente commit warnings fix antes de Fase 7 implementation). |
 | 2026-02-18 16:00 | **Fase 7 COMPLETA (5/5 tareas) - Admin Panel + Warnings Cleanup** | **FASE 7 CERRADA**: Implementación completa de Admin Panel (P7.1-P7.5) + calidad de código (warnings 464→7). **Hito 1 - Calidad código (15:30)**: Correcciones MUD0002/CS8601/CS8604/CS1030/CS8618/RZ10012/IDE0055 sin atajos en 10 archivos (7 razor + 2 cs + 1 nuevo _Imports), reducción 98.5% warnings. **Hito 2 - Funcionalidades Admin Panel**: (P7.1) Admin.razor con dashboard 8 métricas estadísticas usuarios (total users, activos, inactivos, pendientes, admins, avg weight logs/user, total weight logs, recent logins), (P7.2) MudDataGrid<UserDto> server-side pagination + filtros search/role/status + PropertyColumn definitions + Actions TemplateColumn, (P7.3) ChangeRoleDialog + ChangeStatusDialog con IAdminService.UpdateUserRoleAsync/UpdateUserStatusAsync + AuditLog automático creation, (P7.4) [Authorize(Roles="Administrator")] protection + NavMenu conditional _isAdmin check + redirect NoAuthorize, (P7.5) CSV export CsvHelper + JSRuntime downloadFileFromStream + app.js helper function. **Total**: 20 archivos modificados (10 warnings + 10 Admin Panel). **Tests**: 176/176 passing ✅. **Build**: SUCCESS ✅. **Warnings**: 7 informativos aceptados (EnableGenerateDocumentationFile). Progreso global: 88.9%→96.8% (61/63 tareas). **Fase 7 lista para PR #7 a develop**. |
 | 2026-02-18 21:00 | **Fase 8 COMPLETA (10/10 tareas) - SEO + Analytics + Security + Docs** | **FASE 8 CERRADA - PROYECTO 100% COMPLETADO**: Implementación exhaustiva de SEO, Analytics, Seguridad, Accesibilidad y Documentación final. **(P8.1) SEO meta tags**: HeadContent implementado en 8 páginas (Login, Home, Dashboard, Profile, History, Trends, Admin, Error) con PageTitle branding consistente, meta description/keywords contextual, robots index/follow público vs noindex/nofollow protegido, canonical URLs hardcoded producción, Open Graph og:title/description/type/url/image completo, Twitter Card summary_large_image en páginas públicas. **(P8.2) Google Analytics 4**: gtag.js script integrado en App.razor con anonymize_ip true + cookie flags SameSite=Strict;Secure, appsettings.json MeasurementId config, App.razor.cs code-behind IConfiguration injection. **(P8.3) Cloudflare Analytics**: CLOUDFLARE_ANALYTICS.md 200+ líneas documentando DNS setup (Full/CNAME options), beacon integration, Web Analytics enable, free tier features, testing checklist, troubleshooting. **(P8.4) SecurityHeadersMiddleware**: 161 líneas implementadas, 6 headers (X-Content-Type-Options nosniff, X-Frame-Options DENY, X-XSS-Protection 0, Referrer-Policy strict-origin-when-cross-origin, Permissions-Policy camera/microphone/geolocation/payment/usb disabled, CSP BuildContentSecurityPolicy() con 13 directives adaptadas Blazor Server + MudBlazor requirements: unsafe-inline/unsafe-eval documented justification, wss: SignalR, data: URIs MudBlazor, OAuth avatar domains, GA4/Cloudflare analytics), UseSecurityHeaders extension method. **(P8.5) GlobalExceptionMiddleware**: 144 líneas, RequestDelegate + ILogger<T> + IHostEnvironment triple injection, InvokeAsync try/await _next/catch global, structured logging 5 named parameters (Path, Method, User, TraceId), HandleExceptionAsync Response.HasStarted check, statusCode switch expression pattern matching (ArgumentNullException→400, UnauthorizedAccessException→401, InvalidOperationException→409, default→500), Development vs Production bifurcation (BuildDevelopmentErrorMessage stack trace completo + InnerException vs BuildProductionErrorMessage user-friendly generic + TraceId + contact support), UseGlobalExceptionHandler extension method. **(P8.6) Rate Limiting**: AddRateLimiter services con 2 políticas fixed window (oauth: 5 req/min/IP para OAuth endpoints stricter brute force protection, fixed: 10 req/min/IP global optional), UseRateLimiter middleware en pipeline después SecurityHeaders antes Authentication, RequireRateLimiting("oauth") aplicado a EndpointExtensions /api/auth/login/google y /linkedin endpoints, 429 Too Many Requests response status code. **(P8.7) robots.txt + sitemap.xml**: robots.txt 23 líneas con User-agent * all bots, Allow / + /login público, Disallow 8 rutas protegidas (/dashboard, /profile, /history, /trends, /admin, /logout, /counter, /weather), Sitemap absolute URL https://controlpeso.thiscloud.com.ar/sitemap.xml, Crawl-delay 1 optional. Sitemap.xml 26 líneas XML schema sitemaps.org/schemas/sitemap/0.9 compliant, urlset 2 url entries: Home (priority 1.0 changefreq monthly lastmod 2026-02-18), Login (priority 0.8 changefreq monthly 2026-02-18), páginas protegidas excluidas con comment explicativo. **(P8.8) Open Graph tags**: og:image + twitter:image referenciando /images/og-image.png en todas las páginas, wwwroot/images/README_og-image.md 45 líneas con especificaciones técnicas (1200x630px PNG < 300KB Facebook/LinkedIn/Twitter standard), content requirements (logo + icon scale + tagline "Seguimiento de Peso Corporal Simple y Efectivo" + dark background + brand colors Primary #1E88E5 blue + Secondary #FFC107 amber), creation tools (Figma/Canva/Adobe Express), testing checklist (Facebook Sharing Debugger, Twitter Card Validator, LinkedIn Post Inspector), TODO list 5 items (imagen real NO creada físicamente, manual creation required diseño gráfico). **(P8.9) WCAG AA Audit**: WCAG_AA_AUDIT.md 450+ líneas documentando WCAG 2.1 Level AA compliance audit, 4 principios (Perceivable, Operable, Understandable, Robust) con 100+ criteria checks, automated tools guide (Lighthouse, axe DevTools, WAVE), manual testing instructions (keyboard navigation Tab/Shift+Tab/Enter/Esc, screen readers NVDA/JAWS/VoiceOver), color contrast verification WebAIM Contrast Checker 4.5:1 minimum, focus indicators checks, priority action items CRITICAL 4 items (skip to content link, contrast ratios, keyboard nav, html lang dynamic), HIGH 3 items (aria-labels icon buttons, autocomplete attributes, error messages), MEDIUM 3 items (screen reader testing, heading hierarchy, accessibility tools automated), testing commands bash scripts, conformance level assessment (current: partially AA, required fixes for full compliance, estimated 4-6 hours). **(P8.10) Documentación final**: 5 archivos markdown comprehensivos creados: **ARCHITECTURE.md** (550+ líneas) Onion/Clean Architecture pattern explicado, layer responsibilities + dependencies rules (Domain ZERO dependencies, Application ONLY Domain, Infrastructure Domain+Application, Web Application+Infrastructure DI only), technology stack completo (.NET 10, Blazor Server, MudBlazor, EF Core 9, OAuth, Serilog), project structure tree detallado con 4 capas + tests + docs, design patterns 7 (Service Layer, DTO, Mapper, Validator FluentValidation, Middleware ASP.NET Core, Code-Behind Blazor, Extension Method), data flow diagrams 2 (User→Service→Database create, Database→Service→UI load), key architectural decisions 8 (Database First SQL source of truth, MudBlazor exclusive UI, Code-Behind pattern NO @code blocks, Weight storage ALWAYS kg, SQLite→SQL Server swap ready, Structured logging Serilog redaction, Security headers CSP, Rate limiting OAuth), diagrams high-level component + authentication flow, maintainability checklist, references; **DATABASE.md** (180+ líneas) schema overview 4 tables (Users, WeightLogs, UserPreferences, AuditLog) con columns/constraints/checks, Database First workflow mandatory (SQL→Apply→Scaffold→Value converters optional), type conversions SQLite TEXT/INTEGER/REAL → C# Guid/DateTime/enum mappings, enums Domain/Enums 5 (UserRole, UserStatus, UnitSystem, WeightUnit, WeightTrend), migration SQL Server guide (syntax differences, connection string Production, backup/restore strategies), query performance tips (indexes, AsNoTracking, projections); **SECURITY.md** (350+ líneas) OAuth 2.0 flow Google+LinkedIn con cookie HttpOnly+Secure+SameSite, secrets management User Secrets Development + Azure App Settings/env vars Production, security headers 6 detallados con CSP 13 directives + justifications unsafe-inline/unsafe-eval Blazor/MudBlazor requirements, rate limiting policies 2 oauth/fixed fixed window per IP, HTTPS enforcement UseHttpsRedirection + HSTS Production, logging PII redaction automatic (Authorization headers, tokens, passwords), correlation ID X-Correlation-Id auto-generated, GlobalExceptionMiddleware exception handling Development stack trace vs Production generic messages + status codes tipados, SQL injection prevention EF Core parameterization, XSS prevention Blazor escaping + CSP, CSRF prevention Antiforgery tokens, sensitive data handling (NO passwords stored OAuth-only, tokens encrypted cookie, user data private per UserId), vulnerability scanning dotnet list package --vulnerable, security checklist 14 items (12 done, 2 TODO: security audit logging Admin actions, brute force detection), incident response procedures (data breach, compromised secrets, DDoS attack), compliance GDPR/CCPA notes, OWASP Top 10 addressed, references; **SEO.md** (400+ líneas) meta tags structure HeadContent completo (PageTitle, meta description/keywords, robots, canonical, Open Graph, Twitter Card), pages overview table 8 páginas con robots policy + priority + canonical URLs + social cards, rationale páginas públicas index/follow vs protegidas noindex/nofollow, robots.txt + sitemap.xml locations + content, Open Graph image spec og-image.png 1200x630px pending creation, target keywords primary/secondary/long-tail Spanish + English future, SEO best practices applied (on-page 10 items, technical 7 items, off-page 5 TODO), local SEO Argentina focus (es-AR locale, timezone Buenos Aires, Google Search Console/Bing Webmaster Tools submit sitemap), analytics integration GA4 + Cloudflare, performance SEO Core Web Vitals targets (LCP < 2.5s, FID < 100ms, CLS < 0.1) + optimization tips, structured data JSON-LD WebApplication schema TODO, Google Search Console setup guide, Bing Webmaster Tools setup, SEO checklist pre-launch 8 items + post-launch 7 items + ongoing 6 items, troubleshooting 3 scenarios (page not indexed, low CTR, high bounce rate), references; **DEPLOYMENT.md** (450+ líneas) Azure App Service deployment guide completo (az cli commands create resource group + app service plan + webapp B1 Linux, configure app settings connection string + authentication secrets + analytics, deploy code zip or Visual Studio publish, custom domain add + CNAME/A records DNS, HTTPS certificate App Service Managed or Let's Encrypt, Application Insights optional monitoring), IIS deployment on-premises (prerequisites Windows Server 2019+ + IIS 10+ + .NET 10 Hosting Bundle, publish dotnet publish Release, create IIS site HTTPS binding, configure Application Pool No Managed Code + Integrated + AlwaysRunning, environment variables web.config or System level, Let's Encrypt SSL win-acme automatic renewal Task Scheduler), CI/CD GitHub Actions workflow YAML (.github/workflows/deploy.yml with setup .NET 10, restore, build, test, publish, Azure webapps-deploy action, GitHub secrets AZURE_WEBAPP_PUBLISH_PROFILE), database migration SQLite→SQL Server (export dump, convert syntax TEXT→NVARCHAR INTEGER→INT REAL→FLOAT, apply sqlcmd or SSMS, update connection string SQL Server), monitoring & logging (Application Insights telemetry + KQL queries, Serilog file logs NDJSON format + jq query examples), health checks endpoint /health AddHealthChecks AddDbContextCheck, backup strategy (Azure SQL automated 7-35 days retention + point-in-time restore, SQLite daily cron/Task Scheduler), rollback procedure (Azure deployment history redeploy, IIS stop+replace+start, database restore backup), performance tuning (Azure Scale Up/Out + Always On + ARR Affinity, IIS HTTP/2 + compression + caching + CDN), security checklist deployment (HTTPS, SSL certificate, secrets env vars, firewall, database IP restrict, HSTS, security headers, DDoS/WAF TODO), troubleshooting 4 scenarios (500 error detailed errors + logs, database timeout firewall + connection string + sqlcmd test, OAuth not working redirect URI + secrets + HTTPS, slow performance Application Insights + query performance + caching + CDN), references docs links. **Archivos**: 25 modified/created (12 razor SEO, 2 middlewares Security/Exception, 1 App.razor.cs code-behind, 1 appsettings.json config, 1 EndpointExtensions.cs rate limit, 1 Program.cs pipeline, 2 static robots.txt/sitemap.xml, 1 images/README_og-image.md, 7 docs .md ARCHITECTURE/DATABASE/SECURITY/SEO/DEPLOYMENT/WCAG_AA_AUDIT/CLOUDFLARE_ANALYTICS). **Lines**: +3389 insertions. **Build**: SUCCESS ✅. **Commit**: dda1850 (feature/fase-8). **Push**: exitoso origin feature/fase-8. Progreso global: 96.8%→**100%** (63/63 tareas). **PROYECTO COMPLETADO** 🎉. Pendiente: PR #8 a develop, merge, finalizar Git Flow, actualizar README.md con badges/features/setup guide. |
+| 2026-02-19 22:30 | **Fase 10 (Globalización) agregada al plan** | Decisión: Agregar soporte completo de i18n (internacionalización) para Español (es-AR) e Inglés (en-US) usando ASP.NET Core `IStringLocalizer` + archivos `.resx`. LanguageSelector component YA EXISTE (P5.8 - persiste idioma en localStorage) pero NO cambia cultura actual. Fase 10 agrega 20 nuevas tareas (P10.1-P10.20): (1) Configurar RequestLocalizationOptions + middleware, (2) Crear 36 archivos .resx (16 pages + 14 components + 6 validators), (3) Refactorizar TODAS las páginas/componentes/validators para usar IStringLocalizer (reemplazar strings hardcoded), (4) Modificar LanguageSelector para cambiar CultureInfo + cookie + forceLoad, (5) Meta tags SEO dinámicos según cultura, (6) Testing manual cross-browser + persistencia. Filosofía: Single source of truth en .resx, naming convention ComponentName.{culture}.resx, 1 archivo por página/componente (evitar Resources.resx gigante), fallback es-AR default, format con placeholders tipo MessageFormat. Total tareas: 63→83. Progreso global ajustado: 100%→75.9%. Estado: Proyecto pasa de COMPLETADO a EN PROGRESO. Branch feature/fase-10 se iniciará después de merge de Fase 9 (Pixel Perfect). |
 
 ---
 

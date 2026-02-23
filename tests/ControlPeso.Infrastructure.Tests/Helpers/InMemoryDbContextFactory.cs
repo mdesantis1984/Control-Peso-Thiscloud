@@ -1,16 +1,18 @@
 using ControlPeso.Infrastructure.Data;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
 namespace ControlPeso.Infrastructure.Tests.Helpers;
 
 /// <summary>
 /// Factory para crear instancias de DbContext en memoria para tests de integración.
-/// Cada test obtiene una BD in-memory aislada con nombre único.
+/// Usa SQLite in-memory en vez de EF Core InMemory provider para evitar conflictos con OnConfiguring.
 /// </summary>
 internal static class InMemoryDbContextFactory
 {
     /// <summary>
-    /// Crea un DbContext configurado con InMemory provider.
+    /// Crea un DbContext configurado con SQLite in-memory.
+    /// Cada test obtiene una BD SQLite in-memory aislada con conexión única.
     /// </summary>
     /// <param name="databaseName">Nombre único de la BD (usar nombre del test para aislamiento).</param>
     /// <returns>DbContext configurado para in-memory testing.</returns>
@@ -18,15 +20,20 @@ internal static class InMemoryDbContextFactory
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(databaseName);
 
+        // Crear conexión SQLite in-memory (Mode=Memory;Cache=Shared permite múltiples accesos)
+        var connectionString = $"Data Source={databaseName};Mode=Memory;Cache=Shared";
+        var connection = new SqliteConnection(connectionString);
+        connection.Open(); // Mantener abierta para que la BD in-memory persista
+
         var options = new DbContextOptionsBuilder<ControlPesoDbContext>()
-            .UseInMemoryDatabase(databaseName)
+            .UseSqlite(connection) // Usar la misma conexión abierta
             .EnableSensitiveDataLogging()
             .EnableDetailedErrors()
             .Options;
 
         var context = new ControlPesoDbContext(options);
 
-        // Asegurar que la BD in-memory está creada
+        // Asegurar que la BD in-memory está creada con el schema
         context.Database.EnsureCreated();
 
         return context;
