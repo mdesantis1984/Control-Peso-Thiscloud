@@ -76,6 +76,9 @@ public partial class Profile : IDisposable
     // Page & Meta
     private string PageTitle => Localizer["PageTitle"];
     private string MetaDescription => Localizer["MetaDescription"];
+    private string MetaKeywords => Localizer["MetaKeywords"];
+    private string OgTitle => Localizer["OgTitle"];
+    private string OgDescription => Localizer["OgDescription"];
 
     // Header Section
     private string ClickToChangePhotoTooltip => Localizer["ClickToChangePhotoTooltip"];

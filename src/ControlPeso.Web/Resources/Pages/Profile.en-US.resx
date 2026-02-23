@@ -16,6 +16,9 @@
   
   <data name="PageTitle" xml:space="preserve"><value>Profile - Control Peso Thiscloud</value></data>
   <data name="MetaDescription" xml:space="preserve"><value>Manage your personal profile, preferences and account settings in Control Peso Thiscloud.</value></data>
+  <data name="MetaKeywords" xml:space="preserve"><value>user profile, account settings, preferences, personal data, weight control</value></data>
+  <data name="OgTitle" xml:space="preserve"><value>Profile - Control Peso Thiscloud</value></data>
+  <data name="OgDescription" xml:space="preserve"><value>Manage your personal profile, preferences and account settings in Control Peso Thiscloud.</value></data>
 
   <!-- Header Section -->
   <data name="ClickToChangePhotoTooltip" xml:space="preserve"><value>Click to change photo</value></data>

@@ -64,6 +64,10 @@
     <value>Error - Control Peso Thiscloud</value>
     <comment>Título de pestaña del navegador</comment>
   </data>
+  <data name="MetaDescription" xml:space="preserve">
+    <value>Ha ocurrido un error en Control Peso Thiscloud. Por favor intente nuevamente o contacte al soporte.</value>
+    <comment>Descripción meta para SEO</comment>
+  </data>
 
   <!-- Error Content -->
   <data name="ErrorTitle" xml:space="preserve">

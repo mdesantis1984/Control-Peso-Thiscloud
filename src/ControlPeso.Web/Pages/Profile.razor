@@ -6,6 +6,20 @@
 
 <PageTitle>@PageTitle</PageTitle>
 
+<HeadContent>
+    <meta name="description" content="@MetaDescription" />
+    <meta name="keywords" content="@MetaKeywords" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="canonical" href="https://controlpeso.thiscloud.com.ar/profile" />
+
+    @* Open Graph *@
+    <meta property="og:title" content="@OgTitle" />
+    <meta property="og:description" content="@OgDescription" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://controlpeso.thiscloud.com.ar/profile" />
+    <meta property="og:image" content="https://controlpeso.thiscloud.com.ar/images/og-image.png" />
+</HeadContent>
+
 <MudContainer MaxWidth="MaxWidth.Large" Class="pa-6">
     @if (_isLoading)
     {

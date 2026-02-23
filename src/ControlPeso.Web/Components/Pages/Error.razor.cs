@@ -21,6 +21,7 @@ public partial class Error
 
     // Localized Properties - Page Metadata
     private string PageTitle => Localizer[nameof(PageTitle)];
+    private string MetaDescription => Localizer[nameof(MetaDescription)];
 
     // Localized Properties - Error Content
     private string ErrorTitle => Localizer[nameof(ErrorTitle)];

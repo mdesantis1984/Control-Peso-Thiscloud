@@ -64,6 +64,10 @@
     <value>Error - Control Peso Thiscloud</value>
     <comment>Browser tab title</comment>
   </data>
+  <data name="MetaDescription" xml:space="preserve">
+    <value>An error has occurred in Control Peso Thiscloud. Please try again or contact support.</value>
+    <comment>Meta description for SEO</comment>
+  </data>
   
   <!-- Error Content -->
   <data name="ErrorTitle" xml:space="preserve">
