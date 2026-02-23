@@ -4,8 +4,8 @@
 - Rama: `feature/fase-9-pixel-perfect` (working branch)
 - Fase: **10 - Globalización (i18n)**
 - Fecha inicio: **2026-02-19**
-- Última actualización: **2026-02-23 01:05**
-- Estado: 🟡 **EN PROGRESO** — 5/20 tareas (25% ejecutado)
+- Última actualización: **2026-02-23 03:30**
+- Estado: 🟡 **EN PROGRESO** — 7/20 tareas (35% ejecutado)
 - Duración estimada: **4-6 días** (40-60 horas de trabajo)
 
 ---
@@ -1004,7 +1004,7 @@ public partial class LanguageSelector
 | P10.4 | Crear .resx componentes (14 archivos) | 2-3 h | 100% | ✅ |
 | P10.5 | Crear .resx validators (6 archivos) | 1 h | 100% | ✅ |
 | P10.6 | Refactorizar Dashboard con IStringLocalizer | 1.5 h | 100% | ✅ |
-| P10.7 | Refactorizar Profile con IStringLocalizer | 1.5 h | 0% | 🔵 |
+| P10.7 | Refactorizar Profile con IStringLocalizer | 1.5 h | 100% | ✅ |
 | P10.8 | Refactorizar History con IStringLocalizer | 1 h | 0% | 🔵 |
 | P10.9 | Refactorizar Trends con IStringLocalizer | 1.5 h | 0% | 🔵 |
 | P10.10 | Refactorizar Admin con IStringLocalizer | 2 h | 0% | 🔵 |
@@ -1019,7 +1019,7 @@ public partial class LanguageSelector
 | P10.19 | Verificar persistencia cross-session | 30 min | 0% | 🔵 |
 | P10.20 | Build + tests + commit + push | 1 h | 0% | 🔵 |
 
-**Total**: 20 tareas | **Progreso**: 6/20 completadas (30%) | **Duración**: ~26-28 horas (4-6 días de trabajo)
+**Total**: 20 tareas | **Progreso**: 7/20 completadas (35%) | **Duración**: ~26-28 horas (4-6 días de trabajo)
 
 ---
 
@@ -1118,7 +1118,97 @@ Antes de crear PR de Fase 10 a `develop`, verificar:
 
 **Responsable**: Equipo ControlPeso.Thiscloud
 
-**Estado**: 🟡 **EN PROGRESO** — 3/20 tareas completadas (15%)
+**Estado**: 🟡 **EN PROGRESO** — 7/20 tareas completadas (35%)
+
+---
+
+## 📊 Resumen de Progreso
+
+### ✅ Tareas Completadas (7/20)
+
+**P10.1 — Configurar Localization en Program.cs** ✅
+- ✅ Localization services registrados (`AddLocalization` con `ResourcesPath="Resources"`)
+- ✅ `RequestLocalizationOptions` configuradas (es-AR default, en-US soporte)
+- ✅ Middleware `UseRequestLocalization` agregado en orden correcto
+- ✅ Build exitoso sin errores
+- 📦 Commits: `2f0e58b`
+
+**P10.2 — Crear Estructura de Carpetas Resources/** ✅
+- ✅ 5 carpetas creadas: `Resources/`, `Pages/`, `Components/Layout/`, `Components/Shared/`, `Validators/`
+- ✅ 4 archivos `.gitkeep` para trackeo en Git
+- 📦 Commits: `d61dc7f`
+
+**P10.3 — Crear Archivos .resx para Páginas (16 archivos)** ✅
+- ✅ 16 archivos `.resx` creados (8 páginas × 2 culturas)
+- ✅ Páginas cubiertas: Dashboard (38 strings), Login (15 strings), Error (7 strings), Home (9 strings), Profile (16 strings baseline), History (8 strings), Trends (8 strings), Admin (10 strings)
+- ✅ Traducciones inglés contextuales (NO Google Translate crudo)
+- ✅ Placeholders correctos preservados (`{0}`, `{1}`)
+- ✅ XML entities escapados (`&amp;` para `&`)
+- ✅ Build exitoso sin errores
+- 📦 Commits: `f14e861`, `a5d6b10`
+
+**P10.4 — Crear Archivos .resx para Componentes (14 archivos)** ✅
+- ✅ 14 archivos `.resx` creados (7 componentes × 2 culturas)
+- ✅ Componentes cubiertas: MainLayout (9 strings), NavMenu (11 strings), AddWeightDialog (9 strings), StatsCard (placeholder), TrendCard (placeholder), WeightChart (1 string), NotificationBell (1 string)
+- ✅ Traducciones inglés contextuales
+- ✅ Aria labels para accesibilidad incluidos
+- ✅ Build exitoso sin errores
+- 📦 Commits: `ebf55f8`
+
+**P10.5 — Crear Archivos .resx para Validators (6 archivos)** ✅
+- ✅ 6 archivos `.resx` creados (3 validators × 2 culturas)
+- ✅ Validators cubiertos: CreateWeightLogValidator (8 messages), UpdateWeightLogValidator (7 messages), UpdateUserProfileValidator (12 messages)
+- ✅ 27 mensajes de validación traducidos con placeholders
+- ✅ Range validations (Weight 20-500kg, Height 50-300cm)
+- ✅ Date validations (future, 150 years limit)
+- ✅ Enum validations (DisplayUnit, UnitSystem, Language)
+- ✅ Build exitoso sin errores
+- 📦 Commits: `1be0bc2`
+
+**P10.6 — Refactorizar Dashboard con IStringLocalizer** ✅
+- ✅ Inyectado `IStringLocalizer<Dashboard>` en code-behind
+- ✅ Creadas 47+ properties localizadas (simples + con placeholders)
+- ✅ Agregados 9 nuevos strings al .resx (error messages, relative time, success)
+- ✅ Reemplazados TODOS los strings hardcoded en markup
+- ✅ CERO strings hardcoded restantes en Dashboard.razor
+- ✅ Página 100% localizable (es-AR / en-US)
+- ✅ Build exitoso sin errores
+- 📦 Commits: `e4bc169`
+
+**P10.7 — Refactorizar Profile con IStringLocalizer** ✅
+- ✅ Inyectado `IStringLocalizer<Profile>` en code-behind
+- ✅ Creadas 60+ properties localizadas (header, stats, forms, buttons, errors)
+- ✅ Agregados 48 nuevos strings al .resx (baseline 16 → total 64 strings)
+- ✅ Reemplazados TODOS los strings hardcoded en markup y code-behind
+- ✅ CERO strings hardcoded restantes en Profile.razor / Profile.razor.cs
+- ✅ Página 100% localizable (es-AR / en-US)
+- ✅ Build exitoso sin errores (solo format warnings)
+- 📦 Commits: `30b9dd6`
+
+**Total Strings en .resx**: ~226 entries (páginas + componentes + validators) | **Total Archivos Creados**: 40 archivos (4 .gitkeep + 36 .resx)
+
+### 🔵 Tareas Pendientes (13/20)
+
+**Próxima Tarea**: P10.8 — Refactorizar History con IStringLocalizer
+- Inyectar `IStringLocalizer<History>` en code-behind
+- Reemplazar TODOS los strings hardcoded por localizer keys
+- Duración estimada: 1 hora
+
+### 📈 Métricas de Progreso
+
+| Métrica | Valor | Progreso |
+|---------|-------|----------|
+| **Tareas Completadas** | 7/20 | 35% |
+| **Archivos .resx Creados** | 36/36 | 100% ✅ |
+| **Páginas Refactorizadas** | 2/8 | 25% (Dashboard ✅, Profile ✅) |
+| **Strings Traducidos** | ~226 | - |
+| **Commits** | 10 | - |
+| **Build Status** | ✅ Passing | 100% |
+| **Tiempo Invertido** | ~6 horas | - |
+
+### 🎯 Siguiente Hito
+
+**Completar P10.8-P10.12** → Todas las páginas refactorizadas con IStringLocalizer (5 tareas restantes)
 
 ---
 
