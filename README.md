@@ -4,14 +4,15 @@
 ![Blazor Server](https://img.shields.io/badge/Blazor-Server-512BD4?logo=blazor)
 ![MudBlazor](https://img.shields.io/badge/MudBlazor-8.0.0-594AE2)
 ![License](https://img.shields.io/badge/License-MIT-green)
-![Progress](https://img.shields.io/badge/Progress-Backend%20100%25%20%7C%20UI%2050%25-yellow)
+![Progress](https://img.shields.io/badge/Progress-Backend%20100%25%20%7C%20UI%2060%25%20%7C%20i18n%20100%25-yellow)
 
 Aplicación web minimalista de control de peso corporal construida con **Blazor Server (.NET 10)** y **MudBlazor**.
 
-> **Estado del proyecto**: 🟡 **EN DESARROLLO** — Backend completo, UI/UX en progreso  
+> **Estado del proyecto**: 🟢 **EN DESARROLLO ACTIVO** — Backend completo, UI/UX en progreso, i18n completo  
 > **Backend**: 100% completado (63/63 tareas técnicas)  
-> **Frontend**: ~50% completado (funcional pero pendiente pixel perfect)  
-> **Última actualización**: 2026-02-18  
+> **Frontend**: ~60% completado (funcional + i18n, pixel perfect pendiente)  
+> **i18n**: 100% completado (Fase 10 - Español/English)  
+> **Última actualización**: 2026-02-24  
 > **Release**: [v1.0.0-alpha](https://github.com/mdesantis1984/Control-Peso-Thiscloud/releases/tag/v1.0.0) (backend)
 
 ## ✨ Características
@@ -38,6 +39,47 @@ Aplicación web minimalista de control de peso corporal construida con **Blazor 
 - 🔴 **Testing UX exhaustivo** → Usuarios reales + feedback
 - 🔴 **A11y testing manual** → Keyboard nav + screen readers
 - 🔴 **Performance optimization** → Lighthouse 90+ score
+
+## 🌍 Internacionalización (i18n)
+
+La aplicación soporta **múltiples idiomas** usando ASP.NET Core `IStringLocalizer` + archivos de recursos `.resx`:
+
+### Idiomas Soportados
+
+- 🇦🇷 **Español (Argentina)** — Idioma por defecto
+- 🇺🇸 **English (United States)**
+
+### Cambiar Idioma
+
+1. Click en el **selector de idioma** en la barra de navegación (esquina superior derecha)
+2. Seleccionar idioma deseado
+3. La página se recarga automáticamente aplicando el nuevo idioma
+4. La selección se **persiste** vía cookie (1 año de duración)
+
+### Características Localization
+
+✅ **8 páginas traducidas**: Dashboard, Profile, History, Trends, Admin, Login, Error, Home  
+✅ **7 componentes traducidos**: MainLayout, NavMenu, AddWeightDialog, StatsCard, TrendCard, WeightChart, NotificationBell  
+✅ **Validators traducidos**: Mensajes de error de FluentValidation en ambos idiomas  
+✅ **Meta tags SEO dinámicos**: PageTitle, description, keywords según idioma  
+✅ **Persistencia cross-session**: Cookie `.AspNetCore.Culture` con 1 año de duración  
+✅ **Recarga instantánea**: `forceLoad` aplica nuevo idioma inmediatamente
+
+### Arquitectura i18n
+
+- **36 archivos `.resx`** (18 componentes × 2 idiomas)
+- **~452 strings traducidos** (UI + validators + meta tags)
+- **RequestLocalization Middleware** (ASP.NET Core)
+- **Fallback automático**: Si falta traducción en inglés, cae a español (default)
+
+### Agregar Nuevos Idiomas (Futuro)
+
+Para agregar soporte de idiomas adicionales:
+
+1. Crear archivos `.resx` con código de cultura (ej: `Dashboard.fr-FR.resx` para francés)
+2. Agregar cultura a `supportedCultures` en `Program.cs`
+3. Agregar opción en `LanguageSelector.razor.cs`
+4. Traducir todos los strings existentes
 
 ## 🏗️ Arquitectura
 

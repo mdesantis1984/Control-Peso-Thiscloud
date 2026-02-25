@@ -1,0 +1,48 @@
+@page "/test-flags"
+@using ControlPeso.Web.Helpers
+@namespace ControlPeso.Web.Pages.Diagnostics
+
+<PageTitle>Test Flagpedia CDN</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-4">Test Flagpedia API</MudText>
+
+    <MudPaper Class="pa-4 mb-4">
+        <MudText Typo="Typo.h6" Class="mb-2">Argentina Flag</MudText>
+        <MudImage Src="@Flagpedia.GetFlag("ar")"
+                  Width="40"
+                  Height="27"
+                  Alt="Argentina"
+                  Class="rounded-1" />
+        <MudText Typo="Typo.caption" Class="mt-2">URL: @Flagpedia.GetFlag("ar")</MudText>
+    </MudPaper>
+
+    <MudPaper Class="pa-4 mb-4">
+        <MudText Typo="Typo.h6" Class="mb-2">USA Flag</MudText>
+        <MudImage Src="@Flagpedia.GetFlag("us")"
+                  Width="40"
+                  Height="27"
+                  Alt="USA"
+                  Class="rounded-1" />
+        <MudText Typo="Typo.caption" Class="mt-2">URL: @Flagpedia.GetFlag("us")</MudText>
+    </MudPaper>
+
+    <MudPaper Class="pa-4 mb-4">
+        <MudText Typo="Typo.h6" Class="mb-2">Different Sizes (w20, w40, w80)</MudText>
+        <MudStack Row Spacing="2">
+            <MudImage Src="@Flagpedia.GetFlag("ar", 20)" Width="20" Alt="Argentina" Class="rounded-1" />
+            <MudImage Src="@Flagpedia.GetFlag("ar", 40)" Width="40" Alt="Argentina" Class="rounded-1" />
+            <MudImage Src="@Flagpedia.GetFlag("ar", 80)" Width="80" Alt="Argentina" Class="rounded-1" />
+        </MudStack>
+    </MudPaper>
+
+    <MudPaper Class="pa-4 mb-4">
+        <MudText Typo="Typo.h6" Class="mb-2">CSP Verification</MudText>
+        <MudText Typo="Typo.body2">✅ Open DevTools (F12) → Console</MudText>
+        <MudText Typo="Typo.body2">✅ No CSP violations should appear</MudText>
+        <MudText Typo="Typo.body2">✅ Check Network tab → All images should load successfully</MudText>
+        <MudText Typo="Typo.body2">✅ Response Headers should include: <code>Content-Security-Policy: ... img-src 'self' data: ... https://flagcdn.com</code></MudText>
+    </MudPaper>
+
+    <MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary">Back to Home</MudButton>
+</MudContainer>

@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace ControlPeso.Domain.Entities;
 
 public partial class UserPreferences

@@ -1,5 +1,6 @@
 using ControlPeso.Application.DTOs;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Localization;
 using MudBlazor;
 
 namespace ControlPeso.Web.Components.Shared;
@@ -11,12 +12,16 @@ namespace ControlPeso.Web.Components.Shared;
 public partial class WeightChart
 {
     [Inject] private ILogger<WeightChart> Logger { get; set; } = null!;
+    [Inject] private IStringLocalizer<WeightChart> Localizer { get; set; } = null!;
 
     /// <summary>
     /// Datos de registros de peso a graficar
     /// </summary>
     [Parameter, EditorRequired]
     public List<WeightLogDto> Data { get; set; } = new();
+
+    // Localized Properties
+    private string NoDataAvailable => Localizer[nameof(NoDataAvailable)];
 
     /// <summary>
     /// Título del gráfico
@@ -31,9 +36,8 @@ public partial class WeightChart
     public int Height { get; set; } = 350;
 
     private bool _isLoading = true;
-    private List<ChartSeries> _series = new();
+    private List<ChartSeries<double>> _series = new();
     private string[] _labels = Array.Empty<string>();
-    private ChartOptions _options = new();
 
     protected override void OnParametersSet()
     {
@@ -58,28 +62,17 @@ public partial class WeightChart
             _labels = orderedData.Select(d => d.Date.ToString("dd/MM")).ToArray();
 
             // Crear serie de datos
-            _series = new List<ChartSeries>
+            _series = new List<ChartSeries<double>>
             {
-                new ChartSeries
+                new ChartSeries<double>
                 {
                     Name = "Peso (kg)",
                     Data = orderedData.Select(d => (double)d.Weight).ToArray()
                 }
             };
 
-            // Configurar opciones del gráfico
-            _options = new ChartOptions
-            {
-                YAxisTicks = 10,
-                YAxisLines = true,
-                XAxisLines = false,
-                LineStrokeWidth = 3,
-                InterpolationOption = InterpolationOption.Straight,
-                YAxisFormat = "{0:F1} kg",
-                ChartPalette = new[] { "#2196F3" } // Color azul principal del tema
-            };
-
-            Logger.LogDebug("WeightChart: Chart configured - Labels: {LabelCount}, Series: {SeriesCount}",
+            Logger.LogDebug(
+                "WeightChart: Chart configured - Labels: {LabelCount}, Series: {SeriesCount}",
                 _labels.Length, _series.Count);
         }
         catch (Exception ex)

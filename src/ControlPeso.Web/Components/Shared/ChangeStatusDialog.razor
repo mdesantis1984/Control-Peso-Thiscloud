@@ -36,7 +36,7 @@
 </MudDialog>
 
 @code {
-    [CascadingParameter] private IDialogReference MudDialog { get; set; } = default!;
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
     [Parameter, EditorRequired] public string UserName { get; set; } = string.Empty;
     [Parameter, EditorRequired] public UserStatus CurrentStatus { get; set; }

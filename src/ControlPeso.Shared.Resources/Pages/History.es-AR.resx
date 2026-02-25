@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata"><xsd:import namespace="http://www.w3.org/XML/1998/namespace" /><xsd:element name="root" msdata:IsDataSet="true"><xsd:complexType><xsd:choice maxOccurs="unbounded"><xsd:element name="data"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /><xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" /></xsd:complexType></xsd:element><xsd:element name="resheader"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" /></xsd:complexType></xsd:element></xsd:choice></xsd:complexType></xsd:element></xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="PageTitle" xml:space="preserve"><value>Historial - Control Peso Thiscloud</value></data>
+  <data name="MetaDescription" xml:space="preserve"><value>Historial completo de tus registros de peso en Control Peso Thiscloud. Busca, filtra y elimina registros con paginación y estadísticas detalladas.</value></data>
+  <data name="MetaKeywords" xml:space="preserve"><value>historial peso, registros peso, búsqueda peso, filtros, paginación, estadísticas peso</value></data>
+  <data name="OgTitle" xml:space="preserve"><value>Historial - Control Peso Thiscloud</value></data>
+  <data name="OgDescription" xml:space="preserve"><value>Historial completo de registros de peso con búsqueda y filtros.</value></data>
+
+  <!-- Page Header -->
+  <data name="HistoryTitle" xml:space="preserve"><value>Historial de Registros</value></data>
+
+  <!-- Search & Filters -->
+  <data name="SearchLabel" xml:space="preserve"><value>Buscar</value></data>
+  <data name="DateFromLabel" xml:space="preserve"><value>Desde</value></data>
+  <data name="DateToLabel" xml:space="preserve"><value>Hasta</value></data>
+  <data name="ClearFiltersButton" xml:space="preserve"><value>Limpiar</value></data>
+
+  <!-- DataGrid Columns -->
+  <data name="ColumnDate" xml:space="preserve"><value>Fecha</value></data>
+  <data name="ColumnTime" xml:space="preserve"><value>Hora</value></data>
+  <data name="ColumnWeight" xml:space="preserve"><value>Peso</value></data>
+  <data name="ColumnTrend" xml:space="preserve"><value>Tendencia</value></data>
+  <data name="ColumnNote" xml:space="preserve"><value>Nota</value></data>
+  <data name="ColumnActions" xml:space="preserve"><value>Acciones</value></data>
+  <data name="KgUnit" xml:space="preserve"><value>kg</value></data>
+  <data name="NoNote" xml:space="preserve"><value>-</value></data>
+
+  <!-- Actions -->
+  <data name="EditButtonAriaLabel" xml:space="preserve"><value>Editar</value></data>
+  <data name="DeleteButtonAriaLabel" xml:space="preserve"><value>Eliminar</value></data>
+
+  <!-- DataGrid Messages -->
+  <data name="NoRecordsFound" xml:space="preserve"><value>No se encontraron registros</value></data>
+
+  <!-- Stats Section -->
+  <data name="StatsTitle" xml:space="preserve"><value>Estadísticas</value></data>
+  <data name="TotalRecordsLabel" xml:space="preserve"><value>Total de registros</value></data>
+  <data name="AverageWeightLabel" xml:space="preserve"><value>Peso promedio</value></data>
+  <data name="MinWeightLabel" xml:space="preserve"><value>Peso mínimo</value></data>
+  <data name="MaxWeightLabel" xml:space="preserve"><value>Peso máximo</value></data>
+  <data name="NoDataDash" xml:space="preserve"><value>-</value></data>
+
+  <!-- Dialogs -->
+  <data name="ConfirmDeleteTitle" xml:space="preserve"><value>Confirmar Eliminación</value></data>
+  <data name="ConfirmDeleteContent" xml:space="preserve"><value>¿Estás seguro de eliminar el registro del {0} a las {1}?</value><comment>{0} = date (dd/MM/yyyy), {1} = time (HH:mm)</comment></data>
+  <data name="DeleteDialogButton" xml:space="preserve"><value>Eliminar</value></data>
+
+  <!-- Messages -->
+  <data name="ErrorLoadingRecords" xml:space="preserve"><value>Error al cargar los registros</value></data>
+  <data name="RecordDeletedSuccess" xml:space="preserve"><value>Registro eliminado correctamente</value></data>
+  <data name="ErrorDeletingRecord" xml:space="preserve"><value>Error al eliminar el registro</value></data>
+  <data name="EditFeatureComingSoon" xml:space="preserve"><value>Funcionalidad de edición próximamente</value></data>
+</root>

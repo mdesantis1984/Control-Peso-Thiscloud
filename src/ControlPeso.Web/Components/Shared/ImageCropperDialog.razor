@@ -1,0 +1,110 @@
+@namespace ControlPeso.Web.Components.Shared
+@using Microsoft.AspNetCore.Components.Forms
+@using MudBlazor
+
+<MudDialog>
+    <DialogContent>
+        <MudContainer Style="max-width: 800px; padding: 0;">
+            @if (_isLoading)
+            {
+                <MudStack AlignItems="AlignItems.Center" Spacing="3" Class="pa-8">
+                    <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+                    <MudText Typo="Typo.body1" Color="Color.Secondary">Cargando imagen...</MudText>
+                </MudStack>
+            }
+            else if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <MudAlert Severity="Severity.Error" Class="ma-4">
+                    @_errorMessage
+                </MudAlert>
+            }
+            else
+            {
+                @* Image Container with Cropper *@
+                <div style="width: 100%; max-height: 500px; background-color: #1a1a1a; display: flex; align-items: center; justify-content: center; position: relative;">
+                    <img id="@_imageElementId" 
+                         src="@_imageDataUrl" 
+                         alt="Image to crop"
+                         style="max-width: 100%; display: block;" />
+                </div>
+
+                @* Cropper Controls *@
+                <MudPaper Elevation="0" Class="pa-4 mt-2">
+                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                        @* Zoom Controls *@
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                            <MudTooltip Text="Alejar">
+                                <MudIconButton Icon="@Icons.Material.Filled.ZoomOut"
+                                               Color="Color.Primary"
+                                               OnClick="ZoomOut"
+                                               Size="Size.Medium" />
+                            </MudTooltip>
+                            <MudTooltip Text="Acercar">
+                                <MudIconButton Icon="@Icons.Material.Filled.ZoomIn"
+                                               Color="Color.Primary"
+                                               OnClick="ZoomIn"
+                                               Size="Size.Medium" />
+                            </MudTooltip>
+                        </MudStack>
+
+                        @* Rotation Controls *@
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                            <MudTooltip Text="Rotar izquierda 90°">
+                                <MudIconButton Icon="@Icons.Material.Filled.RotateLeft"
+                                               Color="Color.Primary"
+                                               OnClick="RotateLeft"
+                                               Size="Size.Medium" />
+                            </MudTooltip>
+                            <MudTooltip Text="Rotar derecha 90°">
+                                <MudIconButton Icon="@Icons.Material.Filled.RotateRight"
+                                               Color="Color.Primary"
+                                               OnClick="RotateRight"
+                                               Size="Size.Medium" />
+                            </MudTooltip>
+                        </MudStack>
+
+                        @* Reset Button *@
+                        <MudTooltip Text="Restablecer">
+                            <MudIconButton Icon="@Icons.Material.Filled.RestartAlt"
+                                           Color="Color.Default"
+                                           OnClick="Reset"
+                                           Size="Size.Medium" />
+                        </MudTooltip>
+                    </MudStack>
+
+                    @* Info Text *@
+                    <MudText Typo="Typo.caption" 
+                             Color="Color.Secondary" 
+                             Align="Align.Center" 
+                             Class="mt-3">
+                        Ajusta el recuadro de recorte arrastrándolo o redimensionándolo. 
+                        La imagen se redimensionará a 512×512px y se optimizará automáticamente.
+                    </MudText>
+                </MudPaper>
+            }
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" 
+                   Variant="Variant.Text" 
+                   Color="Color.Default"
+                   Disabled="@_isProcessing">
+            Cancelar
+        </MudButton>
+        <MudButton OnClick="SaveCroppedImage" 
+                   Variant="Variant.Filled" 
+                   Color="Color.Primary"
+                   Disabled="@(_isLoading || !string.IsNullOrEmpty(_errorMessage) || _isProcessing)"
+                   StartIcon="@Icons.Material.Filled.Check">
+            @if (_isProcessing)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                <span class="ml-2">Procesando...</span>
+            }
+            else
+            {
+                <span>Guardar</span>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>

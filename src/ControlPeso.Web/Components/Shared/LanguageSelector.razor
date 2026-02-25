@@ -1,0 +1,62 @@
+@using ControlPeso.Web.Models
+@using ControlPeso.Web.Helpers
+@namespace ControlPeso.Web.Components.Shared
+
+<MudMenu @bind-Open="_menuOpen"
+         AnchorOrigin="Origin.BottomCenter"
+         TransformOrigin="Origin.TopCenter"
+         Dense="true"
+         Class="@Class">
+
+    <ActivatorContent Context="activator">
+        <MudStack Row 
+                  AlignItems="AlignItems.Center" 
+                  Style="cursor: pointer;" 
+                  @onclick="@(() => _menuOpen = !_menuOpen)">
+            <MudIcon Icon="@Icons.Material.Filled.Language" 
+                     Color="Color.Inherit" 
+                     Size="Size.Medium" />
+            <MudText Typo="Typo.body2" 
+                     Style="margin-left: 4px; text-transform: uppercase;">
+                @_currentLanguage.Code
+            </MudText>
+        </MudStack>
+    </ActivatorContent>
+
+    <ChildContent>
+        <MudText Class="px-4 pt-2 pb-1"
+                 Typo="Typo.overline"
+                 Style="letter-spacing: 0.1em;">
+            LANGUAGE
+        </MudText>
+        <MudDivider />
+
+        @foreach (var lang in _languages)
+        {
+            <MudMenuItem OnClick="@(() => SelectLanguageAsync(lang))">
+                <MudStack Row
+                          AlignItems="AlignItems.Center"
+                          Justify="Justify.SpaceBetween"
+                          Style="min-width: 200px;">
+
+                    <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                        <MudImage Src="@Flagpedia.GetFlag(lang.CountryCode)"
+                                  Width="24"
+                                  Height="16"
+                                  Alt="@lang.Label"
+                                  Class="rounded-1" />
+                        <MudText>@lang.Label</MudText>
+                    </MudStack>
+
+                    @if (lang.Code == _currentLanguage.Code)
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.Check"
+                                 Color="Color.Primary"
+                                 Size="Size.Small" />
+                    }
+
+                </MudStack>
+            </MudMenuItem>
+        }
+    </ChildContent>
+</MudMenu>

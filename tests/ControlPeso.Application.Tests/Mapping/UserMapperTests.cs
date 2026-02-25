@@ -449,4 +449,525 @@ public sealed class UserMapperTests
         // Assert
         act.Should().Throw<ArgumentNullException>();
     }
+
+    #region ToEntity(OAuthUserInfo) Tests
+
+    [Fact]
+    public void ToEntity_WithValidOAuthGoogleInfo_ShouldCreateEntityWithGoogleId()
+    {
+        // Arrange
+        var info = new OAuthUserInfo
+        {
+            Provider = "Google",
+            ExternalId = "google123",
+            Name = "New User",
+            Email = "newuser@example.com",
+            AvatarUrl = "https://example.com/avatar.jpg"
+        };
+
+        // Act
+        var entity = UserMapper.ToEntity(info);
+
+        // Assert
+        Guid.TryParse(entity.Id, out var id).Should().BeTrue();
+        id.Should().NotBeEmpty();
+        entity.GoogleId.Should().Be("google123");
+        entity.LinkedInId.Should().BeNull();
+        entity.Name.Should().Be("New User");
+        entity.Email.Should().Be("newuser@example.com");
+        entity.Role.Should().Be((int)UserRole.User);
+        entity.AvatarUrl.Should().Be("https://example.com/avatar.jpg");
+        entity.Height.Should().Be(170.0);
+        entity.UnitSystem.Should().Be((int)UnitSystem.Metric);
+        entity.DateOfBirth.Should().BeNull();
+        entity.Language.Should().Be("es");
+        entity.Status.Should().Be((int)UserStatus.Active);
+        entity.GoalWeight.Should().BeNull();
+        entity.StartingWeight.Should().BeNull();
+        DateTime.TryParse(entity.MemberSince, out var memberSince).Should().BeTrue();
+        memberSince.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromHours(2));
+        DateTime.TryParse(entity.CreatedAt, out var createdAt).Should().BeTrue();
+        createdAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromHours(2));
+        DateTime.TryParse(entity.UpdatedAt, out var updatedAt).Should().BeTrue();
+        updatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromHours(2));
+    }
+
+    [Fact]
+    public void ToEntity_WithValidOAuthLinkedInInfo_ShouldCreateEntityWithLinkedInId()
+    {
+        // Arrange
+        var info = new OAuthUserInfo
+        {
+            Provider = "LinkedIn",
+            ExternalId = "linkedin123",
+            Name = "LinkedIn User",
+            Email = "linkedin@example.com",
+            AvatarUrl = "https://linkedin.com/avatar.jpg"
+        };
+
+        // Act
+        var entity = UserMapper.ToEntity(info);
+
+        // Assert
+        Guid.TryParse(entity.Id, out var id).Should().BeTrue();
+        id.Should().NotBeEmpty();
+        entity.GoogleId.Should().BeNull();
+        entity.LinkedInId.Should().Be("linkedin123");
+        entity.Name.Should().Be("LinkedIn User");
+        entity.Email.Should().Be("linkedin@example.com");
+        entity.AvatarUrl.Should().Be("https://linkedin.com/avatar.jpg");
+    }
+
+    [Fact]
+    public void ToEntity_WithNullOAuthInfo_ShouldThrowArgumentNullException()
+    {
+        // Arrange
+        OAuthUserInfo? info = null;
+
+        // Act
+        var act = () => UserMapper.ToEntity(info!);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void ToEntity_WithNullProvider_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var info = new OAuthUserInfo
+        {
+            Provider = null!,
+            ExternalId = "external123",
+            Name = "Test User",
+            Email = "test@example.com",
+            AvatarUrl = null
+        };
+
+        // Act
+        var act = () => UserMapper.ToEntity(info);
+
+        // Assert
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void ToEntity_WithEmptyProvider_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var info = new OAuthUserInfo
+        {
+            Provider = "",
+            ExternalId = "external123",
+            Name = "Test User",
+            Email = "test@example.com",
+            AvatarUrl = null
+        };
+
+        // Act
+        var act = () => UserMapper.ToEntity(info);
+
+        // Assert
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void ToEntity_WithWhitespaceProvider_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var info = new OAuthUserInfo
+        {
+            Provider = "   ",
+            ExternalId = "external123",
+            Name = "Test User",
+            Email = "test@example.com",
+            AvatarUrl = null
+        };
+
+        // Act
+        var act = () => UserMapper.ToEntity(info);
+
+        // Assert
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void ToEntity_WithNullExternalId_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var info = new OAuthUserInfo
+        {
+            Provider = "Google",
+            ExternalId = null!,
+            Name = "Test User",
+            Email = "test@example.com",
+            AvatarUrl = null
+        };
+
+        // Act
+        var act = () => UserMapper.ToEntity(info);
+
+        // Assert
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void ToEntity_WithEmptyExternalId_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var info = new OAuthUserInfo
+        {
+            Provider = "Google",
+            ExternalId = "",
+            Name = "Test User",
+            Email = "test@example.com",
+            AvatarUrl = null
+        };
+
+        // Act
+        var act = () => UserMapper.ToEntity(info);
+
+        // Assert
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void ToEntity_WithWhitespaceExternalId_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var info = new OAuthUserInfo
+        {
+            Provider = "Google",
+            ExternalId = "   ",
+            Name = "Test User",
+            Email = "test@example.com",
+            AvatarUrl = null
+        };
+
+        // Act
+        var act = () => UserMapper.ToEntity(info);
+
+        // Assert
+        act.Should().Throw<ArgumentException>();
+    }
+
+    #endregion
+
+    #region UpdateFromOAuth Tests
+
+    [Fact]
+    public void UpdateFromOAuth_WhenNameChanged_ShouldUpdateNameAndTimestamp()
+    {
+        // Arrange
+        var originalUpdatedAt = "2026-02-01T00:00:00.0000000Z";
+        var entity = new Users
+        {
+            Id = Guid.NewGuid().ToString(),
+            GoogleId = "google123",
+            Name = "Old Name",
+            Email = "test@example.com",
+            Role = (int)UserRole.User,
+            AvatarUrl = "https://example.com/avatar.jpg",
+            MemberSince = "2026-01-01T00:00:00.0000000Z",
+            Height = 170.0,
+            UnitSystem = (int)UnitSystem.Metric,
+            DateOfBirth = null,
+            Language = "es",
+            Status = (int)UserStatus.Active,
+            GoalWeight = null,
+            StartingWeight = null,
+            CreatedAt = "2026-01-01T00:00:00.0000000Z",
+            UpdatedAt = originalUpdatedAt
+        };
+
+        var info = new OAuthUserInfo
+        {
+            Provider = "Google",
+            ExternalId = "google123",
+            Name = "New Name",
+            Email = "test@example.com",
+            AvatarUrl = "https://example.com/avatar.jpg"
+        };
+
+        // Act
+        UserMapper.UpdateFromOAuth(entity, info);
+
+        // Assert
+        entity.Name.Should().Be("New Name");
+        entity.UpdatedAt.Should().NotBe(originalUpdatedAt);
+        DateTime.TryParse(entity.UpdatedAt, out _).Should().BeTrue();
+    }
+
+    [Fact]
+    public void UpdateFromOAuth_WhenEmailChanged_ShouldUpdateEmailAndTimestamp()
+    {
+        // Arrange
+        var originalUpdatedAt = "2026-02-01T00:00:00.0000000Z";
+        var entity = new Users
+        {
+            Id = Guid.NewGuid().ToString(),
+            GoogleId = "google123",
+            Name = "Test User",
+            Email = "old@example.com",
+            Role = (int)UserRole.User,
+            AvatarUrl = "https://example.com/avatar.jpg",
+            MemberSince = "2026-01-01T00:00:00.0000000Z",
+            Height = 170.0,
+            UnitSystem = (int)UnitSystem.Metric,
+            DateOfBirth = null,
+            Language = "es",
+            Status = (int)UserStatus.Active,
+            GoalWeight = null,
+            StartingWeight = null,
+            CreatedAt = "2026-01-01T00:00:00.0000000Z",
+            UpdatedAt = originalUpdatedAt
+        };
+
+        var info = new OAuthUserInfo
+        {
+            Provider = "Google",
+            ExternalId = "google123",
+            Name = "Test User",
+            Email = "new@example.com",
+            AvatarUrl = "https://example.com/avatar.jpg"
+        };
+
+        // Act
+        UserMapper.UpdateFromOAuth(entity, info);
+
+        // Assert
+        entity.Email.Should().Be("new@example.com");
+        entity.UpdatedAt.Should().NotBe(originalUpdatedAt);
+        DateTime.TryParse(entity.UpdatedAt, out _).Should().BeTrue();
+    }
+
+    [Fact]
+    public void UpdateFromOAuth_WhenAvatarChanged_ShouldUpdateAvatarAndTimestamp()
+    {
+        // Arrange
+        var originalUpdatedAt = "2026-02-01T00:00:00.0000000Z";
+        var entity = new Users
+        {
+            Id = Guid.NewGuid().ToString(),
+            GoogleId = "google123",
+            Name = "Test User",
+            Email = "test@example.com",
+            Role = (int)UserRole.User,
+            AvatarUrl = "https://example.com/old-avatar.jpg",
+            MemberSince = "2026-01-01T00:00:00.0000000Z",
+            Height = 170.0,
+            UnitSystem = (int)UnitSystem.Metric,
+            DateOfBirth = null,
+            Language = "es",
+            Status = (int)UserStatus.Active,
+            GoalWeight = null,
+            StartingWeight = null,
+            CreatedAt = "2026-01-01T00:00:00.0000000Z",
+            UpdatedAt = originalUpdatedAt
+        };
+
+        var info = new OAuthUserInfo
+        {
+            Provider = "LinkedIn",
+            ExternalId = "linkedin123",
+            Name = "Test User",
+            Email = "test@example.com",
+            AvatarUrl = "https://example.com/new-avatar.jpg"
+        };
+
+        // Act
+        UserMapper.UpdateFromOAuth(entity, info);
+
+        // Assert
+        entity.AvatarUrl.Should().Be("https://example.com/new-avatar.jpg");
+        entity.UpdatedAt.Should().NotBe(originalUpdatedAt);
+        DateTime.TryParse(entity.UpdatedAt, out _).Should().BeTrue();
+    }
+
+    [Fact]
+    public void UpdateFromOAuth_WithCustomAvatar_ShouldPreserveCustomAvatarAndNotUpdate()
+    {
+        // Arrange
+        var originalUpdatedAt = "2026-02-01T00:00:00.0000000Z";
+        var customAvatarUrl = "/uploads/avatars/custom-avatar-123.jpg";
+        var entity = new Users
+        {
+            Id = Guid.NewGuid().ToString(),
+            GoogleId = "google123",
+            Name = "Test User",
+            Email = "test@example.com",
+            Role = (int)UserRole.User,
+            AvatarUrl = customAvatarUrl,
+            MemberSince = "2026-01-01T00:00:00.0000000Z",
+            Height = 170.0,
+            UnitSystem = (int)UnitSystem.Metric,
+            DateOfBirth = null,
+            Language = "es",
+            Status = (int)UserStatus.Active,
+            GoalWeight = null,
+            StartingWeight = null,
+            CreatedAt = "2026-01-01T00:00:00.0000000Z",
+            UpdatedAt = originalUpdatedAt
+        };
+
+        var info = new OAuthUserInfo
+        {
+            Provider = "Google",
+            ExternalId = "google123",
+            Name = "Test User",
+            Email = "test@example.com",
+            AvatarUrl = "https://google.com/new-avatar.jpg"
+        };
+
+        // Act
+        UserMapper.UpdateFromOAuth(entity, info);
+
+        // Assert
+        entity.AvatarUrl.Should().Be(customAvatarUrl); // Preserves custom avatar
+        entity.UpdatedAt.Should().Be(originalUpdatedAt); // No timestamp update since nothing changed
+    }
+
+    [Fact]
+    public void UpdateFromOAuth_WithCustomAvatarButNameChanged_ShouldPreserveAvatarButUpdateTimestamp()
+    {
+        // Arrange
+        var originalUpdatedAt = "2026-02-01T00:00:00.0000000Z";
+        var customAvatarUrl = "/uploads/avatars/custom-avatar-123.jpg";
+        var entity = new Users
+        {
+            Id = Guid.NewGuid().ToString(),
+            GoogleId = "google123",
+            Name = "Old Name",
+            Email = "test@example.com",
+            Role = (int)UserRole.User,
+            AvatarUrl = customAvatarUrl,
+            MemberSince = "2026-01-01T00:00:00.0000000Z",
+            Height = 170.0,
+            UnitSystem = (int)UnitSystem.Metric,
+            DateOfBirth = null,
+            Language = "es",
+            Status = (int)UserStatus.Active,
+            GoalWeight = null,
+            StartingWeight = null,
+            CreatedAt = "2026-01-01T00:00:00.0000000Z",
+            UpdatedAt = originalUpdatedAt
+        };
+
+        var info = new OAuthUserInfo
+        {
+            Provider = "LinkedIn",
+            ExternalId = "linkedin123",
+            Name = "New Name",
+            Email = "test@example.com",
+            AvatarUrl = "https://linkedin.com/new-avatar.jpg"
+        };
+
+        // Act
+        UserMapper.UpdateFromOAuth(entity, info);
+
+        // Assert
+        entity.Name.Should().Be("New Name");
+        entity.AvatarUrl.Should().Be(customAvatarUrl); // Preserves custom avatar
+        entity.UpdatedAt.Should().NotBe(originalUpdatedAt); // Timestamp updated because name changed
+        DateTime.TryParse(entity.UpdatedAt, out _).Should().BeTrue();
+    }
+
+    [Fact]
+    public void UpdateFromOAuth_WhenNothingChanged_ShouldNotUpdateTimestamp()
+    {
+        // Arrange
+        var originalUpdatedAt = "2026-02-01T00:00:00.0000000Z";
+        var entity = new Users
+        {
+            Id = Guid.NewGuid().ToString(),
+            GoogleId = "google123",
+            Name = "Test User",
+            Email = "test@example.com",
+            Role = (int)UserRole.User,
+            AvatarUrl = "https://example.com/avatar.jpg",
+            MemberSince = "2026-01-01T00:00:00.0000000Z",
+            Height = 170.0,
+            UnitSystem = (int)UnitSystem.Metric,
+            DateOfBirth = null,
+            Language = "es",
+            Status = (int)UserStatus.Active,
+            GoalWeight = null,
+            StartingWeight = null,
+            CreatedAt = "2026-01-01T00:00:00.0000000Z",
+            UpdatedAt = originalUpdatedAt
+        };
+
+        var info = new OAuthUserInfo
+        {
+            Provider = "Google",
+            ExternalId = "google123",
+            Name = "Test User",
+            Email = "test@example.com",
+            AvatarUrl = "https://example.com/avatar.jpg"
+        };
+
+        // Act
+        UserMapper.UpdateFromOAuth(entity, info);
+
+        // Assert
+        entity.Name.Should().Be("Test User");
+        entity.Email.Should().Be("test@example.com");
+        entity.AvatarUrl.Should().Be("https://example.com/avatar.jpg");
+        entity.UpdatedAt.Should().Be(originalUpdatedAt); // Timestamp NOT updated
+    }
+
+    [Fact]
+    public void UpdateFromOAuth_WithNullEntity_ShouldThrowArgumentNullException()
+    {
+        // Arrange
+        Users? entity = null;
+        var info = new OAuthUserInfo
+        {
+            Provider = "Google",
+            ExternalId = "google123",
+            Name = "Test User",
+            Email = "test@example.com",
+            AvatarUrl = "https://example.com/avatar.jpg"
+        };
+
+        // Act
+        var act = () => UserMapper.UpdateFromOAuth(entity!, info);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void UpdateFromOAuth_WithNullInfo_ShouldThrowArgumentNullException()
+    {
+        // Arrange
+        var entity = new Users
+        {
+            Id = Guid.NewGuid().ToString(),
+            GoogleId = "google123",
+            Name = "Test User",
+            Email = "test@example.com",
+            Role = (int)UserRole.User,
+            AvatarUrl = null,
+            MemberSince = "2026-01-01T00:00:00.0000000Z",
+            Height = 170.0,
+            UnitSystem = (int)UnitSystem.Metric,
+            DateOfBirth = null,
+            Language = "es",
+            Status = (int)UserStatus.Active,
+            GoalWeight = null,
+            StartingWeight = null,
+            CreatedAt = "2026-01-01T00:00:00.0000000Z",
+            UpdatedAt = "2026-01-01T00:00:00.0000000Z"
+        };
+        OAuthUserInfo? info = null;
+
+        // Act
+        var act = () => UserMapper.UpdateFromOAuth(entity, info!);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    #endregion
 }

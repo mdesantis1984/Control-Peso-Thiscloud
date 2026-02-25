@@ -3,6 +3,7 @@ using ControlPeso.Application.Filters;
 using ControlPeso.Application.Services;
 using ControlPeso.Domain.Enums;
 using ControlPeso.Infrastructure.Tests.Helpers;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -14,20 +15,23 @@ namespace ControlPeso.Infrastructure.Tests.Integration;
 /// </summary>
 public sealed class WeightLogServiceIntegrationTests : IDisposable
 {
-    private readonly string _databaseName = $"WeightLogServiceTests_{Guid.NewGuid()}";
     private ControlPesoDbContext? _context;
+    private SqliteConnection? _connection;
 
     public void Dispose()
     {
-        _context?.Database.EnsureDeleted();
+        // Disponer en orden correcto: contexto primero, luego conexión
         _context?.Dispose();
+        _connection?.Dispose();
+        // No usar EnsureDeleted() para in-memory SQLite - se borra automáticamente al cerrar conexión
     }
 
     [Fact]
     public async Task CreateAsync_WithValidData_ShouldPersistToDatabase()
     {
         // Arrange
-        _context = await InMemoryDbContextFactory.CreateWithSeedDataAsync(_databaseName);
+        var databaseName = $"WeightLogServiceTests_{Guid.NewGuid()}";
+        (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(databaseName);
         var service = new WeightLogService(_context, NullLogger<WeightLogService>.Instance);
 
         var existingUser = await _context.Users.FirstAsync();
@@ -61,7 +65,8 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
     public async Task GetByUserAsync_WithPagination_ShouldReturnCorrectPage()
     {
         // Arrange
-        _context = await InMemoryDbContextFactory.CreateWithSeedDataAsync(_databaseName);
+        var databaseName = $"WeightLogServiceTests_{Guid.NewGuid()}";
+        (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(databaseName);
         var service = new WeightLogService(_context, NullLogger<WeightLogService>.Instance);
 
         var existingUser = await _context.Users.FirstAsync();
@@ -92,7 +97,8 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
     public async Task GetByUserAsync_WithDateRangeFilter_ShouldFilterCorrectly()
     {
         // Arrange
-        _context = await InMemoryDbContextFactory.CreateWithSeedDataAsync(_databaseName);
+        var databaseName = $"WeightLogServiceTests_{Guid.NewGuid()}";
+        (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(databaseName);
         var service = new WeightLogService(_context, NullLogger<WeightLogService>.Instance);
 
         var existingUser = await _context.Users.FirstAsync();
@@ -129,7 +135,8 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
     public async Task UpdateAsync_ShouldModifyExistingRecord()
     {
         // Arrange
-        _context = await InMemoryDbContextFactory.CreateWithSeedDataAsync(_databaseName);
+        var databaseName = $"WeightLogServiceTests_{Guid.NewGuid()}";
+        (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(databaseName);
         var service = new WeightLogService(_context, NullLogger<WeightLogService>.Instance);
 
         // Get existing weight log
@@ -165,7 +172,8 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
     public async Task DeleteAsync_ShouldRemoveRecord()
     {
         // Arrange
-        _context = await InMemoryDbContextFactory.CreateWithSeedDataAsync(_databaseName);
+        var databaseName = $"WeightLogServiceTests_{Guid.NewGuid()}";
+        (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(databaseName);
         var service = new WeightLogService(_context, NullLogger<WeightLogService>.Instance);
 
         var existingLog = await _context.WeightLogs.FirstAsync();
@@ -183,7 +191,8 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
     public async Task GetStatsAsync_ShouldCalculateCorrectStatistics()
     {
         // Arrange
-        _context = await InMemoryDbContextFactory.CreateWithSeedDataAsync(_databaseName);
+        var databaseName = $"WeightLogServiceTests_{Guid.NewGuid()}";
+        (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(databaseName);
         var service = new WeightLogService(_context, NullLogger<WeightLogService>.Instance);
 
         var existingUser = await _context.Users.FirstAsync();
@@ -216,16 +225,20 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
     public async Task CreateAsync_WithFirstWeightLog_ShouldSetUserStartingWeight()
     {
         // Arrange
-        _context = InMemoryDbContextFactory.Create(_databaseName);
+        var databaseName = $"WeightLogServiceTests_{Guid.NewGuid()}";
+        (_context, _connection) = InMemoryDbContextFactory.Create(databaseName);
         var service = new WeightLogService(_context, NullLogger<WeightLogService>.Instance);
+
+        // Usar GoogleId único para cada test para evitar conflictos
+        var uniqueGoogleId = $"test_google_{Guid.NewGuid():N}";
 
         // Create a user WITHOUT starting weight
         var newUser = new Domain.Entities.Users
         {
             Id = Guid.NewGuid().ToString(),
-            GoogleId = "test_google_123",
+            GoogleId = uniqueGoogleId,
             Name = "Test User",
-            Email = "test@test.com",
+            Email = $"test_{Guid.NewGuid():N}@test.com",
             Role = (int)UserRole.User,
             MemberSince = DateTime.UtcNow.ToString("O"),
             Height = 175.0,
@@ -268,7 +281,8 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
     public async Task GetByIdAsync_WithNonExistentId_ShouldReturnNull()
     {
         // Arrange
-        _context = InMemoryDbContextFactory.Create(_databaseName);
+        var databaseName = $"WeightLogServiceTests_{Guid.NewGuid()}";
+        (_context, _connection) = InMemoryDbContextFactory.Create(databaseName);
         var service = new WeightLogService(_context, NullLogger<WeightLogService>.Instance);
 
         var nonExistentId = Guid.NewGuid();
@@ -284,7 +298,8 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
     public async Task UpdateAsync_WithNonExistentId_ShouldThrowInvalidOperationException()
     {
         // Arrange
-        _context = InMemoryDbContextFactory.Create(_databaseName);
+        var databaseName = $"WeightLogServiceTests_{Guid.NewGuid()}";
+        (_context, _connection) = InMemoryDbContextFactory.Create(databaseName);
         var service = new WeightLogService(_context, NullLogger<WeightLogService>.Instance);
 
         var nonExistentId = Guid.NewGuid();
@@ -304,7 +319,8 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
     public async Task DeleteAsync_WithNonExistentId_ShouldThrowInvalidOperationException()
     {
         // Arrange
-        _context = InMemoryDbContextFactory.Create(_databaseName);
+        var databaseName = $"WeightLogServiceTests_{Guid.NewGuid()}";
+        (_context, _connection) = InMemoryDbContextFactory.Create(databaseName);
         var service = new WeightLogService(_context, NullLogger<WeightLogService>.Instance);
 
         var nonExistentId = Guid.NewGuid();

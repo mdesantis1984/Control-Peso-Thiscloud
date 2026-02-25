@@ -496,6 +496,77 @@ public sealed class WeightLogServiceTests : IDisposable
         result.CurrentWeight.Should().Be(75.0m);
     }
 
+    [Fact]
+    public async Task GetByIdAsync_WhenNotFound_ShouldReturnNull()
+    {
+        // Arrange
+        var nonExistentId = Guid.NewGuid();
+
+        // Act
+        var result = await _service.GetByIdAsync(nonExistentId);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WithDifferentWeight_ShouldRecalculateTrend()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var logId = Guid.NewGuid();
+
+        // Create a previous log to establish trend baseline
+        var previousLog = CreateWeightLogEntity(Guid.NewGuid(), userId, new DateOnly(2026, 2, 1), 80.0);
+        _context.Set<WeightLogs>().Add(previousLog);
+
+        // Create the log to update
+        var logToUpdate = CreateWeightLogEntity(logId, userId, new DateOnly(2026, 2, 15), 75.0);
+        _context.Set<WeightLogs>().Add(logToUpdate);
+        await _context.SaveChangesAsync();
+
+        var updateDto = new UpdateWeightLogDto
+        {
+            Date = new DateOnly(2026, 2, 15),
+            Time = new TimeOnly(14, 30),
+            Weight = 78.0m, // Changed from 75.0 to 78.0 (trend will be Down compared to 80.0)
+            DisplayUnit = WeightUnit.Kg
+        };
+
+        // Act
+        var result = await _service.UpdateAsync(logId, updateDto);
+
+        // Assert
+        result.Weight.Should().Be(78.0m);
+        result.Trend.Should().Be(WeightTrend.Down); // 78.0 < 80.0
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WithNoNote_ShouldAllowNullNote()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var logId = Guid.NewGuid();
+        var log = CreateWeightLogEntity(logId, userId, new DateOnly(2026, 2, 15), 75.0);
+        _context.Set<WeightLogs>().Add(log);
+        await _context.SaveChangesAsync();
+
+        var updateDto = new UpdateWeightLogDto
+        {
+            Date = new DateOnly(2026, 2, 15),
+            Time = new TimeOnly(12, 0),
+            Weight = 75.0m,
+            DisplayUnit = WeightUnit.Kg,
+            Note = null // Explicit null
+        };
+
+        // Act
+        var result = await _service.UpdateAsync(logId, updateDto);
+
+        // Assert
+        result.Note.Should().BeNull();
+    }
+
     #endregion
 
     #region Helper Methods

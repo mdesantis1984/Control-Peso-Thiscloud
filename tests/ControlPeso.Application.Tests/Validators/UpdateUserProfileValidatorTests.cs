@@ -2,12 +2,29 @@ using ControlPeso.Application.DTOs;
 using ControlPeso.Application.Validators;
 using ControlPeso.Domain.Enums;
 using FluentValidation.TestHelper;
+using Microsoft.Extensions.Localization;
+using Moq;
 
 namespace ControlPeso.Application.Tests.Validators;
 
 public sealed class UpdateUserProfileValidatorTests
 {
-    private readonly UpdateUserProfileValidator _validator = new();
+    private readonly UpdateUserProfileValidator _validator;
+
+    public UpdateUserProfileValidatorTests()
+    {
+        // Mock IStringLocalizer - devuelve el key como valor para tests unitarios
+        // Tests de traducciones están en Integration/UpdateUserProfileValidatorLocalizationTests.cs
+        var mockLocalizer = new Mock<IStringLocalizer<UpdateUserProfileValidator>>();
+        mockLocalizer
+            .Setup(x => x[It.IsAny<string>()])
+            .Returns((string key) => new LocalizedString(key, key));
+        mockLocalizer
+            .Setup(x => x[It.IsAny<string>(), It.IsAny<object[]>()])
+            .Returns((string key, object[] args) => new LocalizedString(key, key)); // NO formatear - devolver clave
+
+        _validator = new UpdateUserProfileValidator(mockLocalizer.Object);
+    }
 
     [Fact]
     public void ValidDto_ShouldPass()

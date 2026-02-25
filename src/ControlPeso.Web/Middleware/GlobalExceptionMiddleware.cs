@@ -1,10 +1,11 @@
+using ControlPeso.Web.Services;
 using Microsoft.Extensions.Logging;
 
 namespace ControlPeso.Web.Middleware;
 
 /// <summary>
 /// Middleware global para captura y manejo de excepciones no controladas.
-/// Loguea excepciones con ILogger y retorna respuestas HTTP apropiadas según el environment.
+/// Loguea excepciones, envía notificaciones y redirige a página de error amigable.
 /// </summary>
 public sealed class GlobalExceptionMiddleware
 {
@@ -26,9 +27,12 @@ public sealed class GlobalExceptionMiddleware
         _environment = environment;
     }
 
-    public async Task InvokeAsync(HttpContext context)
+    public async Task InvokeAsync(
+        HttpContext context,
+        INotificationService notificationService)
     {
         ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(notificationService);
 
         try
         {
@@ -45,7 +49,35 @@ public sealed class GlobalExceptionMiddleware
                 context.TraceIdentifier
             );
 
+            // Send critical error notification (fire and forget - don't wait)
+            _ = SendNotificationAsync(notificationService, context, ex);
+
             await HandleExceptionAsync(context, ex);
+        }
+    }
+
+    private async Task SendNotificationAsync(
+        INotificationService notificationService,
+        HttpContext context,
+        Exception exception)
+    {
+        try
+        {
+            var errorMessage = $"Path: {context.Request.Method} {context.Request.Path}\n" +
+                               $"User: {context.User?.Identity?.Name ?? "Anonymous"}";
+
+            await notificationService.SendCriticalErrorAsync(
+                errorMessage,
+                context.TraceIdentifier,
+                exception,
+                CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            // Log failure but don't throw - notification failure should not crash the app
+            _logger.LogError(ex,
+                "Failed to send error notification - TraceId: {TraceId}",
+                context.TraceIdentifier);
         }
     }
 
@@ -61,64 +93,9 @@ public sealed class GlobalExceptionMiddleware
             return Task.CompletedTask;
         }
 
-        // Determinar status code según tipo de excepción
-        var statusCode = exception switch
-        {
-            ArgumentNullException => StatusCodes.Status400BadRequest,
-            ArgumentException => StatusCodes.Status400BadRequest,
-            UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
-            InvalidOperationException => StatusCodes.Status409Conflict,
-            _ => StatusCodes.Status500InternalServerError
-        };
-
-        context.Response.StatusCode = statusCode;
-        context.Response.ContentType = "text/plain; charset=utf-8";
-
-        // En Development: mostrar detalles de la excepción
-        // En Production: mostrar mensaje genérico (no revelar stack traces)
-        var message = _environment.IsDevelopment()
-            ? BuildDevelopmentErrorMessage(exception, context.TraceIdentifier)
-            : BuildProductionErrorMessage(statusCode, context.TraceIdentifier);
-
-        return context.Response.WriteAsync(message);
-    }
-
-    private static string BuildDevelopmentErrorMessage(Exception exception, string traceId)
-    {
-        var sb = new System.Text.StringBuilder();
-        sb.AppendLine($"Error: {exception.Message}");
-        sb.AppendLine();
-        sb.AppendLine($"Type: {exception.GetType().FullName}");
-        sb.AppendLine($"TraceId: {traceId}");
-        sb.AppendLine();
-        sb.AppendLine("Stack Trace:");
-        sb.AppendLine(exception.StackTrace ?? "No stack trace available");
-
-        if (exception.InnerException is not null)
-        {
-            sb.AppendLine();
-            sb.AppendLine("Inner Exception:");
-            sb.AppendLine($"  {exception.InnerException.Message}");
-            sb.AppendLine($"  {exception.InnerException.StackTrace}");
-        }
-
-        return sb.ToString();
-    }
-
-    private static string BuildProductionErrorMessage(int statusCode, string traceId)
-    {
-        var message = statusCode switch
-        {
-            StatusCodes.Status400BadRequest => "Bad Request - The request was invalid.",
-            StatusCodes.Status401Unauthorized => "Unauthorized - Please log in to access this resource.",
-            StatusCodes.Status403Forbidden => "Forbidden - You do not have permission to access this resource.",
-            StatusCodes.Status404NotFound => "Not Found - The requested resource was not found.",
-            StatusCodes.Status409Conflict => "Conflict - The request could not be processed due to a conflict.",
-            StatusCodes.Status500InternalServerError => "Internal Server Error - An unexpected error occurred.",
-            _ => "An error occurred while processing your request."
-        };
-
-        return $"{message}\n\nTraceId: {traceId}\n\nPlease contact support if the problem persists.";
+        // Redirigir a página de error amigable con TraceId
+        context.Response.Redirect($"/error?traceId={context.TraceIdentifier}");
+        return Task.CompletedTask;
     }
 }
 

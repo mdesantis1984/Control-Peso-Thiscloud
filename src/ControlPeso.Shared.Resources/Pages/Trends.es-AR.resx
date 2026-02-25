@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata"><xsd:import namespace="http://www.w3.org/XML/1998/namespace" /><xsd:element name="root" msdata:IsDataSet="true"><xsd:complexType><xsd:choice maxOccurs="unbounded"><xsd:element name="data"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /><xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" /></xsd:complexType></xsd:element><xsd:element name="resheader"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" /></xsd:complexType></xsd:element></xsd:choice></xsd:complexType></xsd:element></xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="PageTitle" xml:space="preserve"><value>Tendencias - Control Peso Thiscloud</value></data>
+  <data name="MetaDescription" xml:space="preserve"><value>Análisis de tendencias de peso en Control Peso Thiscloud. Compara períodos, visualiza promedios, proyecciones y Smart Insights para optimizar tu seguimiento.</value></data>
+  <data name="MetaKeywords" xml:space="preserve"><value>tendencias peso, análisis peso, proyecciones peso, smart insights, comparación períodos, promedio peso</value></data>
+  <data name="OgTitle" xml:space="preserve"><value>Tendencias - Control Peso Thiscloud</value></data>
+  <data name="OgDescription" xml:space="preserve"><value>Análisis de tendencias y proyecciones de peso con Smart Insights.</value></data>
+  <data name="TrendsTitle" xml:space="preserve"><value>Análisis de Tendencias</value></data>
+  <data name="Last7Days" xml:space="preserve"><value>Últimos 7 días</value></data>
+  <data name="Last30Days" xml:space="preserve"><value>Últimos 30 días</value></data>
+  <data name="Last90Days" xml:space="preserve"><value>Últimos 90 días</value></data>
+  <data name="ProjectionTitle" xml:space="preserve"><value>Proyección (30 días)</value></data>
+  <data name="AverageChange" xml:space="preserve"><value>Cambio Promedio</value></data>
+  <data name="TrendAnalysis" xml:space="preserve"><value>Análisis de Tendencias</value></data>
+  <data name="TotalChange" xml:space="preserve"><value>Cambio total</value></data>
+  <data name="OverallAverage" xml:space="preserve"><value>Promedio General</value></data>
+  <data name="WeightEvolution90Days" xml:space="preserve"><value>Evolución del Peso (Últimos 90 días)</value></data>
+  <data name="EvolutionLabel" xml:space="preserve"><value>Evolución</value></data>
+  <data name="StatisticsTitle" xml:space="preserve"><value>Estadísticas</value></data>
+  <data name="CurrentWeightLabel" xml:space="preserve"><value>Peso actual</value></data>
+  <data name="StartingWeightLabel" xml:space="preserve"><value>Peso inicial</value></data>
+  <data name="MinWeightLabel" xml:space="preserve"><value>Peso mínimo</value></data>
+  <data name="MaxWeightLabel" xml:space="preserve"><value>Peso máximo</value></data>
+  <data name="OverallAverageLabel" xml:space="preserve"><value>Promedio general</value></data>
+  <data name="TotalRecordsLabel" xml:space="preserve"><value>Total de registros</value></data>
+  <data name="KgUnit" xml:space="preserve"><value>kg</value></data>
+  <data name="ProjectionDescription" xml:space="preserve"><value>Basado en tu tendencia actual, en 30 días podrías estar en:</value></data>
+  <data name="EstimatedChange" xml:space="preserve"><value>(Cambio estimado: {0} kg)</value><comment>{0} = projected change value</comment></data>
+  <data name="InsufficientDataProjection" xml:space="preserve"><value>No hay suficientes datos para calcular una proyección. Registra pesos durante varios días para ver una estimación.</value></data>
+  <data name="NoDataTitle" xml:space="preserve"><value>No hay datos suficientes</value></data>
+  <data name="NoDataMessage" xml:space="preserve"><value>Necesitas registrar algunos pesos para comenzar a ver tus tendencias.</value></data>
+  <data name="NoDataGoToDashboard" xml:space="preserve"><value>Ve al <MudLink Href="/dashboard" Color="Color.Primary">Dashboard</MudLink> y registra tu primer peso.</value></data>
+  <data name="DashboardLink" xml:space="preserve"><value>Dashboard</value></data>
+  <data name="LimitedDataTitle" xml:space="preserve"><value>Datos limitados</value></data>
+  <data name="LimitedDataMessage" xml:space="preserve"><value>Tienes <strong>{0} registro(s)</strong> de peso. Para análisis más precisos y gráficos de tendencias detallados, te recomendamos registrar al menos <strong>4 pesos</strong> en diferentes fechas.</value><comment>{0} = number of records</comment></data>
+  <data name="LimitedDataSubMessage" xml:space="preserve"><value>Mientras tanto, aquí están tus estadísticas básicas:</value></data>
+  <data name="CurrentStatsTitle" xml:space="preserve"><value>Estadísticas Actuales</value></data>
+  <data name="FirstWeightLabel" xml:space="preserve"><value>Peso inicial</value></data>
+  <data name="ChangeLabel" xml:space="preserve"><value>Cambio</value></data>
+  <data name="AverageLabel" xml:space="preserve"><value>Promedio</value></data>
+  <data name="NextStepsTitle" xml:space="preserve"><value>Próximos Pasos</value></data>
+  <data name="NextStep1" xml:space="preserve"><value>Registra tu peso regularmente (diario o semanal)</value></data>
+  <data name="NextStep2" xml:space="preserve"><value>Pésate siempre a la misma hora del día</value></data>
+  <data name="NextStep3" xml:space="preserve"><value>Agrega notas sobre tu rutina o alimentación</value></data>
+  <data name="NextStep4" xml:space="preserve"><value>Con {0} registro(s) más verás gráficos de tendencias</value><comment>{0} = number of records needed</comment></data>
+  <data name="ErrorLoadingTrends" xml:space="preserve"><value>Error al cargar el análisis de tendencias</value></data>
+  <data name="UserNotIdentified" xml:space="preserve"><value>No se pudo identificar al usuario</value></data>
+</root>

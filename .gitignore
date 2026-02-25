@@ -379,6 +379,13 @@ logs/
 # User secrets
 secrets.json
 
+# Archivos de configuración con datos sensibles
+appsettings.Development.json
+appsettings.*.json
+!appsettings.json
+appsettings.Local.json
+appsettings.Production.json
+
 # Archivos temporales de scaffold
 *.scaffold.log
 
