@@ -1,6 +1,19 @@
 <Solution>
   <Folder Name="/docs/">
+    <File Path="docs/ARCHITECTURE.md" />
+    <File Path="docs/CLOUDFLARE_ANALYTICS.md" />
+    <File Path="docs/DATABASE.md" />
+    <File Path="docs/DEPLOYMENT.md" />
+    <File Path="docs/DOCKER.md" />
+    <File Path="docs/LIGHTHOUSE_REPORT.md" />
     <File Path="docs/Plan_ControlPeso_Thiscloud_v1_0.md" />
+    <File Path="docs/Plan_Fase_9_Pixel_Perfect.md" />
+    <File Path="docs/SECURITY.md" />
+    <File Path="docs/SEO.md" />
+    <File Path="docs/THISCLOUD_FRAMEWORK_INTEGRATION.md" />
+    <File Path="docs/UI_DISCREPANCIES.md" />
+    <File Path="docs/VISUAL_ISSUES_CHECKLIST.md" />
+    <File Path="docs/WCAG_AA_AUDIT.md" />
   </Folder>
   <Folder Name="/docs/schema/" />
   <Folder Name="/src/" />
@@ -13,10 +26,15 @@
   <Folder Name="/src/ControlPeso.Infrastructure/">
     <Project Path="src/ControlPeso.Infrastructure/ControlPeso.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/ControlPeso.Shared.Resources/">
+    <Project Path="src/ControlPeso.Shared.Resources/ControlPeso.Shared.Resources.csproj" />
+  </Folder>
   <Folder Name="/src/ControlPeso.Web/">
     <Project Path="src/ControlPeso.Web/ControlPeso.Web.csproj" />
   </Folder>
-  <Folder Name="/tests/" />
+  <Folder Name="/tests/">
+    <Project Path="tests/ControlPeso.Shared.Resources.Tests/ControlPeso.Shared.Resources.Tests.csproj" />
+  </Folder>
   <Folder Name="/tests/ControlPeso.Application.Tests/">
     <Project Path="tests/ControlPeso.Application.Tests/ControlPeso.Application.Tests.csproj" />
   </Folder>

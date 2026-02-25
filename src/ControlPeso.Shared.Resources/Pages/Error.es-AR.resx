@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" msdata:Ordinal="5" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  
+  <!-- Page Metadata -->
+  <data name="PageTitle" xml:space="preserve">
+    <value>Error - Control Peso Thiscloud</value>
+    <comment>Título de pestaña del navegador</comment>
+  </data>
+  <data name="MetaDescription" xml:space="preserve">
+    <value>Ha ocurrido un error en Control Peso Thiscloud. Por favor intente nuevamente o contacte al soporte.</value>
+    <comment>Descripción meta para SEO</comment>
+  </data>
+
+  <!-- Error Content -->
+  <data name="ErrorTitle" xml:space="preserve">
+    <value>Error.</value>
+    <comment>Encabezado principal de error</comment>
+  </data>
+  <data name="ErrorMessage" xml:space="preserve">
+    <value>Ocurrió un error al procesar tu solicitud.</value>
+    <comment>Mensaje de descripción del error</comment>
+  </data>
+  <data name="RequestIdLabel" xml:space="preserve">
+    <value>ID de Solicitud:</value>
+    <comment>Etiqueta para mostrar ID de solicitud</comment>
+  </data>
+  <data name="DevelopmentModeTitle" xml:space="preserve">
+    <value>Modo de Desarrollo</value>
+    <comment>Encabezado de sección de modo desarrollo</comment>
+  </data>
+  <data name="DevelopmentModeDescription" xml:space="preserve">
+    <value>Cambiar al entorno de <strong>Desarrollo</strong> mostrará información más detallada sobre el error que ocurrió.</value>
+    <comment>Descripción de los beneficios del modo desarrollo</comment>
+  </data>
+  <data name="DevelopmentModeWarning" xml:space="preserve">
+    <value><strong>El entorno de Desarrollo no debería estar habilitado para aplicaciones desplegadas.</strong> Puede resultar en mostrar información sensible de excepciones a usuarios finales. Para depuración local, habilite el entorno de <strong>Desarrollo</strong> estableciendo la variable de entorno <strong>ASPNETCORE_ENVIRONMENT</strong> en <strong>Development</strong> y reiniciando la aplicación.</value>
+    <comment>Advertencia de seguridad sobre entorno desarrollo</comment>
+  </data>
+</root>

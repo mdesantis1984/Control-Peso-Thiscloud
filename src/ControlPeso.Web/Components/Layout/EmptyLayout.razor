@@ -1,0 +1,16 @@
+@inherits LayoutComponentBase
+@namespace ControlPeso.Web.Components.Layout
+
+@* 
+    EmptyLayout - Layout vacío para páginas fullscreen (Login, Error, etc.)
+    No incluye AppBar, Drawer ni MudLayout - solo MudThemeProvider para dark mode
+*@
+
+@* MudBlazor Providers - solo los esenciales *@
+<MudThemeProvider @ref="_themeProvider" @bind-IsDarkMode="@_isDarkMode" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+@* Contenido de la página sin wrappers *@
+@Body

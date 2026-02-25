@@ -8,6 +8,7 @@ using ControlPeso.Web.Components.Shared;
 using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Localization;
 using Microsoft.JSInterop;
 using MudBlazor;
 
@@ -19,7 +20,8 @@ public partial class Admin
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
     [Inject] private ILogger<Admin> Logger { get; set; } = default!;
-    [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private Services.NotificationService Snackbar { get; set; } = default!;
+    [Inject] private IStringLocalizer<Admin> Localizer { get; set; } = default!;
 
     private bool _isLoadingDashboard = true;
     private bool _isLoadingGrid;
@@ -31,6 +33,85 @@ public partial class Admin
     private string? _searchTerm;
     private UserRole? _filterRole;
     private UserStatus? _filterStatus;
+
+    // ========================================================================
+    // LOCALIZED STRINGS (Properties for clean markup)
+    // ========================================================================
+
+    // Page / Meta
+    private string PageTitle => Localizer["PageTitle"];
+    private string MetaDescription => Localizer["MetaDescription"];
+    private string MetaKeywords => Localizer["MetaKeywords"];
+    private string OgTitle => Localizer["OgTitle"];
+    private string OgDescription => Localizer["OgDescription"];
+
+    // Header
+    private string AdminPanelTitle => Localizer["AdminPanelTitle"];
+
+    // Stats Cards
+    private string TotalUsers => Localizer["TotalUsers"];
+    private string ActiveUsers => Localizer["ActiveUsers"];
+    private string PendingUsers => Localizer["PendingUsers"];
+    private string InactiveUsers => Localizer["InactiveUsers"];
+    private string TotalRecords => Localizer["TotalRecords"];
+    private string Last7Days => Localizer["Last7Days"];
+    private string Last30Days => Localizer["Last30Days"];
+    private string LatestRegistration => Localizer["LatestRegistration"];
+
+    // User Management
+    private string UserManagementTitle => Localizer["UserManagementTitle"];
+    private string ExportButton => Localizer["ExportButton"];
+    private string SearchPlaceholder => Localizer["SearchPlaceholder"];
+    private string FilterByRole => Localizer["FilterByRole"];
+    private string FilterByStatus => Localizer["FilterByStatus"];
+    private string ClearFiltersButton => Localizer["ClearFiltersButton"];
+
+    // DataGrid Columns
+    private string ColumnAvatar => Localizer["ColumnAvatar"];
+    private string ColumnName => Localizer["ColumnName"];
+    private string ColumnEmail => Localizer["ColumnEmail"];
+    private string ColumnRole => Localizer["ColumnRole"];
+    private string ColumnStatus => Localizer["ColumnStatus"];
+    private string ColumnRegistration => Localizer["ColumnRegistration"];
+    private string ColumnActions => Localizer["ColumnActions"];
+
+    // Actions
+    private string ChangeRoleButtonTitle => Localizer["ChangeRoleButtonTitle"];
+    private string ChangeStatusButtonTitle => Localizer["ChangeStatusButtonTitle"];
+    private string NoUsersFound => Localizer["NoUsersFound"];
+
+    // Roles
+    private string RoleUser => Localizer["RoleUser"];
+    private string RoleAdministrator => Localizer["RoleAdministrator"];
+    private string RoleAdminShort => Localizer["RoleAdminShort"];
+
+    // Statuses
+    private string StatusActive => Localizer["StatusActive"];
+    private string StatusInactive => Localizer["StatusInactive"];
+    private string StatusPending => Localizer["StatusPending"];
+
+    // Error Messages
+    private string ErrorLoadingDashboard => Localizer["ErrorLoadingDashboard"];
+    private string ErrorLoadingUsers => Localizer["ErrorLoadingUsers"];
+    private string ErrorChangingRole => Localizer["ErrorChangingRole"];
+    private string ErrorChangingStatus => Localizer["ErrorChangingStatus"];
+    private string ErrorExportingUsers => Localizer["ErrorExportingUsers"];
+
+    // Success Messages
+    private string RoleUpdatedSuccess => Localizer["RoleUpdatedSuccess"];
+    private string StatusUpdatedSuccess => Localizer["StatusUpdatedSuccess"];
+    private string GetExportSuccess(int count) => Localizer["ExportSuccess", count];
+    private string NoUsersToExport => Localizer["NoUsersToExport"];
+
+    // Dialog Titles
+    private string ChangeRoleDialogTitle => Localizer["ChangeRoleDialogTitle"];
+    private string ChangeStatusDialogTitle => Localizer["ChangeStatusDialogTitle"];
+
+    // CSV Export (for data mapping)
+    private string CsvRoleAdministrator => Localizer["CsvRoleAdministrator"];
+    private string CsvRoleUser => Localizer["CsvRoleUser"];
+    private string CsvUnitMetric => Localizer["CsvUnitMetric"];
+    private string CsvUnitImperial => Localizer["CsvUnitImperial"];
 
     protected override async Task OnInitializedAsync()
     {
@@ -49,7 +130,7 @@ public partial class Admin
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error loading admin dashboard");
-            Snackbar.Add("Error al cargar el dashboard", Severity.Error);
+            Snackbar.Add(ErrorLoadingDashboard, Severity.Error);
         }
         finally
         {
@@ -57,7 +138,7 @@ public partial class Admin
         }
     }
 
-    private async Task<GridData<UserDto>> LoadServerData(GridState<UserDto> state)
+    private async Task<GridData<UserDto>> LoadServerData(GridState<UserDto> state, CancellationToken ct)
     {
         _isLoadingGrid = true;
 
@@ -82,7 +163,7 @@ public partial class Admin
                 filter.Role,
                 filter.Status);
 
-            var result = await AdminService.GetUsersAsync(filter);
+            var result = await AdminService.GetUsersAsync(filter, ct);
 
             Logger.LogInformation(
                 "Users loaded - Count: {Count}, TotalCount: {TotalCount}",
@@ -98,7 +179,7 @@ public partial class Admin
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error loading users");
-            Snackbar.Add("Error al cargar usuarios", Severity.Error);
+            Snackbar.Add(ErrorLoadingUsers, Severity.Error);
             return new GridData<UserDto> { Items = [], TotalItems = 0 };
         }
         finally
@@ -138,13 +219,13 @@ public partial class Admin
         };
     }
 
-    private static string GetStatusText(UserStatus status)
+    private string GetStatusText(UserStatus status)
     {
         return status switch
         {
-            UserStatus.Active => "Activo",
-            UserStatus.Inactive => "Inactivo",
-            UserStatus.Pending => "Pendiente",
+            UserStatus.Active => StatusActive,
+            UserStatus.Inactive => StatusInactive,
+            UserStatus.Pending => StatusPending,
             _ => status.ToString()
         };
     }
@@ -166,7 +247,7 @@ public partial class Admin
         };
 
         var dialog = await DialogService.ShowAsync<ChangeRoleDialog>(
-            "Cambiar Rol de Usuario",
+            ChangeRoleDialogTitle,
             parameters,
             options);
 
@@ -189,7 +270,7 @@ public partial class Admin
 
             await AdminService.UpdateUserRoleAsync(userId, newRole);
 
-            Snackbar.Add("Rol actualizado correctamente", Severity.Success);
+            Snackbar.Add(RoleUpdatedSuccess, Severity.Success);
 
             // Refresh grid and dashboard
             await _grid!.ReloadServerData();
@@ -199,7 +280,7 @@ public partial class Admin
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error changing role for user {UserId}", userId);
-            Snackbar.Add("Error al cambiar el rol", Severity.Error);
+            Snackbar.Add(ErrorChangingRole, Severity.Error);
         }
     }
 
@@ -220,7 +301,7 @@ public partial class Admin
         };
 
         var dialog = await DialogService.ShowAsync<ChangeStatusDialog>(
-            "Cambiar Estado de Usuario",
+            ChangeStatusDialogTitle,
             parameters,
             options);
 
@@ -243,7 +324,7 @@ public partial class Admin
 
             await AdminService.UpdateUserStatusAsync(userId, newStatus);
 
-            Snackbar.Add("Estado actualizado correctamente", Severity.Success);
+            Snackbar.Add(StatusUpdatedSuccess, Severity.Success);
 
             // Refresh grid and dashboard
             await _grid!.ReloadServerData();
@@ -253,7 +334,7 @@ public partial class Admin
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error changing status for user {UserId}", userId);
-            Snackbar.Add("Error al cambiar el estado", Severity.Error);
+            Snackbar.Add(ErrorChangingStatus, Severity.Error);
         }
     }
 
@@ -279,7 +360,7 @@ public partial class Admin
 
             if (result.Items.Count == 0)
             {
-                Snackbar.Add("No hay usuarios para exportar", Severity.Warning);
+                Snackbar.Add(NoUsersToExport, Severity.Warning);
                 return;
             }
 
@@ -298,11 +379,11 @@ public partial class Admin
                 Id = u.Id,
                 Name = u.Name,
                 Email = u.Email,
-                Role = u.Role == UserRole.Administrator ? "Administrador" : "Usuario",
+                Role = u.Role == UserRole.Administrator ? CsvRoleAdministrator : CsvRoleUser,
                 Status = GetStatusText(u.Status),
                 MemberSince = u.MemberSince.ToString("dd/MM/yyyy"),
                 Height = $"{u.Height:F1}",
-                UnitSystem = u.UnitSystem == UnitSystem.Metric ? "Métrico" : "Imperial",
+                UnitSystem = u.UnitSystem == UnitSystem.Metric ? CsvUnitMetric : CsvUnitImperial,
                 Language = u.Language,
                 GoalWeight = u.GoalWeight.HasValue ? $"{u.GoalWeight.Value:F1}" : "",
                 StartingWeight = u.StartingWeight.HasValue ? $"{u.StartingWeight.Value:F1}" : ""
@@ -326,12 +407,12 @@ public partial class Admin
                 result.Items.Count,
                 fileName);
 
-            Snackbar.Add($"{result.Items.Count} usuarios exportados correctamente", Severity.Success);
+            Snackbar.Add(GetExportSuccess(result.Items.Count), Severity.Success);
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error exporting users to CSV");
-            Snackbar.Add("Error al exportar usuarios", Severity.Error);
+            Snackbar.Add(ErrorExportingUsers, Severity.Error);
         }
         finally
         {
