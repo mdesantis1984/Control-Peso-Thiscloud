@@ -7,15 +7,15 @@
     <!-- Home Page -->
     <url>
         <loc>https://controlpeso.thiscloud.com.ar/</loc>
-        <lastmod>2026-02-18</lastmod>
+        <lastmod>2026-02-25</lastmod>
         <changefreq>monthly</changefreq>
         <priority>1.0</priority>
     </url>
-    
+
     <!-- Login Page -->
     <url>
         <loc>https://controlpeso.thiscloud.com.ar/login</loc>
-        <lastmod>2026-02-18</lastmod>
+        <lastmod>2026-02-25</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>

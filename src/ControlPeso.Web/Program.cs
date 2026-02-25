@@ -73,10 +73,17 @@ builder.Services.Configure<Microsoft.AspNetCore.Builder.RequestLocalizationOptio
 
 // ============================================================================
 
-// 3. Register Infrastructure services (DbContext, repositories)
+// 3. Configure Forwarded Headers for production (NPM Plus reverse proxy)
+builder.Services.AddForwardedHeadersConfiguration(builder.Environment);
+
+// 3.5. Configure Production Security Policies (HSTS, HTTPS redirection)
+builder.Services.AddProductionHsts(builder.Environment);
+builder.Services.AddProductionHttpsRedirection(builder.Environment);
+
+// 4. Register Infrastructure services (DbContext, repositories)
 builder.Services.AddInfrastructureServices(builder.Configuration, builder.Environment);
 
-// 4. Register Application services (business logic, DTOs, validators)
+// 5. Register Application services (business logic, DTOs, validators)
 builder.Services.AddApplicationServices();
 
 // 5. Add Blazor services with SignalR configuration for debugging
@@ -205,6 +212,9 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
+
+    // Use forwarded headers from NPM Plus reverse proxy
+    app.UseForwardedHeaders();
 }
 
 app.UseHttpsRedirection();
