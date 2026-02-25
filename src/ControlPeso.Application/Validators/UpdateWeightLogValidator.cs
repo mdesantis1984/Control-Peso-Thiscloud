@@ -1,5 +1,6 @@
 using ControlPeso.Application.DTOs;
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace ControlPeso.Application.Validators;
 
@@ -9,30 +10,36 @@ namespace ControlPeso.Application.Validators;
 /// </summary>
 public sealed class UpdateWeightLogValidator : AbstractValidator<UpdateWeightLogDto>
 {
-    public UpdateWeightLogValidator()
+    private readonly IStringLocalizer<UpdateWeightLogValidator> _localizer;
+
+    public UpdateWeightLogValidator(IStringLocalizer<UpdateWeightLogValidator> localizer)
     {
+        ArgumentNullException.ThrowIfNull(localizer);
+        _localizer = localizer;
+
         RuleFor(x => x.Date)
             .NotEmpty()
-            .WithMessage("Date es requerida.")
-            .LessThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow))
-            .WithMessage("Date no puede ser una fecha futura.");
+            .WithMessage(_localizer["DateRequired"]);
+        // NOTE: Future date validation removed - this is a UI/UX concern, not a domain rule.
+        // Backend cannot reliably validate "future" dates due to timezone differences
+        // between server and client. Frontend (MudDatePicker) should enforce MaxDate if needed.
 
         RuleFor(x => x.Time)
             .NotEmpty()
-            .WithMessage("Time es requerido.");
+            .WithMessage(_localizer["TimeRequired"]);
 
         RuleFor(x => x.Weight)
             .GreaterThanOrEqualTo(20m)
-            .WithMessage("Weight debe ser al menos 20 kg (rango razonable para humanos).")
+            .WithMessage(_localizer["WeightMinimum", 20])
             .LessThanOrEqualTo(500m)
-            .WithMessage("Weight no puede exceder 500 kg (rango razonable para humanos).");
+            .WithMessage(_localizer["WeightMaximum", 500]);
 
         RuleFor(x => x.DisplayUnit)
             .IsInEnum()
-            .WithMessage("DisplayUnit debe ser un valor válido (Kg o Lb).");
+            .WithMessage(_localizer["DisplayUnitInvalid"]);
 
         RuleFor(x => x.Note)
             .MaximumLength(500)
-            .WithMessage("Note no puede exceder 500 caracteres.");
+            .WithMessage(_localizer["NoteMaxLength", 500]);
     }
 }

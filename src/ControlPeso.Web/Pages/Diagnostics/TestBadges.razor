@@ -1,0 +1,162 @@
+@page "/test-badges"
+@namespace ControlPeso.Web.Pages.Diagnostics
+
+<PageTitle>Test Badge Styles</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-4">Badge Notification Styles - Elige tu favorito</MudText>
+
+    <MudGrid>
+        @* OPCIÓN 1: Badge Overlap (actual) *@
+        <MudItem xs="12" md="4">
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-2">1. Overlap Badge (actual)</MudText>
+                <MudBadge Content="9" Color="Color.Error" Overlap="true">
+                    <MudIconButton Icon="@Icons.Material.Filled.Notifications" 
+                                   Color="Color.Inherit" 
+                                   Size="Size.Large" />
+                </MudBadge>
+                <MudText Typo="Typo.caption" Class="mt-2">Overlap=true, badge encima del ícono</MudText>
+            </MudPaper>
+        </MudItem>
+
+        @* OPCIÓN 2: Badge NO Overlap (separado) *@
+        <MudItem xs="12" md="4">
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-2">2. No Overlap Badge</MudText>
+                <MudBadge Content="9" Color="Color.Error" Overlap="false">
+                    <MudIconButton Icon="@Icons.Material.Filled.Notifications" 
+                                   Color="Color.Inherit" 
+                                   Size="Size.Large" />
+                </MudBadge>
+                <MudText Typo="Typo.caption" Class="mt-2">Overlap=false, badge al lado</MudText>
+            </MudPaper>
+        </MudItem>
+
+        @* OPCIÓN 3: Badge con Dot (punto pequeño) *@
+        <MudItem xs="12" md="4">
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-2">3. Dot Badge (sin número)</MudText>
+                <MudBadge Dot="true" Color="Color.Error" Overlap="true">
+                    <MudIconButton Icon="@Icons.Material.Filled.Notifications" 
+                                   Color="Color.Inherit" 
+                                   Size="Size.Large" />
+                </MudBadge>
+                <MudText Typo="Typo.caption" Class="mt-2">Dot=true, solo punto rojo (minimalista)</MudText>
+            </MudPaper>
+        </MudItem>
+
+        @* OPCIÓN 4: Badge con Bordered *@
+        <MudItem xs="12" md="4">
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-2">4. Bordered Badge</MudText>
+                <MudBadge Content="9" Color="Color.Error" Overlap="true" Bordered="true">
+                    <MudIconButton Icon="@Icons.Material.Filled.Notifications" 
+                                   Color="Color.Inherit" 
+                                   Size="Size.Large" />
+                </MudBadge>
+                <MudText Typo="Typo.caption" Class="mt-2">Bordered=true, con borde blanco</MudText>
+            </MudPaper>
+        </MudItem>
+
+        @* OPCIÓN 5: Badge Origin TopRight (posición alternativa) *@
+        <MudItem xs="12" md="4">
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-2">5. TopRight Origin</MudText>
+                <MudBadge Content="9" Color="Color.Error" Overlap="true" Origin="Origin.TopRight">
+                    <MudIconButton Icon="@Icons.Material.Filled.Notifications" 
+                                   Color="Color.Inherit" 
+                                   Size="Size.Large" />
+                </MudBadge>
+                <MudText Typo="Typo.caption" Class="mt-2">Origin=TopRight (arriba derecha)</MudText>
+            </MudPaper>
+        </MudItem>
+
+        @* OPCIÓN 6: Badge Icon (ícono dentro del badge) *@
+        <MudItem xs="12" md="4">
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-2">6. Icon Badge</MudText>
+                <MudBadge Icon="@Icons.Material.Filled.PriorityHigh" Color="Color.Error" Overlap="true">
+                    <MudIconButton Icon="@Icons.Material.Filled.Notifications" 
+                                   Color="Color.Inherit" 
+                                   Size="Size.Large" />
+                </MudBadge>
+                <MudText Typo="Typo.caption" Class="mt-2">Icon en vez de número (alerta)</MudText>
+            </MudPaper>
+        </MudItem>
+
+        @* OPCIÓN 7: Badge con Max (99+) *@
+        <MudItem xs="12" md="4">
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-2">7. Max Badge (99+)</MudText>
+                <MudBadge Content="150" Max="99" Color="Color.Error" Overlap="true">
+                    <MudIconButton Icon="@Icons.Material.Filled.Notifications" 
+                                   Color="Color.Inherit" 
+                                   Size="Size.Large" />
+                </MudBadge>
+                <MudText Typo="Typo.caption" Class="mt-2">Max=99, muestra "99+" si excede</MudText>
+            </MudPaper>
+        </MudItem>
+
+        @* OPCIÓN 8: Badge Standalone (sin ícono) *@
+        <MudItem xs="12" md="4">
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-2">8. Standalone Badge</MudText>
+                <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                    <MudIcon Icon="@Icons.Material.Filled.Notifications" Color="Color.Inherit" Size="Size.Large" />
+                    <MudText Typo="Typo.caption" 
+                             Style="background-color: #f44336; color: white; padding: 2px 8px; border-radius: 12px; font-weight: 600;">
+                        9
+                    </MudText>
+                </MudStack>
+                <MudText Typo="Typo.caption" Class="mt-2">Badge separado (estilo moderno)</MudText>
+            </MudPaper>
+        </MudItem>
+
+        @* OPCIÓN 9: Badge Bottom (abajo) *@
+        <MudItem xs="12" md="4">
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-2">9. Bottom Badge</MudText>
+                <MudBadge Content="9" Color="Color.Error" Overlap="true" Origin="Origin.BottomRight">
+                    <MudIconButton Icon="@Icons.Material.Filled.Notifications" 
+                                   Color="Color.Inherit" 
+                                   Size="Size.Large" />
+                </MudBadge>
+                <MudText Typo="Typo.caption" Class="mt-2">Origin=BottomRight (abajo derecha)</MudText>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    <MudDivider Class="my-4" />
+
+    <MudText Typo="Typo.h6" Class="mb-2">Comparación en Navbar (dark theme)</MudText>
+    <MudPaper Class="pa-4" Style="background-color: #1e1e1e;">
+        <MudStack Row AlignItems="AlignItems.Center" Spacing="4">
+            @* Opción 1 *@
+            <MudBadge Content="9" Color="Color.Error" Overlap="true">
+                <MudIconButton Icon="@Icons.Material.Filled.Notifications" Color="Color.Inherit" />
+            </MudBadge>
+
+            @* Opción 3 *@
+            <MudBadge Dot="true" Color="Color.Error" Overlap="true">
+                <MudIconButton Icon="@Icons.Material.Filled.Notifications" Color="Color.Inherit" />
+            </MudBadge>
+
+            @* Opción 4 *@
+            <MudBadge Content="9" Color="Color.Error" Overlap="true" Bordered="true">
+                <MudIconButton Icon="@Icons.Material.Filled.Notifications" Color="Color.Inherit" />
+            </MudBadge>
+
+            @* Opción 8 *@
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                <MudIconButton Icon="@Icons.Material.Filled.Notifications" Color="Color.Inherit" />
+                <MudText Typo="Typo.caption" 
+                         Style="background-color: #f44336; color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.7rem; font-weight: 600;">
+                    9
+                </MudText>
+            </MudStack>
+        </MudStack>
+    </MudPaper>
+
+    <MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary" Class="mt-4">Back to Home</MudButton>
+</MudContainer>
