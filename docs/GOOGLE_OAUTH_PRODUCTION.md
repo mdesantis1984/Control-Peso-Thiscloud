@@ -93,7 +93,7 @@ En NPM Plus (Nginx Proxy Manager):
 1. **Proxy Host**:
    - Domain Names: `controlpeso.thiscloud.com.ar`
    - Scheme: `http`
-   - Forward Hostname/IP: `10.0.0.100`
+   - Forward Hostname/IP: `YOUR_SERVER_IP`
    - Forward Port: `8182`
 
 2. **SSL**:

@@ -50,7 +50,7 @@ Sistema automático de backups para SQL Server Express con:
 Antes de desplegar, crear el directorio de backups en el servidor:
 
 ```bash
-# SSH al servidor: ssh user@10.0.0.100
+# SSH al servidor: ssh user@YOUR_SERVER_IP
 sudo mkdir -p /mnt/backups/controlpeso-sqlserver
 sudo chown -R 10001:0 /mnt/backups/controlpeso-sqlserver
 sudo chmod -R 775 /mnt/backups/controlpeso-sqlserver
@@ -62,10 +62,10 @@ sudo chmod -R 775 /mnt/backups/controlpeso-sqlserver
 
 ```bash
 # Transfer files to server
-scp -r . user@10.0.0.100:/opt/controlpeso/
+scp -r . user@YOUR_SERVER_IP:/opt/controlpeso/
 
 # SSH to server
-ssh user@10.0.0.100
+ssh user@YOUR_SERVER_IP
 
 # Navigate to project
 cd /opt/controlpeso

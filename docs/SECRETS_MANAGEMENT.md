@@ -30,7 +30,7 @@ Control Peso Thiscloud usa **docker-compose.override.yml** para gestión de secr
 
 ```bash
 # SSH to production server
-ssh user@10.0.0.100
+ssh user@YOUR_SERVER_IP
 
 # Navigate to project directory
 cd /opt/controlpeso
