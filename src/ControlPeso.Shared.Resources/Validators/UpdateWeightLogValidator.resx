@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true"><xsd:complexType><xsd:choice maxOccurs="unbounded"><xsd:element name="data"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /><xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" /></xsd:complexType></xsd:element><xsd:element name="resheader"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" /></xsd:complexType></xsd:element></xsd:choice></xsd:complexType></xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  
+  <data name="DateRequired" xml:space="preserve"><value>Date es requerida.</value><comment>Validation error for missing Date</comment></data>
+  <data name="DateCannotBeFuture" xml:space="preserve"><value>Date no puede ser una fecha futura.</value><comment>Validation error for future date</comment></data>
+  <data name="TimeRequired" xml:space="preserve"><value>Time es requerido.</value><comment>Validation error for missing Time</comment></data>
+  <data name="WeightMinimum" xml:space="preserve"><value>Weight debe ser al menos {0} kg (rango razonable para humanos).</value><comment>Validation error for weight below minimum. {0} = minimum value (20)</comment></data>
+  <data name="WeightMaximum" xml:space="preserve"><value>Weight no puede exceder {0} kg (rango razonable para humanos).</value><comment>Validation error for weight above maximum. {0} = maximum value (500)</comment></data>
+  <data name="DisplayUnitInvalid" xml:space="preserve"><value>DisplayUnit debe ser un valor válido (Kg o Lb).</value><comment>Validation error for invalid display unit enum</comment></data>
+  <data name="NoteMaxLength" xml:space="preserve"><value>Note no puede exceder {0} caracteres.</value><comment>Validation error for note too long. {0} = max length (500)</comment></data>
+</root>

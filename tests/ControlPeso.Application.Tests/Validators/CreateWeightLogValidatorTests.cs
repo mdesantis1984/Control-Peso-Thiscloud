@@ -2,12 +2,29 @@ using ControlPeso.Application.DTOs;
 using ControlPeso.Application.Validators;
 using ControlPeso.Domain.Enums;
 using FluentValidation.TestHelper;
+using Microsoft.Extensions.Localization;
+using Moq;
 
 namespace ControlPeso.Application.Tests.Validators;
 
 public sealed class CreateWeightLogValidatorTests
 {
-    private readonly CreateWeightLogValidator _validator = new();
+    private readonly CreateWeightLogValidator _validator;
+
+    public CreateWeightLogValidatorTests()
+    {
+        // Mock IStringLocalizer - devuelve el key como valor para tests unitarios
+        // Tests de traducción están en Integration/CreateWeightLogValidatorLocalizationTests.cs
+        var mockLocalizer = new Mock<IStringLocalizer<CreateWeightLogValidator>>();
+        mockLocalizer
+            .Setup(x => x[It.IsAny<string>()])
+            .Returns((string key) => new LocalizedString(key, key));
+        mockLocalizer
+            .Setup(x => x[It.IsAny<string>(), It.IsAny<object[]>()])
+            .Returns((string key, object[] args) => new LocalizedString(key, key)); // NO formatear - devolver clave
+
+        _validator = new CreateWeightLogValidator(mockLocalizer.Object);
+    }
 
     [Fact]
     public void ValidDto_ShouldPass()
@@ -49,33 +66,14 @@ public sealed class CreateWeightLogValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.UserId)
-            .WithErrorMessage("UserId es requerido.");
+            .WithErrorMessage("UserIdRequired");
     }
 
-    [Fact]
-    public void Date_Future_ShouldFail()
-    {
-        // Arrange
-        var dto = new CreateWeightLogDto
-        {
-            UserId = Guid.NewGuid(),
-            Date = DateOnly.FromDateTime(DateTime.Today.AddDays(1)),
-            Time = new TimeOnly(14, 30),
-            Weight = 75.5m,
-            DisplayUnit = WeightUnit.Kg,
-            Note = null
-        };
-
-        // Act
-        var result = _validator.TestValidate(dto);
-
-        // Assert
-        result.ShouldHaveValidationErrorFor(x => x.Date)
-            .WithErrorMessage("Date no puede ser una fecha futura.");
-    }
+    // NOTE: Future date validation removed from validator (UI/UX concern, not domain rule).
+    // Test removed: Date_Future_ShouldFail
 
     [Fact]
-    public void Date_Today_ShouldPass()
+    public void Date_Valid_ShouldPass()
     {
         // Arrange
         var dto = new CreateWeightLogDto
@@ -117,7 +115,7 @@ public sealed class CreateWeightLogValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Weight)
-            .WithErrorMessage("Weight debe ser al menos 20 kg (rango razonable para humanos).");
+            .WithErrorMessage("WeightMinimum");
     }
 
     [Theory]
@@ -141,7 +139,7 @@ public sealed class CreateWeightLogValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Weight)
-            .WithErrorMessage("Weight no puede exceder 500 kg (rango razonable para humanos).");
+            .WithErrorMessage("WeightMaximum");
     }
 
     [Theory]
@@ -187,7 +185,7 @@ public sealed class CreateWeightLogValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.DisplayUnit)
-            .WithErrorMessage("DisplayUnit debe ser un valor válido (Kg o Lb).");
+            .WithErrorMessage("DisplayUnitInvalid");
     }
 
     [Fact]
@@ -209,7 +207,7 @@ public sealed class CreateWeightLogValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Note)
-            .WithErrorMessage("Note no puede exceder 500 caracteres.");
+            .WithErrorMessage("NoteMaxLength");
     }
 
     [Fact]

@@ -25,19 +25,31 @@ public static class AuthenticationExtensions
         ArgumentNullException.ThrowIfNull(configuration);
 
         // 1. Configurar esquema de autenticación con Cookies como principal
-        services.AddAuthentication(options =>
+        var authBuilder = services.AddAuthentication(options =>
         {
             options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = "Google"; // Default challenge (puede ser Google o LinkedIn)
+            options.DefaultChallengeScheme = "Google"; // Default challenge es Google
         })
-        .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, ConfigureCookieOptions)
-        .AddGoogle("Google", options => ConfigureGoogleOptions(options, configuration))
-        .AddLinkedIn(options => ConfigureLinkedInOptions(options, configuration));
+        .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, ConfigureCookieOptions);
 
-        // 2. Agregar servicios de autorización
+        // 2. Agregar Google OAuth (si está configurado)
+        var googleClientId = configuration.GetValue<string>("Authentication:Google:ClientId");
+        if (!string.IsNullOrWhiteSpace(googleClientId))
+        {
+            authBuilder.AddGoogle("Google", options => ConfigureGoogleOptions(options, configuration));
+        }
+
+        // 3. Agregar LinkedIn OAuth (solo si está configurado - OPCIONAL)
+        var linkedInClientId = configuration.GetValue<string>("Authentication:LinkedIn:ClientId");
+        if (!string.IsNullOrWhiteSpace(linkedInClientId))
+        {
+            authBuilder.AddLinkedIn(options => ConfigureLinkedInOptions(options, configuration));
+        }
+
+        // 4. Agregar servicios de autorización
         services.AddAuthorization();
 
-        // 3. Agregar cascading authentication state para Blazor
+        // 5. Agregar cascading authentication state para Blazor
         services.AddCascadingAuthenticationState();
 
         return services;
@@ -70,13 +82,9 @@ public static class AuthenticationExtensions
         Microsoft.AspNetCore.Authentication.Google.GoogleOptions options,
         IConfiguration configuration)
     {
-        var googleConfig = configuration.GetSection("Authentication:Google");
-
-        options.ClientId = googleConfig["ClientId"]
-            ?? throw new InvalidOperationException("Google ClientId not configured in appsettings.json");
-
-        options.ClientSecret = googleConfig["ClientSecret"]
-            ?? throw new InvalidOperationException("Google ClientSecret not configured in appsettings.json");
+        // Configuración ya validada en AddOAuthAuthentication (ClientId no nulo)
+        options.ClientId = configuration.GetValue<string>("Authentication:Google:ClientId")!;
+        options.ClientSecret = configuration.GetValue<string>("Authentication:Google:ClientSecret")!;
 
         options.SaveTokens = true;
 
@@ -120,30 +128,9 @@ public static class AuthenticationExtensions
                 };
 
                 // Crear o actualizar usuario en DB
-                var user = await userService.CreateOrUpdateFromOAuthAsync(oauthInfo);
-
-                // Agregar claims personalizados a la identidad del usuario
-                var identity = context.Principal?.Identity as ClaimsIdentity;
-                if (identity != null)
-                {
-                    // Claim del User ID (GUID) - principal para identificar al usuario en la app
-                    identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
-
-                    // Claim del Role (User o Administrator)
-                    identity.AddClaim(new Claim(ClaimTypes.Role, user.Role.ToString()));
-
-                    // Claim del Email (si no existe ya)
-                    if (!identity.HasClaim(c => c.Type == ClaimTypes.Email))
-                    {
-                        identity.AddClaim(new Claim(ClaimTypes.Email, user.Email));
-                    }
-
-                    // Claim del Name (si no existe ya)
-                    if (!identity.HasClaim(c => c.Type == ClaimTypes.Name))
-                    {
-                        identity.AddClaim(new Claim(ClaimTypes.Name, user.Name));
-                    }
-                }
+                // NOTA: Los claims personalizados (UserId, Role) se agregan en UserClaimsTransformation
+                // para evitar duplicación y asegurar timing correcto con Blazor Server
+                await userService.CreateOrUpdateFromOAuthAsync(oauthInfo);
             }
         };
     }
@@ -202,30 +189,9 @@ public static class AuthenticationExtensions
                 };
 
                 // Crear o actualizar usuario en DB
-                var user = await userService.CreateOrUpdateFromOAuthAsync(oauthInfo);
-
-                // Agregar claims personalizados a la identidad del usuario
-                var identity = context.Principal?.Identity as ClaimsIdentity;
-                if (identity != null)
-                {
-                    // Claim del User ID (GUID) - principal para identificar al usuario en la app
-                    identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
-
-                    // Claim del Role (User o Administrator)
-                    identity.AddClaim(new Claim(ClaimTypes.Role, user.Role.ToString()));
-
-                    // Claim del Email (si no existe ya)
-                    if (!identity.HasClaim(c => c.Type == ClaimTypes.Email))
-                    {
-                        identity.AddClaim(new Claim(ClaimTypes.Email, user.Email));
-                    }
-
-                    // Claim del Name (si no existe ya)
-                    if (!identity.HasClaim(c => c.Type == ClaimTypes.Name))
-                    {
-                        identity.AddClaim(new Claim(ClaimTypes.Name, user.Name));
-                    }
-                }
+                // NOTA: Los claims personalizados (UserId, Role) se agregan en UserClaimsTransformation
+                // para evitar duplicación y asegurar timing correcto con Blazor Server
+                await userService.CreateOrUpdateFromOAuthAsync(oauthInfo);
             }
         };
     }

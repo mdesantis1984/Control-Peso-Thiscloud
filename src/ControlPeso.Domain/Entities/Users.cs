@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace ControlPeso.Domain.Entities;
 
 public partial class Users
@@ -37,6 +40,8 @@ public partial class Users
     public string UpdatedAt { get; set; } = null!;
 
     public virtual ICollection<AuditLog> AuditLog { get; set; } = new List<AuditLog>();
+
+    public virtual ICollection<UserNotifications> UserNotifications { get; set; } = new List<UserNotifications>();
 
     public virtual UserPreferences? UserPreferences { get; set; }
 

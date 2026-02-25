@@ -11,6 +11,8 @@
     <PackageReference Include="coverlet.collector" />
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+    <PackageReference Include="Microsoft.Extensions.Localization" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Moq" />
     <PackageReference Include="xunit" />
@@ -23,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\ControlPeso.Application\ControlPeso.Application.csproj" />
+    <ProjectReference Include="..\..\src\ControlPeso.Shared.Resources\ControlPeso.Shared.Resources.csproj" />
   </ItemGroup>
 
 </Project>
