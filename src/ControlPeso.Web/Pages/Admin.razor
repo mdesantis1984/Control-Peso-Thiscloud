@@ -23,10 +23,14 @@
 </HeadContent>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
-    <MudText Typo="Typo.h4" Class="mb-4">
-        <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Class="mr-2" />
-        @AdminPanelTitle
-    </MudText>
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-4">
+        <img src="/images/og-image.png" 
+             alt="Control Peso Thiscloud Logo" 
+             style="width: 48px; height: 48px; border-radius: 8px;" />
+        <MudText Typo="Typo.h4">
+            @AdminPanelTitle
+        </MudText>
+    </MudStack>
 
     @if (_isLoadingDashboard)
     {
