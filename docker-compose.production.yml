@@ -47,7 +47,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8182:8080"  # Mapped to NPM Plus (external:internal)
+      - "${APP_PORT:-8080}:8080"  # External port configurable via env var (default 8080)
     environment:
       # ASP.NET Core Configuration
       - ASPNETCORE_ENVIRONMENT=Production

@@ -33,7 +33,7 @@ Control Peso Thiscloud usa **docker-compose.override.yml** para gestión de secr
 ssh user@YOUR_SERVER_IP
 
 # Navigate to project directory
-cd /opt/controlpeso
+cd /path/to/app
 
 # Copy template
 cp docker-compose.override.yml.production.example docker-compose.override.yml

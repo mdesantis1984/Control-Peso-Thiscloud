@@ -62,13 +62,13 @@ sudo chmod -R 775 /mnt/backups/controlpeso-sqlserver
 
 ```bash
 # Transfer files to server
-scp -r . user@YOUR_SERVER_IP:/opt/controlpeso/
+scp -r . user@YOUR_SERVER_IP:/path/to/app/
 
 # SSH to server
 ssh user@YOUR_SERVER_IP
 
 # Navigate to project
-cd /opt/controlpeso
+cd /path/to/app
 
 # Build and start services
 docker-compose -f docker-compose.production.yml up -d --build

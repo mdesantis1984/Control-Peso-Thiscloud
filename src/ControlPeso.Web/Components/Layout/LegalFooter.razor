@@ -1,0 +1,74 @@
+<MudStack Spacing="0" Class="mt-8">
+    <MudDivider />
+    <MudPaper Elevation="0" Class="pa-4">
+        <MudStack Spacing="3">
+            @* Links Row *@
+            <MudStack Row="true" Justify="Justify.Center" Spacing="4" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
+                <MudLink Href="/privacy" Color="Color.Secondary" Typo="Typo.body2">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                        <MudIcon Icon="@Icons.Material.Filled.PrivacyTip" Size="Size.Small" />
+                        <span>@PrivacyLabel</span>
+                    </MudStack>
+                </MudLink>
+
+                <MudDivider Vertical="true" FlexItem="true" />
+
+                <MudLink Href="/terms" Color="Color.Secondary" Typo="Typo.body2">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                        <MudIcon Icon="@Icons.Material.Filled.Gavel" Size="Size.Small" />
+                        <span>@TermsLabel</span>
+                    </MudStack>
+                </MudLink>
+
+                <MudDivider Vertical="true" FlexItem="true" />
+
+                <MudLink Href="/licenses" Color="Color.Secondary" Typo="Typo.body2">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                        <MudIcon Icon="@Icons.Material.Filled.Code" Size="Size.Small" />
+                        <span>@LicensesLabel</span>
+                    </MudStack>
+                </MudLink>
+
+                <MudDivider Vertical="true" FlexItem="true" />
+
+                <MudLink Href="/changelog" Color="Color.Secondary" Typo="Typo.body2">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                        <MudIcon Icon="@Icons.Material.Filled.History" Size="Size.Small" />
+                        <span>@ChangelogLabel</span>
+                    </MudStack>
+                </MudLink>
+            </MudStack>
+
+            @* Version and Copyright Row *@
+            <MudStack Row="true" Justify="Justify.Center" Spacing="2" AlignItems="AlignItems.Center">
+                <MudChip T="string" Icon="@Icons.Material.Filled.MonitorWeight" Size="Size.Small" Variant="Variant.Text">
+                    Control Peso Thiscloud
+                </MudChip>
+                <MudChip T="string" Icon="@Icons.Material.Filled.Tag" Size="Size.Small" Variant="Variant.Text" Color="Color.Success">
+                    v1.3.0
+                </MudChip>
+            </MudStack>
+
+            <MudText Typo="Typo.caption" Align="Align.Center" Color="Color.Secondary">
+                © @CurrentYear ThisCloud. @CopyrightText
+            </MudText>
+
+            @* Disclaimer *@
+            <MudText Typo="Typo.caption" Align="Align.Center" Color="Color.Tertiary">
+                <MudIcon Icon="@Icons.Material.Filled.Warning" Size="Size.Small" Color="Color.Warning" />
+                @DisclaimerText
+            </MudText>
+
+            @* Social Links (optional) *@
+            <MudStack Row="true" Justify="Justify.Center" Spacing="2">
+                <MudTooltip Text="GitHub Repository">
+                    <MudIconButton Icon="@Icons.Custom.Brands.GitHub"
+                                   Href="https://github.com/mdesantis1984/Control-Peso-Thiscloud"
+                                   Target="_blank"
+                                   Size="Size.Small"
+                                   Color="Color.Secondary" />
+                </MudTooltip>
+            </MudStack>
+        </MudStack>
+    </MudPaper>
+</MudStack>

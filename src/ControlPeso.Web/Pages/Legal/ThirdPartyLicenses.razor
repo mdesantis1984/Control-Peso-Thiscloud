@@ -1,0 +1,147 @@
+@page "/licenses"
+@page "/licencias"
+
+<PageTitle>@PageTitleText</PageTitle>
+
+<HeadContent>
+    <meta name="description" content="@MetaDescription" />
+    <meta name="robots" content="index, follow" />
+</HeadContent>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-8">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudStack Spacing="4">
+            @* Header *@
+            <MudStack Row="true" Justify="Justify.SpaceBetween" Spacing="2" AlignItems="AlignItems.Center">
+                <img src="/images/LogoControlPeso/og-image.png" alt="Control Peso Thiscloud Logo" style="width: 48px; height: 48px; border-radius: 8px;" />
+                <MudText Typo="Typo.h3" Color="Color.Success">@Title</MudText>
+                <MudSpacer />
+                <MudTooltip Text="@LanguageSwitchTooltip">
+                    <MudIconButton Icon="@Icons.Material.Filled.Translate"
+                                   Color="Color.Secondary"
+                                   OnClick="ToggleLanguage" />
+                </MudTooltip>
+            </MudStack>
+
+            <MudDivider />
+
+            <MudText>@IntroText</MudText>
+
+            <MudAlert Severity="Severity.Success" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Favorite">
+                <MudText Typo="Typo.body1">@ThanksText</MudText>
+            </MudAlert>
+
+            @* Core Dependencies *@
+            <MudText Typo="Typo.h5">@CoreTitle</MudText>
+            <MudDataGrid T="Dependency" Items="@CoreDependencies" Filterable="false" Dense="true" Elevation="0">
+                <Columns>
+                    <PropertyColumn Property="x => x.Name" Title="@NameHeader" />
+                    <PropertyColumn Property="x => x.Version" Title="@VersionHeader" />
+                    <PropertyColumn Property="x => x.License" Title="@LicenseHeader" />
+                    <TemplateColumn Title="@LinkHeader">
+                        <CellTemplate>
+                            <MudIconButton Icon="@Icons.Material.Filled.OpenInNew"
+                                           Href="@context.Item.Url"
+                                           Target="_blank"
+                                           Size="Size.Small" />
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+            </MudDataGrid>
+
+            @* UI Framework *@
+            <MudText Typo="Typo.h5">@UiFrameworkTitle</MudText>
+            <MudCard Elevation="1">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">MudBlazor</MudText>
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        <MudChip T="string" Size="Size.Small" Color="Color.Primary">v8.0.0</MudChip>
+                    </CardHeaderActions>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText Typo="Typo.body2">@MudBlazorDescription</MudText>
+                    <MudChip T="string" Icon="@Icons.Material.Filled.Gavel" Size="Size.Small" Class="mt-2">MIT License</MudChip>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Href="https://github.com/MudBlazor/MudBlazor" Target="_blank" StartIcon="@Icons.Material.Filled.Code">GitHub</MudButton>
+                    <MudButton Href="https://mudblazor.com" Target="_blank" StartIcon="@Icons.Material.Filled.OpenInNew">@WebsiteLabel</MudButton>
+                </MudCardActions>
+            </MudCard>
+
+            @* Database and ORM *@
+            <MudText Typo="Typo.h5">@DatabaseTitle</MudText>
+            <MudDataGrid T="Dependency" Items="@DatabaseDependencies" Filterable="false" Dense="true" Elevation="0">
+                <Columns>
+                    <PropertyColumn Property="x => x.Name" Title="@NameHeader" />
+                    <PropertyColumn Property="x => x.Version" Title="@VersionHeader" />
+                    <PropertyColumn Property="x => x.License" Title="@LicenseHeader" />
+                </Columns>
+            </MudDataGrid>
+
+            @* Authentication *@
+            <MudText Typo="Typo.h5">@AuthTitle</MudText>
+            <MudStack Row="true" Spacing="2">
+                <MudChip T="string" Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Error">Google OAuth 2.0</MudChip>
+                <MudChip T="string" Icon="@Icons.Material.Filled.Shield">Microsoft.AspNetCore.Authentication.Google</MudChip>
+            </MudStack>
+            <MudText Typo="Typo.body2">@AuthDescription</MudText>
+
+            @* Logging *@
+            <MudText Typo="Typo.h5">@LoggingTitle</MudText>
+            <MudList T="string">
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Settings">
+                    <MudText><strong>ThisCloud.Framework.Loggings</strong> (v1.0.86) - @ThisCloudLoggingDesc</MudText>
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Description">
+                    <MudText><strong>Serilog</strong> (Apache 2.0) - @SerilogDesc</MudText>
+                </MudListItem>
+            </MudList>
+
+            @* Validation and Testing *@
+            <MudText Typo="Typo.h5">@ValidationTestingTitle</MudText>
+            <MudDataGrid T="Dependency" Items="@ValidationTestingDependencies" Filterable="false" Dense="true" Elevation="0">
+                <Columns>
+                    <PropertyColumn Property="x => x.Name" Title="@NameHeader" />
+                    <PropertyColumn Property="x => x.License" Title="@LicenseHeader" />
+                </Columns>
+            </MudDataGrid>
+
+            @* License Summary *@
+            <MudText Typo="Typo.h5">@LicenseSummaryTitle</MudText>
+            <MudTimeline TimelineOrientation="TimelineOrientation.Vertical" TimelinePosition="TimelinePosition.Start">
+                <MudTimelineItem Color="Color.Success" Elevation="1">
+                    <MudText Typo="Typo.h6">MIT License (Permissive)</MudText>
+                    <MudText Typo="Typo.body2">@MitSummary</MudText>
+                    <MudChip T="string" Size="Size.Small" Class="mt-1">@MitUsed</MudChip>
+                </MudTimelineItem>
+                <MudTimelineItem Color="Color.Info" Elevation="1">
+                    <MudText Typo="Typo.h6">Apache License 2.0 (Permissive)</MudText>
+                    <MudText Typo="Typo.body2">@ApacheSummary</MudText>
+                    <MudChip T="string" Size="Size.Small" Class="mt-1">@ApacheUsed</MudChip>
+                </MudTimelineItem>
+                <MudTimelineItem Color="Color.Warning" Elevation="1">
+                    <MudText Typo="Typo.h6">BSD 3-Clause License (Permissive)</MudText>
+                    <MudText Typo="Typo.body2">@BsdSummary</MudText>
+                    <MudChip T="string" Size="Size.Small" Class="mt-1">@BsdUsed</MudChip>
+                </MudTimelineItem>
+            </MudTimeline>
+
+            @* Compliance Statement *@
+            <MudAlert Severity="Severity.Success" Variant="Variant.Filled">
+                <MudText Typo="Typo.h6">@ComplianceTitle</MudText>
+                <MudText Typo="Typo.body2">@ComplianceText</MudText>
+            </MudAlert>
+
+            @* Footer *@
+            <MudDivider />
+            <MudText Typo="Typo.caption" Align="Align.Center" Color="Color.Secondary">
+                @LastUpdatedLabel: February 25, 2026
+            </MudText>
+            <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Success">
+                💙 @ThankYouText
+            </MudText>
+        </MudStack>
+    </MudPaper>
+</MudContainer>

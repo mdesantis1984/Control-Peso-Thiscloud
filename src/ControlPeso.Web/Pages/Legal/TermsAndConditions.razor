@@ -1,0 +1,163 @@
+@page "/terms"
+@page "/terminos"
+
+<PageTitle>@PageTitleText</PageTitle>
+
+<HeadContent>
+    <meta name="description" content="@MetaDescription" />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:title" content="@PageTitleText" />
+    <meta property="og:description" content="@MetaDescription" />
+    <meta property="og:url" content="https://controlpeso.thiscloud.com.ar/terms" />
+</HeadContent>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-8">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudStack Spacing="4">
+            @* Header *@
+            <MudStack Row="true" Justify="Justify.SpaceBetween" Spacing="2" AlignItems="AlignItems.Center">
+                <img src="/images/LogoControlPeso/og-image.png" alt="Control Peso Thiscloud Logo" style="width: 48px; height: 48px; border-radius: 8px;" />
+                <MudText Typo="Typo.h3" Color="Color.Warning">@Title</MudText>
+                <MudSpacer />
+                <MudTooltip Text="@LanguageSwitchTooltip">
+                    <MudIconButton Icon="@Icons.Material.Filled.Translate"
+                                   Color="Color.Secondary"
+                                   OnClick="ToggleLanguage" />
+                </MudTooltip>
+            </MudStack>
+
+            <MudDivider />
+
+            @* Important Legal Notice *@
+            <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" Icon="@Icons.Material.Filled.Warning">
+                <MudText Typo="Typo.h6"><strong>@ImportantNoticeTitle</strong></MudText>
+                <MudText>@ImportantNoticeText</MudText>
+            </MudAlert>
+
+            @* Disclaimer Alert *@
+            <MudAlert Severity="Severity.Error" Variant="Variant.Outlined" Dense="true">
+                <MudText Typo="Typo.h6">@DisclaimerTitle</MudText>
+                <MudList T="string" Dense="true">
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Warning">@Disclaimer1</MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.HealthAndSafety">@Disclaimer2</MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.DoNotDisturb">@Disclaimer3</MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Cancel">@Disclaimer4</MudListItem>
+                </MudList>
+            </MudAlert>
+
+            @* "AS IS" Basis *@
+            <MudText Typo="Typo.h5">@AsIsTitle</MudText>
+            <MudText>@AsIsText</MudText>
+            <MudSimpleTable Elevation="0" Dense="true" Bordered="true">
+                <thead>
+                    <tr>
+                        <th>@NoWarrantyHeader</th>
+                        <th>@ExplanationHeader</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><MudIcon Icon="@Icons.Material.Filled.Cancel" Size="Size.Small" Color="Color.Error" /> @NoMerchantability</td>
+                        <td>@NoMerchantabilityText</td>
+                    </tr>
+                    <tr>
+                        <td><MudIcon Icon="@Icons.Material.Filled.Cancel" Size="Size.Small" Color="Color.Error" /> @NoAccuracy</td>
+                        <td>@NoAccuracyText</td>
+                    </tr>
+                    <tr>
+                        <td><MudIcon Icon="@Icons.Material.Filled.Cancel" Size="Size.Small" Color="Color.Error" /> @NoReliability</td>
+                        <td>@NoReliabilityText</td>
+                    </tr>
+                    <tr>
+                        <td><MudIcon Icon="@Icons.Material.Filled.Cancel" Size="Size.Small" Color="Color.Error" /> @NoDataLoss</td>
+                        <td>@NoDataLossText</td>
+                    </tr>
+                </tbody>
+            </MudSimpleTable>
+
+            @* Limitation of Liability *@
+            <MudText Typo="Typo.h5">@LiabilityTitle</MudText>
+            <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">
+                <MudText Typo="Typo.body1"><strong>@LiabilityMainText</strong></MudText>
+                <MudList T="string" Dense="true">
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Cancel">@LiabilityHealth</MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Cancel">@LiabilityData</MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Cancel">@LiabilityService</MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Cancel">@LiabilityThirdParty</MudListItem>
+                </MudList>
+                <MudDivider Class="my-2" />
+                <MudText Typo="Typo.body1"><strong>@MaxLiabilityText</strong></MudText>
+                <MudChip T="string" Color="Color.Error" Size="Size.Large">@ZeroLiability</MudChip>
+            </MudAlert>
+
+            @* User Responsibilities *@
+            <MudText Typo="Typo.h5">@UserResponsibilitiesTitle</MudText>
+            <MudExpansionPanels MultiExpansion="true">
+                <MudExpansionPanel Text="@AccurateInfoTitle">
+                    <MudText>@AccurateInfoText</MudText>
+                </MudExpansionPanel>
+                <MudExpansionPanel Text="@AccountSecurityTitle">
+                    <MudText>@AccountSecurityText</MudText>
+                </MudExpansionPanel>
+                <MudExpansionPanel Text="@ProhibitedUsesTitle">
+                    <MudText Typo="Typo.body2" Class="mb-2">@ProhibitedUsesIntro</MudText>
+                    <MudList T="string" Dense="true">
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Block">@Prohibited1</MudListItem>
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Block">@Prohibited2</MudListItem>
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Block">@Prohibited3</MudListItem>
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Block">@Prohibited4</MudListItem>
+                    </MudList>
+                </MudExpansionPanel>
+                <MudExpansionPanel Text="@MinorsTitle">
+                    <MudText>@MinorsText</MudText>
+                </MudExpansionPanel>
+            </MudExpansionPanels>
+
+            @* Termination *@
+            <MudText Typo="Typo.h5">@TerminationTitle</MudText>
+            <MudText>@TerminationText</MudText>
+            <MudAlert Severity="Severity.Info" Variant="Variant.Text">
+                @TerminationRightsText
+            </MudAlert>
+
+            @* Changes to Service and Terms *@
+            <MudText Typo="Typo.h5">@ChangesTitle</MudText>
+            <MudText>@ChangesText</MudText>
+
+            @* Governing Law *@
+            <MudText Typo="Typo.h5">@GoverningLawTitle</MudText>
+            <MudText>@GoverningLawText</MudText>
+            <MudChip T="string" Icon="@Icons.Material.Filled.Gavel">@Argentina</MudChip>
+
+            @* Contact *@
+            <MudAlert Severity="Severity.Normal" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.ContactMail">
+                <MudText Typo="Typo.h6">@ContactTitle</MudText>
+                <MudLink Href="https://controlpeso.thiscloud.com.ar" Target="_blank">
+                    https://controlpeso.thiscloud.com.ar
+                </MudLink>
+            </MudAlert>
+
+            @* Final Acknowledgment *@
+            <MudAlert Severity="Severity.Success" Variant="Variant.Filled">
+                <MudText Typo="Typo.h6" Class="mb-2">@FinalAcknowledgmentTitle</MudText>
+                <MudList T="string" Dense="true">
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.CheckCircle">@Acknowledgment1</MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.CheckCircle">@Acknowledgment2</MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.CheckCircle">@Acknowledgment3</MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.CheckCircle">@Acknowledgment4</MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.CheckCircle">@Acknowledgment5</MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.CheckCircle">@Acknowledgment6</MudListItem>
+                </MudList>
+            </MudAlert>
+
+            @* Footer *@
+            <MudDivider />
+            <MudText Typo="Typo.caption" Align="Align.Center" Color="Color.Secondary">
+                @LastUpdatedLabel: @LastUpdated | @EffectiveDateLabel: @EffectiveDate
+            </MudText>
+            <MudText Typo="Typo.caption" Align="Align.Center" Color="Color.Secondary">
+                <strong>Control Peso Thiscloud</strong> - @Subtitle
+            </MudText>
+        </MudStack>
+    </MudPaper>
+</MudContainer>
