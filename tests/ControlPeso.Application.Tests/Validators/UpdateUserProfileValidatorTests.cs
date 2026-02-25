@@ -13,14 +13,15 @@ public sealed class UpdateUserProfileValidatorTests
 
     public UpdateUserProfileValidatorTests()
     {
-        // Mock IStringLocalizer - devuelve el key como valor para tests
+        // Mock IStringLocalizer - devuelve el key como valor para tests unitarios
+        // Tests de traducciones están en Integration/UpdateUserProfileValidatorLocalizationTests.cs
         var mockLocalizer = new Mock<IStringLocalizer<UpdateUserProfileValidator>>();
         mockLocalizer
             .Setup(x => x[It.IsAny<string>()])
             .Returns((string key) => new LocalizedString(key, key));
         mockLocalizer
             .Setup(x => x[It.IsAny<string>(), It.IsAny<object[]>()])
-            .Returns((string key, object[] args) => new LocalizedString(key, string.Format(key, args)));
+            .Returns((string key, object[] args) => new LocalizedString(key, key)); // NO formatear - devolver clave
 
         _validator = new UpdateUserProfileValidator(mockLocalizer.Object);
     }

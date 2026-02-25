@@ -13,7 +13,7 @@ namespace ControlPeso.Infrastructure.Services;
 /// Integrates ImageProcessingService for automatic optimization (resize, crop, WebP conversion).
 /// Prepared for Docker volume mounting and Windows file systems.
 /// </summary>
-internal sealed partial class LocalPhotoStorageService : IPhotoStorageService
+public sealed partial class LocalPhotoStorageService : IPhotoStorageService
 {
     private readonly ILogger<LocalPhotoStorageService> _logger;
     private readonly IImageProcessingService _imageProcessingService;

@@ -11,7 +11,7 @@ namespace ControlPeso.Infrastructure.Services;
 /// Image processing service using SixLabors.ImageSharp for avatar optimization.
 /// Handles resize, crop, format conversion, and compression.
 /// </summary>
-internal sealed class ImageProcessingService : IImageProcessingService
+public sealed class ImageProcessingService : IImageProcessingService
 {
     private readonly ILogger<ImageProcessingService> _logger;
 

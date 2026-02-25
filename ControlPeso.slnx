@@ -26,10 +26,15 @@
   <Folder Name="/src/ControlPeso.Infrastructure/">
     <Project Path="src/ControlPeso.Infrastructure/ControlPeso.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/ControlPeso.Shared.Resources/">
+    <Project Path="src/ControlPeso.Shared.Resources/ControlPeso.Shared.Resources.csproj" />
+  </Folder>
   <Folder Name="/src/ControlPeso.Web/">
     <Project Path="src/ControlPeso.Web/ControlPeso.Web.csproj" />
   </Folder>
-  <Folder Name="/tests/" />
+  <Folder Name="/tests/">
+    <Project Path="tests/ControlPeso.Shared.Resources.Tests/ControlPeso.Shared.Resources.Tests.csproj" />
+  </Folder>
   <Folder Name="/tests/ControlPeso.Application.Tests/">
     <Project Path="tests/ControlPeso.Application.Tests/ControlPeso.Application.Tests.csproj" />
   </Folder>

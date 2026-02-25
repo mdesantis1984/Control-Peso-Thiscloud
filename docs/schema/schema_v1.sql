@@ -256,3 +256,56 @@ CREATE INDEX IF NOT EXISTS IX_AuditLog_UserId                   ON AuditLog(User
 CREATE INDEX IF NOT EXISTS IX_AuditLog_CreatedAt                ON AuditLog(CreatedAt DESC);
 CREATE INDEX IF NOT EXISTS IX_AuditLog_EntityType_EntityId      ON AuditLog(EntityType, EntityId);
 CREATE INDEX IF NOT EXISTS IX_AuditLog_Action                   ON AuditLog(Action);
+
+-- =====================================================================
+-- TABLA: UserNotifications
+-- Propósito: Notificaciones del sistema para usuarios (alertas, recordatorios, mensajes).
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS UserNotifications (
+    -- PK: GUID como TEXT
+    Id                TEXT        NOT NULL    PRIMARY KEY,
+
+    -- FK al usuario destinatario
+    -- ON DELETE CASCADE: si se elimina el usuario, se eliminan sus notificaciones
+    UserId            TEXT        NOT NULL,
+
+    -- Tipo de notificación (severidad/importancia)
+    -- 0 = Info, 1 = Success, 2 = Warning, 3 = Error
+    -- Mapea a enum NotificationSeverity en Domain
+    Type              INTEGER     NOT NULL    DEFAULT 0
+        CHECK(Type IN (0, 1, 2, 3)),
+
+    -- Título de la notificación (opcional, para notificaciones complejas)
+    -- CHECK: máximo 200 caracteres
+    Title             TEXT        NULL
+        CHECK(Title IS NULL OR (length(Title) >= 1 AND length(Title) <= 200)),
+
+    -- Mensaje de la notificación (obligatorio)
+    -- CHECK: mínimo 1 carácter, máximo 1000 caracteres
+    Message           TEXT        NOT NULL
+        CHECK(length(Message) >= 1 AND length(Message) <= 1000),
+
+    -- Estado de lectura
+    -- SQLite no tiene BOOLEAN; se usa INTEGER (0=false/no leído, 1=true/leído)
+    -- En SQL Server: BIT NOT NULL DEFAULT 0
+    IsRead            INTEGER     NOT NULL    DEFAULT 0
+        CHECK(IsRead IN (0, 1)),
+
+    -- Timestamp de creación de la notificación (ISO 8601)
+    CreatedAt         TEXT        NOT NULL
+        CHECK(length(CreatedAt) >= 10 AND length(CreatedAt) <= 30),
+
+    -- Timestamp de lectura (ISO 8601, NULL si no se ha leído)
+    ReadAt            TEXT        NULL
+        CHECK(ReadAt IS NULL OR (length(ReadAt) >= 10 AND length(ReadAt) <= 30)),
+
+    -- FK constraint
+    FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE
+);
+
+-- Índices para UserNotifications
+-- Índice compuesto UserId+IsRead: consulta principal de notificaciones no leídas por usuario
+CREATE INDEX IF NOT EXISTS IX_UserNotifications_UserId                ON UserNotifications(UserId);
+CREATE INDEX IF NOT EXISTS IX_UserNotifications_UserId_IsRead         ON UserNotifications(UserId, IsRead);
+CREATE INDEX IF NOT EXISTS IX_UserNotifications_CreatedAt             ON UserNotifications(CreatedAt DESC);
+CREATE INDEX IF NOT EXISTS IX_UserNotifications_Type                  ON UserNotifications(Type);

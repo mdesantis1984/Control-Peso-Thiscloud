@@ -10,6 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ControlPeso.Application\ControlPeso.Application.csproj" />
     <ProjectReference Include="..\ControlPeso.Infrastructure\ControlPeso.Infrastructure.csproj" />
+    <ProjectReference Include="..\ControlPeso.Shared.Resources\ControlPeso.Shared.Resources.csproj" />
   </ItemGroup>
 
   <ItemGroup>

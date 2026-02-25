@@ -13,7 +13,6 @@ namespace ControlPeso.Infrastructure.Tests.Integration;
 /// </summary>
 public sealed class UserServiceIntegrationTests : IDisposable
 {
-    private readonly string _databaseName = $"UserServiceTests_{Guid.NewGuid()}";
     private ControlPesoDbContext? _context;
     private SqliteConnection? _connection;
 
@@ -29,7 +28,8 @@ public sealed class UserServiceIntegrationTests : IDisposable
     public async Task GetByIdAsync_WithExistingUser_ShouldReturnUser()
     {
         // Arrange
-        (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(_databaseName);
+        var databaseName = $"UserServiceTests_{Guid.NewGuid()}";
+        (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(databaseName);
         var service = new UserService(_context, NullLogger<UserService>.Instance);
 
         var existingUser = await _context.Users.FirstAsync();
@@ -49,7 +49,8 @@ public sealed class UserServiceIntegrationTests : IDisposable
     public async Task GetByGoogleIdAsync_WithExistingGoogleId_ShouldReturnUser()
     {
         // Arrange
-        (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(_databaseName);
+        var databaseName = $"UserServiceTests_{Guid.NewGuid()}";
+        (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(databaseName);
         var service = new UserService(_context, NullLogger<UserService>.Instance);
 
         var existingUser = await _context.Users.FirstAsync();
@@ -67,7 +68,8 @@ public sealed class UserServiceIntegrationTests : IDisposable
     public async Task CreateOrUpdateFromGoogleAsync_WithNewUser_ShouldCreateUser()
     {
         // Arrange
-        (_context, _connection) = InMemoryDbContextFactory.Create(_databaseName);
+        var databaseName = $"UserServiceTests_{Guid.NewGuid()}";
+        (_context, _connection) = InMemoryDbContextFactory.Create(databaseName);
         var service = new UserService(_context, NullLogger<UserService>.Instance);
 
         var googleInfo = new GoogleUserInfo
@@ -100,18 +102,25 @@ public sealed class UserServiceIntegrationTests : IDisposable
     public async Task CreateOrUpdateFromGoogleAsync_WithExistingUser_ShouldUpdateUser()
     {
         // Arrange
-        (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(_databaseName);
+        var databaseName = $"UserServiceTests_{Guid.NewGuid()}";
+        (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(databaseName);
         var service = new UserService(_context, NullLogger<UserService>.Instance);
 
         var existingUser = await _context.Users.FirstAsync();
         var originalName = existingUser.Name;
+        var originalAvatarUrl = existingUser.AvatarUrl;
+
+        // IMPORTANTE: Usar valores DIFERENTES a los existentes para forzar actualización
+        // UpdateFromGoogle solo actualiza si el valor cambia (línea 112 de UserMapper)
+        var updatedName = $"{originalName} - Updated {DateTime.UtcNow.Ticks}";
+        var updatedAvatarUrl = $"https://new-avatar-url.com/updated-{Guid.NewGuid():N}.jpg";
 
         var googleInfo = new GoogleUserInfo
         {
             GoogleId = existingUser.GoogleId!,
-            Name = "Updated Name From Google",
+            Name = updatedName,
             Email = existingUser.Email,
-            AvatarUrl = "https://new-avatar-url.com/updated.jpg"
+            AvatarUrl = updatedAvatarUrl
         };
 
         // Act
@@ -120,21 +129,24 @@ public sealed class UserServiceIntegrationTests : IDisposable
         // Assert
         Assert.NotNull(result);
         Assert.Equal(existingUser.GoogleId, result.GoogleId);
-        Assert.Equal("Updated Name From Google", result.Name);
-        Assert.Equal("https://new-avatar-url.com/updated.jpg", result.AvatarUrl);
+        Assert.Equal(updatedName, result.Name);
+        Assert.Equal(updatedAvatarUrl, result.AvatarUrl);
 
         // Verify update persisted
         var updatedUser = await _context.Users.FindAsync(existingUser.Id);
         Assert.NotNull(updatedUser);
-        Assert.Equal("Updated Name From Google", updatedUser.Name);
+        Assert.Equal(updatedName, updatedUser.Name);
         Assert.NotEqual(originalName, updatedUser.Name);
+        Assert.Equal(updatedAvatarUrl, updatedUser.AvatarUrl);
+        Assert.NotEqual(originalAvatarUrl, updatedUser.AvatarUrl);
     }
 
     [Fact]
     public async Task UpdateProfileAsync_ShouldUpdateUserProfile()
     {
         // Arrange
-        (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(_databaseName);
+        var databaseName = $"UserServiceTests_{Guid.NewGuid()}";
+        (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(databaseName);
         var service = new UserService(_context, NullLogger<UserService>.Instance);
 
         var existingUser = await _context.Users.FirstAsync();
@@ -172,7 +184,8 @@ public sealed class UserServiceIntegrationTests : IDisposable
     public async Task GetByIdAsync_WithNonExistentId_ShouldReturnNull()
     {
         // Arrange
-        (_context, _connection) = InMemoryDbContextFactory.Create(_databaseName);
+        var databaseName = $"UserServiceTests_{Guid.NewGuid()}";
+        (_context, _connection) = InMemoryDbContextFactory.Create(databaseName);
         var service = new UserService(_context, NullLogger<UserService>.Instance);
 
         var nonExistentId = Guid.NewGuid();
@@ -188,7 +201,8 @@ public sealed class UserServiceIntegrationTests : IDisposable
     public async Task GetByGoogleIdAsync_WithNonExistentGoogleId_ShouldReturnNull()
     {
         // Arrange
-        (_context, _connection) = InMemoryDbContextFactory.Create(_databaseName);
+        var databaseName = $"UserServiceTests_{Guid.NewGuid()}";
+        (_context, _connection) = InMemoryDbContextFactory.Create(databaseName);
         var service = new UserService(_context, NullLogger<UserService>.Instance);
 
         // Act

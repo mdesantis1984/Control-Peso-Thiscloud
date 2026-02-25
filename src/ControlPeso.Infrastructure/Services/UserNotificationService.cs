@@ -11,7 +11,7 @@ namespace ControlPeso.Infrastructure.Services;
 /// <summary>
 /// Service for managing user notification history with persistent storage
 /// </summary>
-internal sealed class UserNotificationService : IUserNotificationService
+public sealed class UserNotificationService : IUserNotificationService
 {
     private readonly ControlPesoDbContext _context;
     private readonly ILogger<UserNotificationService> _logger;

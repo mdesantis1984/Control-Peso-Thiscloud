@@ -23,9 +23,10 @@ public sealed class CreateWeightLogValidator : AbstractValidator<CreateWeightLog
 
         RuleFor(x => x.Date)
             .NotEmpty()
-            .WithMessage(_localizer["DateRequired"])
-            .LessThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow))
-            .WithMessage(_localizer["DateCannotBeFuture"]);
+            .WithMessage(_localizer["DateRequired"]);
+        // NOTE: Future date validation removed - this is a UI/UX concern, not a domain rule.
+        // Backend cannot reliably validate "future" dates due to timezone differences
+        // between server and client. Frontend (MudDatePicker) should enforce MaxDate if needed.
 
         RuleFor(x => x.Time)
             .NotEmpty()

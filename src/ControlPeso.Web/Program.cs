@@ -1,5 +1,6 @@
 using ControlPeso.Application.Extensions;
 using ControlPeso.Infrastructure.Extensions;
+using ControlPeso.Shared.Resources.Extensions;
 using ControlPeso.Web.Components;
 using ControlPeso.Web.Extensions;
 using ControlPeso.Web.Middleware;
@@ -32,13 +33,10 @@ Log.Information("ThisCloud.Framework.Loggings initialized successfully");
 // 2. LOCALIZATION CONFIGURATION (FASE 10)
 // ============================================================================
 
-// 2.1. Add Localization services
-builder.Services.AddLocalization(options =>
-{
-    // ResourcesPath: carpeta donde se buscan los archivos .resx
-    // Relativo a la raíz del proyecto Web
-    options.ResourcesPath = "Resources";
-});
+// 2.1. Add Shared.Resources Localization services
+// Uses custom SharedResourceStringLocalizerFactory to load .resx from Shared.Resources assembly
+// This maintains IStringLocalizer<T> injection in components while centralizing resources
+builder.Services.AddSharedResourcesLocalization();
 
 // 2.2. Configure supported cultures
 var supportedCultures = new[]

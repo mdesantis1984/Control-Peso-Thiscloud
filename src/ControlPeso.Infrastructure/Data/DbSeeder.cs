@@ -8,7 +8,7 @@ namespace ControlPeso.Infrastructure.Data;
 /// Implementación de seeding de datos para desarrollo.
 /// Crea usuarios demo y registros de peso con datos realistas.
 /// </summary>
-internal sealed class DbSeeder : IDbSeeder
+public sealed class DbSeeder : IDbSeeder
 {
     private readonly ControlPesoDbContext _context;
     private readonly ILogger<DbSeeder> _logger;

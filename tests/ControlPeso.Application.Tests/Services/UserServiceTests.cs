@@ -550,6 +550,592 @@ public sealed class UserServiceTests : IDisposable
 
     #endregion
 
+    #region GetByEmailAsync Tests
+
+    [Fact]
+    public async Task GetByEmailAsync_WhenUserExists_ShouldReturnDto()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var email = "test@example.com";
+        var user = CreateUserEntity(userId, "google_123", "Test User", email);
+        _context.Set<Users>().Add(user);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _service.GetByEmailAsync(email);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(userId);
+        result.Email.Should().Be(email);
+        result.Name.Should().Be("Test User");
+    }
+
+    [Fact]
+    public async Task GetByEmailAsync_WhenUserDoesNotExist_ShouldReturnNull()
+    {
+        // Arrange
+        var nonExistentEmail = "nonexistent@example.com";
+
+        // Act
+        var result = await _service.GetByEmailAsync(nonExistentEmail);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetByEmailAsync_WithNullEmail_ShouldThrowException()
+    {
+        // Arrange
+        string? email = null;
+
+        // Act
+        var act = async () => await _service.GetByEmailAsync(email!);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task GetByEmailAsync_WithEmptyEmail_ShouldThrowException()
+    {
+        // Arrange
+        var email = "";
+
+        // Act
+        var act = async () => await _service.GetByEmailAsync(email);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task GetByEmailAsync_WithWhitespaceEmail_ShouldThrowException()
+    {
+        // Arrange
+        var email = "   ";
+
+        // Act
+        var act = async () => await _service.GetByEmailAsync(email);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    #endregion
+
+    #region GetByLinkedInIdAsync Tests
+
+    [Fact]
+    public async Task GetByLinkedInIdAsync_WhenUserExists_ShouldReturnDto()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var linkedInId = "linkedin_12345";
+        var user = CreateUserEntity(userId, $"google_{Guid.NewGuid()}", "LinkedIn User", $"linkedin{Guid.NewGuid()}@example.com");
+        user.LinkedInId = linkedInId;
+        _context.Set<Users>().Add(user);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _service.GetByLinkedInIdAsync(linkedInId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Name.Should().Be("LinkedIn User");
+        var savedUser = await _context.Set<Users>().FirstAsync(u => u.Id == result.Id.ToString());
+        savedUser.LinkedInId.Should().Be(linkedInId);
+    }
+
+    [Fact]
+    public async Task GetByLinkedInIdAsync_WhenUserDoesNotExist_ShouldReturnNull()
+    {
+        // Arrange
+        var nonExistentLinkedInId = "linkedin_nonexistent";
+
+        // Act
+        var result = await _service.GetByLinkedInIdAsync(nonExistentLinkedInId);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetByLinkedInIdAsync_WithNullLinkedInId_ShouldThrowException()
+    {
+        // Arrange
+        string? linkedInId = null;
+
+        // Act
+        var act = async () => await _service.GetByLinkedInIdAsync(linkedInId!);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task GetByLinkedInIdAsync_WithEmptyLinkedInId_ShouldThrowException()
+    {
+        // Arrange
+        var linkedInId = "";
+
+        // Act
+        var act = async () => await _service.GetByLinkedInIdAsync(linkedInId);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task GetByLinkedInIdAsync_WithWhitespaceLinkedInId_ShouldThrowException()
+    {
+        // Arrange
+        var linkedInId = "   ";
+
+        // Act
+        var act = async () => await _service.GetByLinkedInIdAsync(linkedInId);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    #endregion
+
+    #region CreateOrUpdateFromOAuthAsync Tests
+
+    [Fact]
+    public async Task CreateOrUpdateFromOAuthAsync_WithGoogleProvider_WhenUserDoesNotExist_ShouldCreateNewUser()
+    {
+        // Arrange
+        var oauthInfo = new OAuthUserInfo
+        {
+            Provider = "Google",
+            ExternalId = "google_new_123",
+            Name = "New Google User",
+            Email = "newgoogle@example.com",
+            AvatarUrl = "https://google.com/avatar.jpg"
+        };
+
+        // Act
+        var result = await _service.CreateOrUpdateFromOAuthAsync(oauthInfo);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.GoogleId.Should().Be("google_new_123");
+        result.Name.Should().Be("New Google User");
+        result.Email.Should().Be("newgoogle@example.com");
+        result.AvatarUrl.Should().Be("https://google.com/avatar.jpg");
+        result.Role.Should().Be(UserRole.User);
+        result.Status.Should().Be(UserStatus.Active);
+        // Verify LinkedIn not set
+        var savedUser = await _context.Set<Users>().FirstAsync(u => u.Id == result.Id.ToString());
+        savedUser.LinkedInId.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task CreateOrUpdateFromOAuthAsync_WithLinkedInProvider_WhenUserDoesNotExist_ShouldCreateNewUser()
+    {
+        // Arrange
+        var oauthInfo = new OAuthUserInfo
+        {
+            Provider = "LinkedIn",
+            ExternalId = "linkedin_new_123",
+            Name = "New LinkedIn User",
+            Email = $"newlinkedin{Guid.NewGuid()}@example.com",
+            AvatarUrl = "https://linkedin.com/avatar.jpg"
+        };
+
+        // Act
+        var result = await _service.CreateOrUpdateFromOAuthAsync(oauthInfo);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.GoogleId.Should().BeNullOrEmpty(); // GoogleId is required string, so it's "" for LinkedIn users
+        result.Name.Should().Be("New LinkedIn User");
+        result.Email.Should().Contain("newlinkedin");
+        result.AvatarUrl.Should().Be("https://linkedin.com/avatar.jpg");
+        result.Role.Should().Be(UserRole.User);
+        result.Status.Should().Be(UserStatus.Active);
+        // Verify LinkedInId in entity
+        var savedUser = await _context.Set<Users>().FirstAsync(u => u.Id == result.Id.ToString());
+        savedUser.LinkedInId.Should().Be("linkedin_new_123");
+        savedUser.GoogleId.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task CreateOrUpdateFromOAuthAsync_WithGoogleProvider_WhenUserExists_ShouldUpdateExistingUser()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var googleId = "google_existing_123";
+        var existingUser = CreateUserEntity(userId, googleId, "Old Name", "old@example.com");
+        existingUser.AvatarUrl = "https://old-avatar.com/pic.jpg";
+        _context.Set<Users>().Add(existingUser);
+        await _context.SaveChangesAsync();
+
+        var oauthInfo = new OAuthUserInfo
+        {
+            Provider = "Google",
+            ExternalId = googleId,
+            Name = "Updated Name",
+            Email = "updated@example.com",
+            AvatarUrl = "https://new-avatar.com/pic.jpg"
+        };
+
+        // Act
+        var result = await _service.CreateOrUpdateFromOAuthAsync(oauthInfo);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Id.Should().Be(userId);
+        result.GoogleId.Should().Be(googleId);
+        result.Name.Should().Be("Updated Name");
+        result.Email.Should().Be("updated@example.com");
+        result.AvatarUrl.Should().Be("https://new-avatar.com/pic.jpg");
+    }
+
+    [Fact]
+    public async Task CreateOrUpdateFromOAuthAsync_WithLinkedInProvider_WhenUserExists_ShouldUpdateExistingUser()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var linkedInId = "linkedin_existing_123";
+        var existingUser = CreateUserEntity(userId, $"google_{Guid.NewGuid()}", "Old LinkedIn Name", $"oldlinkedin{Guid.NewGuid()}@example.com");
+        existingUser.LinkedInId = linkedInId;
+        existingUser.AvatarUrl = "https://old-linkedin-avatar.com/pic.jpg";
+        _context.Set<Users>().Add(existingUser);
+        await _context.SaveChangesAsync();
+
+        var oauthInfo = new OAuthUserInfo
+        {
+            Provider = "LinkedIn",
+            ExternalId = linkedInId,
+            Name = "Updated LinkedIn Name",
+            Email = $"updatedlinkedin{Guid.NewGuid()}@example.com",
+            AvatarUrl = "https://new-linkedin-avatar.com/pic.jpg"
+        };
+
+        // Act
+        var result = await _service.CreateOrUpdateFromOAuthAsync(oauthInfo);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Id.Should().Be(userId);
+        result.Name.Should().Be("Updated LinkedIn Name");
+        result.Email.Should().Contain("updatedlinkedin");
+        result.AvatarUrl.Should().Be("https://new-linkedin-avatar.com/pic.jpg");
+        // Verify LinkedInId in entity
+        var savedUser = await _context.Set<Users>().FirstAsync(u => u.Id == userId.ToString());
+        savedUser.LinkedInId.Should().Be(linkedInId);
+    }
+
+    [Fact]
+    public async Task CreateOrUpdateFromOAuthAsync_WithCustomAvatar_ShouldPreserveCustomAvatar()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var googleId = "google_custom_avatar_123";
+        var customAvatarUrl = "/uploads/avatars/custom-123.jpg";
+        var existingUser = CreateUserEntity(userId, googleId, "User With Custom Avatar", "custom@example.com");
+        existingUser.AvatarUrl = customAvatarUrl;
+        _context.Set<Users>().Add(existingUser);
+        await _context.SaveChangesAsync();
+
+        var oauthInfo = new OAuthUserInfo
+        {
+            Provider = "Google",
+            ExternalId = googleId,
+            Name = "User With Custom Avatar",
+            Email = "custom@example.com",
+            AvatarUrl = "https://google.com/new-avatar.jpg"
+        };
+
+        // Act
+        var result = await _service.CreateOrUpdateFromOAuthAsync(oauthInfo);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.AvatarUrl.Should().Be(customAvatarUrl); // Custom avatar preserved
+    }
+
+    [Fact]
+    public async Task CreateOrUpdateFromOAuthAsync_WithUnsupportedProvider_ShouldThrowNotSupportedException()
+    {
+        // Arrange
+        var oauthInfo = new OAuthUserInfo
+        {
+            Provider = "Facebook", // Unsupported provider
+            ExternalId = "facebook_123",
+            Name = "Facebook User",
+            Email = "facebook@example.com",
+            AvatarUrl = null
+        };
+
+        // Act
+        var act = async () => await _service.CreateOrUpdateFromOAuthAsync(oauthInfo);
+
+        // Assert
+        await act.Should().ThrowAsync<NotSupportedException>()
+            .WithMessage("*Facebook*not supported*");
+    }
+
+    [Fact]
+    public async Task CreateOrUpdateFromOAuthAsync_WithNullOAuthInfo_ShouldThrowException()
+    {
+        // Arrange
+        OAuthUserInfo? oauthInfo = null;
+
+        // Act
+        var act = async () => await _service.CreateOrUpdateFromOAuthAsync(oauthInfo!);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentNullException>();
+    }
+
+    [Fact]
+    public async Task CreateOrUpdateFromOAuthAsync_WithNullProvider_ShouldThrowException()
+    {
+        // Arrange
+        var oauthInfo = new OAuthUserInfo
+        {
+            Provider = null!,
+            ExternalId = "external_123",
+            Name = "Test User",
+            Email = "test@example.com",
+            AvatarUrl = null
+        };
+
+        // Act
+        var act = async () => await _service.CreateOrUpdateFromOAuthAsync(oauthInfo);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task CreateOrUpdateFromOAuthAsync_WithEmptyProvider_ShouldThrowException()
+    {
+        // Arrange
+        var oauthInfo = new OAuthUserInfo
+        {
+            Provider = "",
+            ExternalId = "external_123",
+            Name = "Test User",
+            Email = "test@example.com",
+            AvatarUrl = null
+        };
+
+        // Act
+        var act = async () => await _service.CreateOrUpdateFromOAuthAsync(oauthInfo);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task CreateOrUpdateFromOAuthAsync_WithWhitespaceProvider_ShouldThrowException()
+    {
+        // Arrange
+        var oauthInfo = new OAuthUserInfo
+        {
+            Provider = "   ",
+            ExternalId = "external_123",
+            Name = "Test User",
+            Email = "test@example.com",
+            AvatarUrl = null
+        };
+
+        // Act
+        var act = async () => await _service.CreateOrUpdateFromOAuthAsync(oauthInfo);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task CreateOrUpdateFromOAuthAsync_WithNullExternalId_ShouldThrowException()
+    {
+        // Arrange
+        var oauthInfo = new OAuthUserInfo
+        {
+            Provider = "Google",
+            ExternalId = null!,
+            Name = "Test User",
+            Email = "test@example.com",
+            AvatarUrl = null
+        };
+
+        // Act
+        var act = async () => await _service.CreateOrUpdateFromOAuthAsync(oauthInfo);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task CreateOrUpdateFromOAuthAsync_WithEmptyExternalId_ShouldThrowException()
+    {
+        // Arrange
+        var oauthInfo = new OAuthUserInfo
+        {
+            Provider = "Google",
+            ExternalId = "",
+            Name = "Test User",
+            Email = "test@example.com",
+            AvatarUrl = null
+        };
+
+        // Act
+        var act = async () => await _service.CreateOrUpdateFromOAuthAsync(oauthInfo);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task CreateOrUpdateFromOAuthAsync_WithWhitespaceExternalId_ShouldThrowException()
+    {
+        // Arrange
+        var oauthInfo = new OAuthUserInfo
+        {
+            Provider = "Google",
+            ExternalId = "   ",
+            Name = "Test User",
+            Email = "test@example.com",
+            AvatarUrl = null
+        };
+
+        // Act
+        var act = async () => await _service.CreateOrUpdateFromOAuthAsync(oauthInfo);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task CreateOrUpdateFromOAuthAsync_WithNullEmail_ShouldThrowException()
+    {
+        // Arrange
+        var oauthInfo = new OAuthUserInfo
+        {
+            Provider = "Google",
+            ExternalId = "external_123",
+            Name = "Test User",
+            Email = null!,
+            AvatarUrl = null
+        };
+
+        // Act
+        var act = async () => await _service.CreateOrUpdateFromOAuthAsync(oauthInfo);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task CreateOrUpdateFromOAuthAsync_WithEmptyEmail_ShouldThrowException()
+    {
+        // Arrange
+        var oauthInfo = new OAuthUserInfo
+        {
+            Provider = "Google",
+            ExternalId = "external_123",
+            Name = "Test User",
+            Email = "",
+            AvatarUrl = null
+        };
+
+        // Act
+        var act = async () => await _service.CreateOrUpdateFromOAuthAsync(oauthInfo);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task CreateOrUpdateFromOAuthAsync_WithWhitespaceEmail_ShouldThrowException()
+    {
+        // Arrange
+        var oauthInfo = new OAuthUserInfo
+        {
+            Provider = "Google",
+            ExternalId = "external_123",
+            Name = "Test User",
+            Email = "   ",
+            AvatarUrl = null
+        };
+
+        // Act
+        var act = async () => await _service.CreateOrUpdateFromOAuthAsync(oauthInfo);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task CreateOrUpdateFromOAuthAsync_WithNullName_ShouldThrowException()
+    {
+        // Arrange
+        var oauthInfo = new OAuthUserInfo
+        {
+            Provider = "Google",
+            ExternalId = "external_123",
+            Name = null!,
+            Email = "test@example.com",
+            AvatarUrl = null
+        };
+
+        // Act
+        var act = async () => await _service.CreateOrUpdateFromOAuthAsync(oauthInfo);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task CreateOrUpdateFromOAuthAsync_WithEmptyName_ShouldThrowException()
+    {
+        // Arrange
+        var oauthInfo = new OAuthUserInfo
+        {
+            Provider = "Google",
+            ExternalId = "external_123",
+            Name = "",
+            Email = "test@example.com",
+            AvatarUrl = null
+        };
+
+        // Act
+        var act = async () => await _service.CreateOrUpdateFromOAuthAsync(oauthInfo);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task CreateOrUpdateFromOAuthAsync_WithWhitespaceName_ShouldThrowException()
+    {
+        // Arrange
+        var oauthInfo = new OAuthUserInfo
+        {
+            Provider = "Google",
+            ExternalId = "external_123",
+            Name = "   ",
+            Email = "test@example.com",
+            AvatarUrl = null
+        };
+
+        // Act
+        var act = async () => await _service.CreateOrUpdateFromOAuthAsync(oauthInfo);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    #endregion
+
     // Test DbContext for in-memory testing
     private sealed class TestDbContext : DbContext
     {
@@ -562,7 +1148,7 @@ public sealed class UserServiceTests : IDisposable
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Id).IsRequired();
-                entity.Property(e => e.GoogleId).IsRequired();
+                entity.Property(e => e.GoogleId).IsRequired(false); // Nullable para LinkedIn users
                 entity.Property(e => e.Name).IsRequired();
                 entity.Property(e => e.Email).IsRequired();
                 entity.Property(e => e.Role).IsRequired();

@@ -9,7 +9,7 @@ namespace ControlPeso.Infrastructure.Services;
 /// <summary>
 /// Implementación del servicio de preferencias de usuario
 /// </summary>
-internal sealed class UserPreferencesService : IUserPreferencesService
+public sealed class UserPreferencesService : IUserPreferencesService
 {
     private readonly ControlPesoDbContext _context;
     private readonly ILogger<UserPreferencesService> _logger;

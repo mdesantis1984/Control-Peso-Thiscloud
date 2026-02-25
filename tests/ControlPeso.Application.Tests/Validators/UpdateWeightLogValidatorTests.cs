@@ -13,14 +13,15 @@ public sealed class UpdateWeightLogValidatorTests
 
     public UpdateWeightLogValidatorTests()
     {
-        // Mock IStringLocalizer - devuelve el key como valor para tests
+        // Mock IStringLocalizer - devuelve el key como valor para tests unitarios
+        // Tests de traducciones están en Integration/UpdateWeightLogValidatorLocalizationTests.cs
         var mockLocalizer = new Mock<IStringLocalizer<UpdateWeightLogValidator>>();
         mockLocalizer
             .Setup(x => x[It.IsAny<string>()])
             .Returns((string key) => new LocalizedString(key, key));
         mockLocalizer
             .Setup(x => x[It.IsAny<string>(), It.IsAny<object[]>()])
-            .Returns((string key, object[] args) => new LocalizedString(key, string.Format(key, args)));
+            .Returns((string key, object[] args) => new LocalizedString(key, key)); // NO formatear - devolver clave
 
         _validator = new UpdateWeightLogValidator(mockLocalizer.Object);
     }
@@ -42,22 +43,8 @@ public sealed class UpdateWeightLogValidatorTests
         result.ShouldNotHaveAnyValidationErrors();
     }
 
-    [Fact]
-    public void Date_Future_ShouldFail()
-    {
-        var dto = new UpdateWeightLogDto
-        {
-            Date = DateOnly.FromDateTime(DateTime.Today.AddDays(1)),
-            Time = new TimeOnly(14, 30),
-            Weight = 75.5m,
-            DisplayUnit = WeightUnit.Kg,
-            Note = null
-        };
-
-        var result = _validator.TestValidate(dto);
-
-        result.ShouldHaveValidationErrorFor(x => x.Date);
-    }
+    // NOTE: Future date validation removed from validator (UI/UX concern, not domain rule).
+    // Test removed: Date_Future_ShouldFail
 
     [Theory]
     [InlineData(19.9)]
