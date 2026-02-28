@@ -1,5 +1,4 @@
 using ControlPeso.Web.Services;
-using Microsoft.Extensions.Logging;
 
 namespace ControlPeso.Web.Middleware;
 

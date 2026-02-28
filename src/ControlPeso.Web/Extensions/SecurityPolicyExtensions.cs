@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.HttpsPolicy;
-
 namespace ControlPeso.Web.Extensions;
 
 /// <summary>
@@ -19,10 +17,10 @@ public static class SecurityPolicyExtensions
             {
                 // HSTS max-age: 1 year (recommended for production)
                 options.MaxAge = TimeSpan.FromDays(365);
-                
+
                 // Include subdomains (e.g., *.controlpeso.thiscloud.com.ar)
                 options.IncludeSubDomains = true;
-                
+
                 // Preload: Allow browser vendors to hardcode HSTS
                 // WARNING: Submit to hstspreload.org only if domain will ALWAYS use HTTPS
                 options.Preload = false; // Set to true after verifying HTTPS stability
@@ -43,7 +41,7 @@ public static class SecurityPolicyExtensions
             {
                 // 308 Permanent Redirect (preserves HTTP method, better than 301)
                 options.RedirectStatusCode = StatusCodes.Status308PermanentRedirect;
-                
+
                 // HTTPS port (443 default, NPM Plus handles this)
                 options.HttpsPort = 443;
             });

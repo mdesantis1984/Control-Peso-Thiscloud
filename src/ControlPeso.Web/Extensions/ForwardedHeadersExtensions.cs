@@ -25,7 +25,7 @@ public static class ForwardedHeadersExtensions
 
                 // Trust all proxies (NPM Plus + Docker network)
                 // Alternative: Add specific proxy IPs if known
-                options.KnownNetworks.Clear();
+                options.KnownIPNetworks.Clear();
                 options.KnownProxies.Clear();
 
                 // Required for OAuth callbacks (https://controlpeso.thiscloud.com.ar/signin-google)

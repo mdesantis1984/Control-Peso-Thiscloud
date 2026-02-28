@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using ControlPeso.Application.DTOs;
 using ControlPeso.Application.Filters;
 using ControlPeso.Application.Interfaces;
@@ -5,12 +6,11 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Localization;
 using MudBlazor;
-using System.Security.Claims;
 using AppDateRange = ControlPeso.Application.Filters.DateRange;
 
 namespace ControlPeso.Web.Pages;
 
-public partial class Trends
+public partial class Trends : IDisposable
 {
     [Inject] private IWeightLogService WeightLogService { get; set; } = null!;
     [Inject] private IUserService UserService { get; set; } = null!;
@@ -18,6 +18,7 @@ public partial class Trends
     [Inject] private ILogger<Trends> Logger { get; set; } = null!;
     [Inject] private Services.NotificationService Snackbar { get; set; } = null!;
     [Inject] private IStringLocalizer<Trends> Localizer { get; set; } = null!;
+    [Inject] private Services.UserStateService UserStateService { get; set; } = null!;
 
     private bool _isLoading = true;
     private List<WeightLogDto> _logs = [];
@@ -39,6 +40,20 @@ public partial class Trends
     // Proyección
     private decimal? _projectedWeight;
     private decimal _projectedChange;
+
+    // ========================================================================
+    // UNIT CONVERSION HELPERS
+    // ========================================================================
+
+    /// <summary>
+    /// Converts weight from kg (storage format) to user's preferred unit (kg or lb).
+    /// </summary>
+    private decimal ConvertedWeight(decimal weightInKg) => UserStateService.ConvertWeight(weightInKg);
+
+    /// <summary>
+    /// Gets the weight unit label based on user's preference (kg or lb).
+    /// </summary>
+    private string WeightUnit => UserStateService.GetWeightUnitLabel();
 
     // ========================================================================
     // LOCALIZED STRINGS (Properties for clean markup)
@@ -72,7 +87,6 @@ public partial class Trends
     private string MaxWeightLabel => Localizer["MaxWeightLabel"];
     private string OverallAverageLabel => Localizer["OverallAverageLabel"];
     private string TotalRecordsLabel => Localizer["TotalRecordsLabel"];
-    private string KgUnit => Localizer["KgUnit"];
 
     // Projection
     private string ProjectionTitle => Localizer["ProjectionTitle"];
@@ -108,6 +122,9 @@ public partial class Trends
     protected override async Task OnInitializedAsync()
     {
         Logger.LogInformation("Loading trends analysis");
+
+        // Subscribe to unit system changes
+        UserStateService.UserUnitSystemUpdated += OnUnitSystemChanged;
 
         try
         {
@@ -161,6 +178,28 @@ public partial class Trends
         {
             _isLoading = false;
         }
+    }
+
+    /// <summary>
+    /// Handler for UnitSystem changes - refreshes display when user changes preferences.
+    /// </summary>
+    private async void OnUnitSystemChanged(object? sender, Domain.Enums.UnitSystem newUnitSystem)
+    {
+        try
+        {
+            Logger.LogInformation("Trends: Unit system changed to {UnitSystem} - refreshing display", newUnitSystem);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Trends: Error handling unit system change");
+        }
+    }
+
+    public void Dispose()
+    {
+        // Unsubscribe from events to prevent memory leaks
+        UserStateService.UserUnitSystemUpdated -= OnUnitSystemChanged;
     }
 
     private void CalculateMetrics()

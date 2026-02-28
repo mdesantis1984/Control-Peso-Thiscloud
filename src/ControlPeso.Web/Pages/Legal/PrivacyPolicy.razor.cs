@@ -12,7 +12,7 @@ public partial class PrivacyPolicy
 
     private string Title => _isEnglish ? "Privacy Policy" : "Política de Privacidad";
     private string LanguageSwitchTooltip => _isEnglish ? "Switch to Spanish" : "Cambiar a Inglés";
-    
+
     private string EffectiveDateLabel => _isEnglish ? "Effective Date" : "Fecha de Vigencia";
     private string EffectiveDate => "February 25, 2026";
     private string LastUpdatedLabel => _isEnglish ? "Last Updated" : "Última Actualización";
@@ -28,18 +28,18 @@ public partial class PrivacyPolicy
         : "Al utilizar el Servicio, usted acepta la recopilación y el uso de información de acuerdo con esta política.";
 
     private string InfoCollectedTitle => _isEnglish ? "Information We Collect" : "Información que Recopilamos";
-    
+
     private string DirectInfoTitle => _isEnglish ? "1. Information You Provide Directly" : "1. Información que Usted Proporciona Directamente";
     private string GoogleAccountLabel => _isEnglish ? "Google Account Information" : "Información de Cuenta de Google";
     private string GoogleAccountInfo => _isEnglish
         ? "Name, email address, profile picture (optional), Google User ID (for authentication)"
         : "Nombre, correo electrónico, foto de perfil (opcional), ID de usuario de Google (para autenticación)";
-    
+
     private string WeightDataLabel => _isEnglish ? "Weight and Health Data" : "Datos de Peso y Salud";
     private string WeightDataInfo => _isEnglish
         ? "Weight measurements, dates and times, personal notes, height, goal weight, starting weight (optional), date of birth (optional)"
         : "Mediciones de peso, fechas y horas, notas personales, altura, peso objetivo, peso inicial (opcional), fecha de nacimiento (opcional)";
-    
+
     private string PreferencesLabel => _isEnglish ? "Preferences and Settings" : "Preferencias y Configuraciones";
     private string PreferencesInfo => _isEnglish
         ? "Unit system (Metric/Imperial), language (English/Spanish), theme (Dark/Light), notification settings, timezone"
@@ -50,7 +50,7 @@ public partial class PrivacyPolicy
     private string UsageDataInfo => _isEnglish
         ? "Pages visited, features used, time spent, browser type/version, device type, IP address (anonymized)"
         : "Páginas visitadas, funciones utilizadas, tiempo transcurrido, tipo/versión del navegador, tipo de dispositivo, dirección IP (anonimizada)";
-    
+
     private string CookiesLabel => _isEnglish ? "Cookies and Similar Technologies" : "Cookies y Tecnologías Similares";
     private string CookiesInfo => _isEnglish
         ? "Authentication cookies (session management), preference cookies (theme, language, settings), analytics cookies (Google Analytics 4)"
@@ -60,19 +60,19 @@ public partial class PrivacyPolicy
     private string UseProvide => _isEnglish
         ? "Provide and Maintain the Service: Authenticate identity, store and display weight data, calculate statistics/trends/projections, save preferences"
         : "Proporcionar y Mantener el Servicio: Autenticar identidad, almacenar y mostrar datos de peso, calcular estadísticas/tendencias/proyecciones, guardar preferencias";
-    
+
     private string UseImprove => _isEnglish
         ? "Improve and Personalize: Analyze usage patterns, customize user experience, develop new features"
         : "Mejorar y Personalizar: Analizar patrones de uso, personalizar experiencia del usuario, desarrollar nuevas funciones";
-    
+
     private string UseCommunication => _isEnglish
         ? "Communication: Send system notifications (if enabled), respond to inquiries, send important updates"
         : "Comunicación: Enviar notificaciones del sistema (si están habilitadas), responder consultas, enviar actualizaciones importantes";
-    
+
     private string UseSecurity => _isEnglish
         ? "Security and Compliance: Detect and prevent fraud, monitor security threats, comply with legal obligations"
         : "Seguridad y Cumplimiento: Detectar y prevenir fraude, monitorear amenazas de seguridad, cumplir obligaciones legales";
-    
+
     private string UseAnalytics => _isEnglish
         ? "Analytics and Research: Understand user interactions, generate anonymized statistics, improve performance"
         : "Análisis e Investigación: Comprender interacciones del usuario, generar estadísticas anonimizadas, mejorar rendimiento";
@@ -80,39 +80,39 @@ public partial class PrivacyPolicy
     private string StorageSecurityTitle => _isEnglish ? "Data Storage and Security" : "Almacenamiento y Seguridad de Datos";
     private string SecurityMeasureHeader => _isEnglish ? "Security Measure" : "Medida de Seguridad";
     private string DetailsHeader => _isEnglish ? "Details" : "Detalles";
-    
+
     private string EncryptionLabel => _isEnglish ? "Encryption" : "Cifrado";
     private string EncryptionDetails => _isEnglish
         ? "HTTPS/TLS encryption for data in transit"
         : "Cifrado HTTPS/TLS para datos en tránsito";
-    
+
     private string DatabaseLabel => _isEnglish ? "Database Security" : "Seguridad de Base de Datos";
     private string DatabaseDetails => _isEnglish
         ? "SQL Server with access controls and encryption at rest"
         : "SQL Server con controles de acceso y cifrado en reposo";
-    
+
     private string AuthenticationLabel => _isEnglish ? "Authentication" : "Autenticación";
     private string AuthenticationDetails => _isEnglish
         ? "Google OAuth 2.0 - We do NOT store passwords"
         : "Google OAuth 2.0 - NO almacenamos contraseñas";
 
     private string YourRightsTitle => _isEnglish ? "Your Rights and Choices" : "Sus Derechos y Opciones";
-    
+
     private string AccessRightTitle => _isEnglish ? "Access and Portability" : "Acceso y Portabilidad";
     private string AccessRightText => _isEnglish
         ? "You can access your weight data at any time through the Service. You can request a copy of your data in a portable format by contacting us."
         : "Puede acceder a sus datos de peso en cualquier momento a través del Servicio. Puede solicitar una copia de sus datos en un formato portable contactándonos.";
-    
+
     private string CorrectionRightTitle => _isEnglish ? "Correction" : "Corrección";
     private string CorrectionRightText => _isEnglish
         ? "You can edit your profile information, weight entries, and preferences directly in the application."
         : "Puede editar su información de perfil, entradas de peso y preferencias directamente en la aplicación.";
-    
+
     private string DeletionRightTitle => _isEnglish ? "Deletion" : "Eliminación";
     private string DeletionRightText => _isEnglish
         ? "You can delete individual weight entries at any time. You can request full account deletion by contacting us. Upon deletion, we will remove all your personal data within 30 days."
         : "Puede eliminar entradas de peso individuales en cualquier momento. Puede solicitar la eliminación completa de su cuenta contactándonos. Tras la eliminación, eliminaremos todos sus datos personales dentro de los 30 días.";
-    
+
     private string OptOutRightTitle => _isEnglish ? "Opt-Out of Analytics" : "Optar por No Participar en Análisis";
     private string OptOutRightText => _isEnglish
         ? "You can opt out of Google Analytics tracking by using browser extensions like Google Analytics Opt-out (https://tools.google.com/dlpage/gaoptout)."

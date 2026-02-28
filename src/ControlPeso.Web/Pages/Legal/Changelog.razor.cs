@@ -28,7 +28,7 @@ public partial class Changelog
 
     private string CurrentVersionLabel => _isEnglish ? "Current Version" : "Versión Actual";
     private string InitialReleaseLabel => _isEnglish ? "Initial Release" : "Lanzamiento Inicial";
-    
+
     private string AddedLabel => _isEnglish ? "Added" : "Agregado";
     private string CoreFeaturesLabel => _isEnglish ? "Core Features" : "Funciones Principales";
 

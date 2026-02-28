@@ -1,5 +1,4 @@
 using ControlPeso.Application.Interfaces;
-using ControlPeso.Infrastructure;
 using ControlPeso.Infrastructure.Data;
 using ControlPeso.Infrastructure.Extensions;
 using FluentAssertions;
@@ -105,10 +104,15 @@ public sealed class ServiceCollectionExtensionsTests : IDisposable
         // Act
         _services.AddInfrastructureServices(_configuration);
 
-        // Assert
-        var descriptor = _services.FirstOrDefault(d => d.ServiceType == typeof(ControlPesoDbContext));
-        descriptor.Should().NotBeNull();
-        descriptor!.Lifetime.Should().Be(ServiceLifetime.Scoped);
+        // Assert - Factory is registered as Singleton
+        var factoryDescriptor = _services.FirstOrDefault(d => d.ServiceType == typeof(IDbContextFactory<ControlPesoDbContext>));
+        factoryDescriptor.Should().NotBeNull("IDbContextFactory<ControlPesoDbContext> should be registered");
+        factoryDescriptor!.Lifetime.Should().Be(ServiceLifetime.Singleton, "Factory should be Singleton");
+
+        // Backward compatibility: ControlPesoDbContext should also be available as Scoped
+        var dbContextDescriptor = _services.FirstOrDefault(d => d.ServiceType == typeof(ControlPesoDbContext));
+        dbContextDescriptor.Should().NotBeNull("ControlPesoDbContext should be registered for backward compatibility");
+        dbContextDescriptor!.Lifetime.Should().Be(ServiceLifetime.Scoped);
     }
 
     [Fact]
@@ -117,24 +121,19 @@ public sealed class ServiceCollectionExtensionsTests : IDisposable
         // Act
         _services.AddInfrastructureServices(_configuration);
 
-        // Assert
-        var descriptor = _services.FirstOrDefault(d => d.ServiceType == typeof(DbContext));
-        descriptor.Should().NotBeNull();
-        descriptor!.Lifetime.Should().Be(ServiceLifetime.Scoped);
+        // Assert - Generic factory wrapper should be registered
+        var factoryDescriptor = _services.FirstOrDefault(d => d.ServiceType == typeof(IDbContextFactory<DbContext>));
+        factoryDescriptor.Should().NotBeNull("IDbContextFactory<DbContext> wrapper should be registered");
+        factoryDescriptor!.Lifetime.Should().Be(ServiceLifetime.Singleton, "Factory wrapper should be Singleton");
+
+        // Backward compatibility: DbContext should also be available as Scoped
+        var dbContextDescriptor = _services.FirstOrDefault(d => d.ServiceType == typeof(DbContext));
+        dbContextDescriptor.Should().NotBeNull("DbContext should be registered for backward compatibility");
+        dbContextDescriptor!.Lifetime.Should().Be(ServiceLifetime.Scoped);
     }
 
-    [Fact]
-    public void AddInfrastructureServices_ShouldRegisterDbSeeder_WhenCalled()
-    {
-        // Act
-        _services.AddInfrastructureServices(_configuration);
-
-        // Assert
-        var descriptor = _services.FirstOrDefault(d => d.ServiceType == typeof(IDbSeeder));
-        descriptor.Should().NotBeNull();
-        descriptor!.Lifetime.Should().Be(ServiceLifetime.Scoped);
-        descriptor.ImplementationType.Should().Be(typeof(DbSeeder));
-    }
+    // NOTE: IDbSeeder test removed - service was intentionally removed from Infrastructure
+    // App works ONLY with real OAuth users (Google/LinkedIn), no fake/demo data seeding
 
     [Fact]
     public void AddInfrastructureServices_ShouldRegisterUserPreferencesService_WhenCalled()
@@ -243,12 +242,13 @@ public sealed class ServiceCollectionExtensionsTests : IDisposable
         _services.AddInfrastructureServices(_configuration);
         var serviceProvider = _services.BuildServiceProvider();
 
-        // Assert
-        using var scope = serviceProvider.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ControlPesoDbContext>();
-        
-        dbContext.Should().NotBeNull();
-        dbContext.Database.ProviderName.Should().Contain("Sqlite");
+        // Assert - Factory can create DbContext instances
+        var factory = serviceProvider.GetRequiredService<IDbContextFactory<ControlPesoDbContext>>();
+        factory.Should().NotBeNull("Factory should be resolvable");
+
+        using var dbContext = factory.CreateDbContext();
+        dbContext.Should().NotBeNull("Factory should create DbContext instances");
+        dbContext.Database.ProviderName.Should().Be("Microsoft.EntityFrameworkCore.Sqlite", "SQLite provider should be detected from Data Source connection string");
     }
 
     #endregion
@@ -262,17 +262,16 @@ public sealed class ServiceCollectionExtensionsTests : IDisposable
         _services.AddInfrastructureServices(_configuration);
         var serviceProvider = _services.BuildServiceProvider();
 
-        // Act
-        using var scope1 = serviceProvider.CreateScope();
-        using var scope2 = serviceProvider.CreateScope();
+        // Act - Factory creates independent instances
+        var factory = serviceProvider.GetRequiredService<IDbContextFactory<ControlPesoDbContext>>();
 
-        var dbContext1 = scope1.ServiceProvider.GetRequiredService<ControlPesoDbContext>();
-        var dbContext2 = scope2.ServiceProvider.GetRequiredService<ControlPesoDbContext>();
+        using var dbContext1 = factory.CreateDbContext();
+        using var dbContext2 = factory.CreateDbContext();
 
         // Assert
         dbContext1.Should().NotBeNull();
         dbContext2.Should().NotBeNull();
-        dbContext1.Should().NotBeSameAs(dbContext2); // Different instances per scope
+        dbContext1.Should().NotBeSameAs(dbContext2, "Factory should create different instances per call");
     }
 
     [Fact]
@@ -287,13 +286,14 @@ public sealed class ServiceCollectionExtensionsTests : IDisposable
         // Assert - Verify registration worked
         _services.Should().NotBeEmpty();
 
-        // Build service provider to trigger DbContext configuration
+        // Build service provider and get factory
         using var serviceProvider = _services.BuildServiceProvider();
-        using var scope = serviceProvider.CreateScope();
+        var factory = serviceProvider.GetRequiredService<IDbContextFactory<ControlPesoDbContext>>();
+        factory.Should().NotBeNull("Factory should be resolvable in Development environment");
 
-        // Resolve DbContext to execute the configuration lambda (which contains the Development-specific code)
-        var dbContext = scope.ServiceProvider.GetRequiredService<ControlPesoDbContext>();
-        dbContext.Should().NotBeNull("DbContext should be resolvable in Development environment");
+        // Create DbContext to execute the configuration lambda (which contains the Development-specific code)
+        using var dbContext = factory.CreateDbContext();
+        dbContext.Should().NotBeNull("Factory should create DbContext instances in Development environment");
 
         // Verify Development-specific options were applied by checking ChangeTracker settings
         // (EnableSensitiveDataLogging affects ChangeTracker behavior)

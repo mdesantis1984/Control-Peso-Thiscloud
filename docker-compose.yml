@@ -2,6 +2,33 @@ version: '3.8'
 
 services:
   # ============================================
+  # SQL Server Database
+  # ============================================
+  sqlserver:
+    container_name: controlpeso-sqlserver
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_PID=Express
+      # SA_PASSWORD debe configurarse en docker-compose.override.yml
+    volumes:
+      - controlpeso-sqldata:/var/opt/mssql
+    networks:
+      - controlpeso-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$SA_PASSWORD\" -Q \"SELECT 1\" -C || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    labels:
+      com.controlpeso.service: "database"
+      com.controlpeso.version: "1.0.0"
+
+  # ============================================
   # Control Peso Web Application
   # ============================================
   controlpeso-web:
@@ -13,14 +40,15 @@ services:
       - "8080:8080"  # HTTP
     environment:
       # ASP.NET Core Configuration
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
 
       # Data Protection keys path (for antiforgery tokens and auth cookies persistence)
       - ASPNETCORE_DataProtection__Path=/root/.aspnet/DataProtection-Keys
 
-      # Database Connection (SQLite file-based)
-      - ConnectionStrings__DefaultConnection=Data Source=/app/data/controlpeso.db
+      # Database Connection (SQL Server in Docker)
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=ControlPeso;User Id=sa;TrustServerCertificate=True;MultipleActiveResultSets=True;Encrypt=False
+      # SA_PASSWORD debe configurarse en docker-compose.override.yml
 
       # Logging Configuration (ThisCloud.Framework)
       - ThisCloud__Loggings__IsEnabled=true
@@ -42,15 +70,16 @@ services:
       # DO NOT add sensitive values here - this file is tracked by Git
     
     volumes:
-      # Persist SQLite database
-      - controlpeso-data:/app/data
-
       # Persist logs
       - controlpeso-logs:/app/logs
 
       # Persist Data Protection keys (antiforgery tokens, authentication cookies)
       - controlpeso-keys:/root/.aspnet/DataProtection-Keys
-    
+
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+
     networks:
       - controlpeso-network
     
@@ -79,10 +108,10 @@ networks:
 # Volumes
 # ============================================
 volumes:
-  # SQLite database persistence
-  controlpeso-data:
+  # SQL Server data persistence
+  controlpeso-sqldata:
     driver: local
-    name: controlpeso-data
+    name: controlpeso-sqldata
 
   # Logs persistence
   controlpeso-logs:

@@ -1,4 +1,3 @@
-using ControlPeso.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,15 +27,33 @@ public static class ServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
 
-        // Registrar DbContext con SQLite
+        // Registrar DbContextFactory con SQL Server (REFACTORED for Blazor Server concurrency)
         // Connection string desde appsettings.json: "ConnectionStrings:DefaultConnection"
+        // SQL Server Express (localhost\SQLEXPRESS) en Development
+        // SQL Server 2022 container en Docker/Production
         var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException(
                 "Connection string 'DefaultConnection' not found in appsettings.json");
 
-        services.AddDbContext<ControlPesoDbContext>(options =>
+        // AddDbContextFactory en lugar de AddDbContext para Blazor Server
+        // Esto permite crear múltiples instancias de DbContext de forma segura en circuitos concurrentes
+        services.AddDbContextFactory<ControlPesoDbContext>(options =>
         {
-            options.UseSqlite(connectionString);
+            // Detect provider from connection string
+            // SQLite: "Data Source=path.db"
+            // SQL Server: "Server=..." or contains "SqlServer"
+            var isSqlite = connectionString.Contains("Data Source", StringComparison.OrdinalIgnoreCase)
+                && !connectionString.Contains("Server=", StringComparison.OrdinalIgnoreCase);
+
+            if (isSqlite)
+            {
+                options.UseSqlite(connectionString);
+            }
+            else
+            {
+                // Use SQL Server provider (SQL Server Express locally, SQL Server in Docker/Production)
+                options.UseSqlServer(connectionString);
+            }
 
             // En Development: habilitar logging detallado de queries SQL
             // En Production: solo errores
@@ -52,12 +69,31 @@ public static class ServiceCollectionExtensions
             }
         });
 
-        // Registrar DbContext genérico apuntando al específico
-        // Esto permite que servicios de Application inyecten DbContext sin conocer ControlPesoDbContext
-        services.AddScoped<DbContext>(provider => provider.GetRequiredService<ControlPesoDbContext>());
+        // Registrar IDbContextFactory<DbContext> genérico para Application layer
+        // Application services inyectan IDbContextFactory<DbContext> sin conocer ControlPesoDbContext
+        services.AddSingleton<IDbContextFactory<DbContext>>(provider =>
+        {
+            var factory = provider.GetRequiredService<IDbContextFactory<ControlPesoDbContext>>();
+            return new DbContextFactoryWrapper(factory);
+        });
 
-        // Registrar DbSeeder para seed de datos en Development
-        services.AddScoped<IDbSeeder, DbSeeder>();
+        // BACKWARD COMPATIBILITY: Registrar DbContext scoped para servicios que aún no han migrado
+        // Este registration se puede eliminar una vez que TODOS los servicios usen IDbContextFactory
+        services.AddScoped<DbContext>(provider =>
+        {
+            var factory = provider.GetRequiredService<IDbContextFactory<ControlPesoDbContext>>();
+            return factory.CreateDbContext();
+        });
+
+        // BACKWARD COMPATIBILITY: Registrar ControlPesoDbContext scoped para Infrastructure services
+        services.AddScoped(provider =>
+        {
+            var factory = provider.GetRequiredService<IDbContextFactory<ControlPesoDbContext>>();
+            return factory.CreateDbContext();
+        });
+
+        // ⚠️ DbSeeder REMOVED - App works ONLY with real OAuth users
+        // No fake/demo data seeding
 
         // Registrar servicios de Infrastructure
         services.AddScoped<Application.Interfaces.IUserPreferencesService, Services.UserPreferencesService>();
@@ -70,5 +106,30 @@ public static class ServiceCollectionExtensions
         // services.AddScoped<IWeightLogRepository, WeightLogRepository>();
 
         return services;
+    }
+}
+
+/// <summary>
+/// Wrapper para IDbContextFactory que convierte de ControlPesoDbContext específico a DbContext genérico.
+/// Necesario porque IDbContextFactory es invariante (no covariante).
+/// </summary>
+internal sealed class DbContextFactoryWrapper : IDbContextFactory<DbContext>
+{
+    private readonly IDbContextFactory<ControlPesoDbContext> _innerFactory;
+
+    public DbContextFactoryWrapper(IDbContextFactory<ControlPesoDbContext> innerFactory)
+    {
+        ArgumentNullException.ThrowIfNull(innerFactory);
+        _innerFactory = innerFactory;
+    }
+
+    public DbContext CreateDbContext()
+    {
+        return _innerFactory.CreateDbContext();
+    }
+
+    public async Task<DbContext> CreateDbContextAsync(CancellationToken cancellationToken = default)
+    {
+        return await _innerFactory.CreateDbContextAsync(cancellationToken);
     }
 }

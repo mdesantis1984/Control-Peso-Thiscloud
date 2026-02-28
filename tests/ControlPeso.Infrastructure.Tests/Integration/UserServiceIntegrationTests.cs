@@ -4,7 +4,9 @@ using ControlPeso.Domain.Enums;
 using ControlPeso.Infrastructure.Tests.Helpers;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 
 namespace ControlPeso.Infrastructure.Tests.Integration;
 
@@ -15,13 +17,45 @@ public sealed class UserServiceIntegrationTests : IDisposable
 {
     private ControlPesoDbContext? _context;
     private SqliteConnection? _connection;
+    private readonly IMemoryCache _memoryCache = new MemoryCache(new MemoryCacheOptions());
 
     public void Dispose()
     {
         // Disponer en orden correcto: contexto primero, luego conexión
         _context?.Dispose();
         _connection?.Dispose();
+        _memoryCache.Dispose();
         // No usar EnsureDeleted() para in-memory SQLite - se borra automáticamente al cerrar conexión
+    }
+
+    /// <summary>
+    /// Crea un factory que devuelve NUEVAS instancias de DbContext usando la misma conexión SQLite.
+    /// CRITICAL: Factory crea nuevos contexts por llamada, evitando problemas de dispose.
+    /// </summary>
+    private static IDbContextFactory<DbContext> CreateFactoryForConnection(SqliteConnection connection, string databaseName)
+    {
+        var mockFactory = new Mock<IDbContextFactory<DbContext>>();
+
+        // Cada llamada crea un NUEVO DbContext con la misma conexión
+        mockFactory.Setup(f => f.CreateDbContext())
+            .Returns(() =>
+            {
+                var options = new DbContextOptionsBuilder<ControlPesoDbContext>()
+                    .UseSqlite(connection)
+                    .Options;
+                return new ControlPesoDbContext(options);
+            });
+
+        mockFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync((CancellationToken ct) =>
+            {
+                var options = new DbContextOptionsBuilder<ControlPesoDbContext>()
+                    .UseSqlite(connection)
+                    .Options;
+                return new ControlPesoDbContext(options);
+            });
+
+        return mockFactory.Object;
     }
 
     [Fact]
@@ -30,10 +64,11 @@ public sealed class UserServiceIntegrationTests : IDisposable
         // Arrange
         var databaseName = $"UserServiceTests_{Guid.NewGuid()}";
         (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(databaseName);
-        var service = new UserService(_context, NullLogger<UserService>.Instance);
+        var factory = CreateFactoryForConnection(_connection!, databaseName);
+        var service = new UserService(factory, _memoryCache, NullLogger<UserService>.Instance);
 
         var existingUser = await _context.Users.FirstAsync();
-        var userId = Guid.Parse(existingUser.Id);
+        var userId = existingUser.Id;
 
         // Act
         var result = await service.GetByIdAsync(userId);
@@ -51,7 +86,8 @@ public sealed class UserServiceIntegrationTests : IDisposable
         // Arrange
         var databaseName = $"UserServiceTests_{Guid.NewGuid()}";
         (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(databaseName);
-        var service = new UserService(_context, NullLogger<UserService>.Instance);
+        var factory = CreateFactoryForConnection(_connection!, databaseName);
+        var service = new UserService(factory, _memoryCache, NullLogger<UserService>.Instance);
 
         var existingUser = await _context.Users.FirstAsync();
 
@@ -70,7 +106,8 @@ public sealed class UserServiceIntegrationTests : IDisposable
         // Arrange
         var databaseName = $"UserServiceTests_{Guid.NewGuid()}";
         (_context, _connection) = InMemoryDbContextFactory.Create(databaseName);
-        var service = new UserService(_context, NullLogger<UserService>.Instance);
+        var factory = CreateFactoryForConnection(_connection!, databaseName);
+        var service = new UserService(factory, _memoryCache, NullLogger<UserService>.Instance);
 
         var googleInfo = new GoogleUserInfo
         {
@@ -104,7 +141,8 @@ public sealed class UserServiceIntegrationTests : IDisposable
         // Arrange
         var databaseName = $"UserServiceTests_{Guid.NewGuid()}";
         (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(databaseName);
-        var service = new UserService(_context, NullLogger<UserService>.Instance);
+        var factory = CreateFactoryForConnection(_connection!, databaseName);
+        var service = new UserService(factory, _memoryCache, NullLogger<UserService>.Instance);
 
         var existingUser = await _context.Users.FirstAsync();
         var originalName = existingUser.Name;
@@ -132,13 +170,19 @@ public sealed class UserServiceIntegrationTests : IDisposable
         Assert.Equal(updatedName, result.Name);
         Assert.Equal(updatedAvatarUrl, result.AvatarUrl);
 
-        // Verify update persisted
-        var updatedUser = await _context.Users.FindAsync(existingUser.Id);
-        Assert.NotNull(updatedUser);
-        Assert.Equal(updatedName, updatedUser.Name);
-        Assert.NotEqual(originalName, updatedUser.Name);
-        Assert.Equal(updatedAvatarUrl, updatedUser.AvatarUrl);
-        Assert.NotEqual(originalAvatarUrl, updatedUser.AvatarUrl);
+        // Verify update persisted - create FRESH context to see changes
+        using (var verificationContext = new ControlPesoDbContext(
+            new DbContextOptionsBuilder<ControlPesoDbContext>()
+                .UseSqlite(_connection!)
+                .Options))
+        {
+            var updatedUser = await verificationContext.Users.FindAsync(existingUser.Id);
+            Assert.NotNull(updatedUser);
+            Assert.Equal(updatedName, updatedUser.Name);
+            Assert.NotEqual(originalName, updatedUser.Name);
+            Assert.Equal(updatedAvatarUrl, updatedUser.AvatarUrl);
+            Assert.NotEqual(originalAvatarUrl, updatedUser.AvatarUrl);
+        }
     }
 
     [Fact]
@@ -147,10 +191,11 @@ public sealed class UserServiceIntegrationTests : IDisposable
         // Arrange
         var databaseName = $"UserServiceTests_{Guid.NewGuid()}";
         (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(databaseName);
-        var service = new UserService(_context, NullLogger<UserService>.Instance);
+        var factory = CreateFactoryForConnection(_connection!, databaseName);
+        var service = new UserService(factory, _memoryCache, NullLogger<UserService>.Instance);
 
         var existingUser = await _context.Users.FirstAsync();
-        var userId = Guid.Parse(existingUser.Id);
+        var userId = existingUser.Id;
 
         var updateDto = new UpdateUserProfileDto
         {
@@ -172,12 +217,18 @@ public sealed class UserServiceIntegrationTests : IDisposable
         Assert.Equal(UnitSystem.Imperial, result.UnitSystem);
         Assert.Equal("en", result.Language);
 
-        // Verify persistence
-        var updatedUser = await _context.Users.FindAsync(existingUser.Id);
-        Assert.NotNull(updatedUser);
-        Assert.Equal(180.0, updatedUser.Height);  // DB stores as double
-        Assert.Equal(75.0, updatedUser.GoalWeight);  // DB stores as double
-        Assert.Equal((int)UnitSystem.Imperial, updatedUser.UnitSystem);
+        // Verify persistence - create FRESH context to see changes
+        using (var verificationContext = new ControlPesoDbContext(
+            new DbContextOptionsBuilder<ControlPesoDbContext>()
+                .UseSqlite(_connection!)
+                .Options))
+        {
+            var updatedUser = await verificationContext.Users.FindAsync(existingUser.Id);
+            Assert.NotNull(updatedUser);
+            Assert.Equal(180.0m, updatedUser.Height);
+            Assert.Equal(75.0m, updatedUser.GoalWeight);
+            Assert.Equal((int)UnitSystem.Imperial, updatedUser.UnitSystem);
+        }
     }
 
     [Fact]
@@ -186,7 +237,8 @@ public sealed class UserServiceIntegrationTests : IDisposable
         // Arrange
         var databaseName = $"UserServiceTests_{Guid.NewGuid()}";
         (_context, _connection) = InMemoryDbContextFactory.Create(databaseName);
-        var service = new UserService(_context, NullLogger<UserService>.Instance);
+        var factory = CreateFactoryForConnection(_connection!, databaseName);
+        var service = new UserService(factory, _memoryCache, NullLogger<UserService>.Instance);
 
         var nonExistentId = Guid.NewGuid();
 
@@ -203,7 +255,8 @@ public sealed class UserServiceIntegrationTests : IDisposable
         // Arrange
         var databaseName = $"UserServiceTests_{Guid.NewGuid()}";
         (_context, _connection) = InMemoryDbContextFactory.Create(databaseName);
-        var service = new UserService(_context, NullLogger<UserService>.Instance);
+        var factory = CreateFactoryForConnection(_connection!, databaseName);
+        var service = new UserService(factory, _memoryCache, NullLogger<UserService>.Instance);
 
         // Act
         var result = await service.GetByGoogleIdAsync("google_nonexistent_999");

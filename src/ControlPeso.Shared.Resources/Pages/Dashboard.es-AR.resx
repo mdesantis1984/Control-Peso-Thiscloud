@@ -278,6 +278,18 @@
     <value>Error al cargar datos: {0}</value>
     <comment>Error message when data loading fails. {0} = error details</comment>
   </data>
+  <data name="ErrorExportingData" xml:space="preserve">
+    <value>Error al exportar los datos. Por favor, intenta nuevamente.</value>
+    <comment>Error message when CSV export fails</comment>
+  </data>
+  <data name="NoDataToExport" xml:space="preserve">
+    <value>No hay datos para exportar. Agrega algunos registros de peso primero.</value>
+    <comment>Warning message when trying to export with no data</comment>
+  </data>
+  <data name="ExportSuccess" xml:space="preserve">
+    <value>{0} registros exportados exitosamente.</value>
+    <comment>Success message after CSV export. {0} = number of records exported</comment>
+  </data>
   <data name="TimeAgoMinutes" xml:space="preserve">
     <value>hace unos minutos</value>
     <comment>Relative time text for last measured (less than 1 hour ago)</comment>

@@ -14,23 +14,23 @@ public sealed class WeightLogMapperTests
         // Arrange
         var entity = new WeightLogs
         {
-            Id = Guid.NewGuid().ToString(),
-            UserId = Guid.NewGuid().ToString(),
-            Date = "2026-02-17",
-            Time = "14:30",
-            Weight = 75.5,
+            Id = Guid.NewGuid(),
+            UserId = Guid.NewGuid(),
+            Date = new DateOnly(2026, 02, 17),
+            Time = new TimeOnly(14, 30),
+            Weight = 75.5m,
             DisplayUnit = (int)WeightUnit.Kg,
             Note = "After lunch",
             Trend = (int)WeightTrend.Down,
-            CreatedAt = "2026-02-17T14:30:00.0000000Z"
+            CreatedAt = DateTime.Parse("2026-02-17T14:30:00.0000000Z")
         };
 
         // Act
         var dto = WeightLogMapper.ToDto(entity);
 
         // Assert
-        dto.Id.Should().Be(Guid.Parse(entity.Id));
-        dto.UserId.Should().Be(Guid.Parse(entity.UserId));
+        dto.Id.Should().Be(entity.Id);
+        dto.UserId.Should().Be(entity.UserId);
         dto.Date.Should().Be(new DateOnly(2026, 2, 17));
         dto.Time.Should().Be(new TimeOnly(14, 30));
         dto.Weight.Should().Be(75.5m);
@@ -59,15 +59,15 @@ public sealed class WeightLogMapperTests
         // Arrange
         var entity = new WeightLogs
         {
-            Id = Guid.NewGuid().ToString(),
-            UserId = Guid.NewGuid().ToString(),
-            Date = "2026-02-17",
-            Time = "14:30",
-            Weight = 75.5,
+            Id = Guid.NewGuid(),
+            UserId = Guid.NewGuid(),
+            Date = new DateOnly(2026, 02, 17),
+            Time = new TimeOnly(14, 30),
+            Weight = 75.5m,
             DisplayUnit = (int)WeightUnit.Kg,
             Note = null,
             Trend = (int)WeightTrend.Neutral,
-            CreatedAt = "2026-02-17T14:30:00.0000000Z"
+            CreatedAt = DateTime.Parse("2026-02-17T14:30:00.0000000Z")
         };
 
         // Act
@@ -95,17 +95,15 @@ public sealed class WeightLogMapperTests
         var entity = WeightLogMapper.ToEntity(dto);
 
         // Assert
-        Guid.TryParse(entity.Id, out var id).Should().BeTrue();
-        id.Should().NotBeEmpty();
-        entity.UserId.Should().Be(dto.UserId.ToString());
-        entity.Date.Should().Be("2026-02-17");
-        entity.Time.Should().Be("14:30");
-        entity.Weight.Should().Be(75.5);
+        entity.Id.Should().NotBeEmpty();
+        entity.UserId.Should().Be(dto.UserId);
+        entity.Date.Should().Be(new DateOnly(2026, 2, 17));
+        entity.Time.Should().Be(new TimeOnly(14, 30));
+        entity.Weight.Should().Be(75.5m);
         entity.DisplayUnit.Should().Be((int)WeightUnit.Kg);
         entity.Note.Should().Be("Test note");
         entity.Trend.Should().Be((int)WeightTrend.Neutral);
-        DateTime.TryParse(entity.CreatedAt, out var createdAt).Should().BeTrue();
-        createdAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromHours(2));
+        entity.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromHours(2));
     }
 
     [Fact]
@@ -150,15 +148,15 @@ public sealed class WeightLogMapperTests
         // Arrange
         var existingEntity = new WeightLogs
         {
-            Id = Guid.NewGuid().ToString(),
-            UserId = Guid.NewGuid().ToString(),
-            Date = "2026-02-16",
-            Time = "10:00",
-            Weight = 76.0,
+            Id = Guid.NewGuid(),
+            UserId = Guid.NewGuid(),
+            Date = new DateOnly(2026, 02, 16),
+            Time = new TimeOnly(10, 00),
+            Weight = 76.0m,
             DisplayUnit = (int)WeightUnit.Kg,
             Note = "Old note",
             Trend = (int)WeightTrend.Up,
-            CreatedAt = "2026-02-16T10:00:00.0000000Z"
+            CreatedAt = DateTime.Parse("2026-02-16T10:00:00.0000000Z")
         };
 
         var updateDto = new UpdateWeightLogDto
@@ -174,15 +172,15 @@ public sealed class WeightLogMapperTests
         WeightLogMapper.UpdateEntity(existingEntity, updateDto);
 
         // Assert
-        existingEntity.Date.Should().Be("2026-02-17");
-        existingEntity.Time.Should().Be("14:30");
-        existingEntity.Weight.Should().Be(75.5);
+        existingEntity.Date.Should().Be(new DateOnly(2026, 2, 17));
+        existingEntity.Time.Should().Be(new TimeOnly(14, 30));
+        existingEntity.Weight.Should().Be(75.5m);
         existingEntity.DisplayUnit.Should().Be((int)WeightUnit.Lb);
         existingEntity.Note.Should().Be("Updated note");
         // Should NOT modify these fields
         existingEntity.Id.Should().NotBeEmpty();
         existingEntity.UserId.Should().NotBeEmpty();
-        existingEntity.CreatedAt.Should().Be("2026-02-16T10:00:00.0000000Z");
+        existingEntity.CreatedAt.Should().Be(DateTime.Parse("2026-02-16T10:00:00.0000000Z"));
     }
 
     [Fact]
@@ -212,15 +210,15 @@ public sealed class WeightLogMapperTests
         // Arrange
         var entity = new WeightLogs
         {
-            Id = Guid.NewGuid().ToString(),
-            UserId = Guid.NewGuid().ToString(),
-            Date = "2026-02-17",
-            Time = "14:30",
-            Weight = 75.5,
+            Id = Guid.NewGuid(),
+            UserId = Guid.NewGuid(),
+            Date = new DateOnly(2026, 02, 17),
+            Time = new TimeOnly(14, 30),
+            Weight = 75.5m,
             DisplayUnit = (int)WeightUnit.Kg,
             Note = null,
             Trend = (int)WeightTrend.Neutral,
-            CreatedAt = "2026-02-17T14:30:00.0000000Z"
+            CreatedAt = DateTime.Parse("2026-02-17T14:30:00.0000000Z")
         };
         UpdateWeightLogDto? dto = null;
 

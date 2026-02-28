@@ -83,7 +83,36 @@
 
     <MudMainContent>
         <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-4 mb-4">
-            @Body
+            <ErrorBoundary @ref="_errorBoundary">
+                <ChildContent>
+                    @Body
+                </ChildContent>
+                <ErrorContent Context="exception">
+                    <MudPaper Elevation="4" Class="pa-6 ma-4">
+                        <MudText Typo="Typo.h5" Color="Color.Error" Class="mb-4">
+                            <MudIcon Icon="@Icons.Material.Filled.Error" Class="mr-2" />
+                            @ErrorOccurred
+                        </MudText>
+                        <MudText Typo="Typo.body1" Class="mb-4">
+                            @ErrorInstructions
+                        </MudText>
+                        @if (exception is not null)
+                        {
+                            <MudAlert Severity="Severity.Error" Class="mb-4" Dense="true">
+                                @exception.Message
+                            </MudAlert>
+                        }
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" 
+                                   OnClick="@RecoverFromError" Class="mr-2">
+                            @RetryButton
+                        </MudButton>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" 
+                                   Href="." ForceLoad="true">
+                            @ReloadButton
+                        </MudButton>
+                    </MudPaper>
+                </ErrorContent>
+            </ErrorBoundary>
         </MudContainer>
 
         @* Legal Footer with Privacy, Terms, Licenses, Changelog *@

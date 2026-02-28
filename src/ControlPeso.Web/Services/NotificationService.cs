@@ -194,7 +194,7 @@ public sealed class NotificationService
     {
         // Fire-and-forget: no esperar el resultado
         _ = AddAsync(message, severity, configure);
-        
+
         // Retornar null porque no podemos esperar el Task aquí
         // (el código que llama no espera un Task)
         return null;

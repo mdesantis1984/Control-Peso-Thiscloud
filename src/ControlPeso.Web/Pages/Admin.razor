@@ -49,6 +49,7 @@
                 <StatsCard 
                     Title="@TotalUsers"
                     Value="@((decimal)_dashboard.TotalUsers)"
+                    DecimalPlaces="0"
                     Icon="@Icons.Material.Filled.People"
                     Color="Color.Primary" />
             </MudItem>
@@ -58,6 +59,7 @@
                 <StatsCard 
                     Title="@ActiveUsers"
                     Value="@((decimal)_dashboard.ActiveUsers)"
+                    DecimalPlaces="0"
                     Icon="@Icons.Material.Filled.CheckCircle"
                     Color="Color.Success" />
             </MudItem>
@@ -67,6 +69,7 @@
                 <StatsCard 
                     Title="@PendingUsers"
                     Value="@((decimal)_dashboard.PendingUsers)"
+                    DecimalPlaces="0"
                     Icon="@Icons.Material.Filled.HourglassEmpty"
                     Color="Color.Warning" />
             </MudItem>
@@ -76,6 +79,7 @@
                 <StatsCard 
                     Title="@InactiveUsers"
                     Value="@((decimal)_dashboard.InactiveUsers)"
+                    DecimalPlaces="0"
                     Icon="@Icons.Material.Filled.Block"
                     Color="Color.Error" />
             </MudItem>
@@ -85,6 +89,7 @@
                 <StatsCard 
                     Title="@TotalRecords"
                     Value="@((decimal)_dashboard.TotalWeightLogs)"
+                    DecimalPlaces="0"
                     Icon="@Icons.Material.Filled.FitnessCenter"
                     Color="Color.Info" />
             </MudItem>
@@ -94,6 +99,7 @@
                 <StatsCard 
                     Title="@Last7Days"
                     Value="@((decimal)_dashboard.WeightLogsLastWeek)"
+                    DecimalPlaces="0"
                     Icon="@Icons.Material.Filled.CalendarToday"
                     Color="Color.Secondary" />
             </MudItem>
@@ -103,6 +109,7 @@
                 <StatsCard 
                     Title="@Last30Days"
                     Value="@((decimal)_dashboard.WeightLogsLastMonth)"
+                    DecimalPlaces="0"
                     Icon="@Icons.Material.Filled.DateRange"
                     Color="Color.Tertiary" />
             </MudItem>
