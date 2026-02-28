@@ -5,6 +5,7 @@ using ControlPeso.Domain.Enums;
 using ControlPeso.Web.Components.Shared;
 using ControlPeso.Web.Services;
 using FluentAssertions;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
@@ -18,41 +19,45 @@ public sealed class EditWeightDialogTests : TestContext, IDisposable
 {
     private readonly IWeightLogService _weightLogService;
     private readonly IStringLocalizer<EditWeightDialog> _localizer;
-    private readonly ILogger<EditWeightDialog> _logger;
-    private readonly NotificationService _notificationService;
-    private readonly UserStateService _userStateService;
 
     public EditWeightDialogTests()
     {
-        // Mock services
+        // Mock only interface-based services
         _weightLogService = Substitute.For<IWeightLogService>();
         _localizer = Substitute.For<IStringLocalizer<EditWeightDialog>>();
-        _logger = Substitute.For<ILogger<EditWeightDialog>>();
-        _notificationService = Substitute.For<NotificationService>();
-        _userStateService = Substitute.For<UserStateService>();
 
         // Setup JSInterop for MudBlazor components
         JSInterop.Mode = JSRuntimeMode.Loose;
 
-        // Add required MudBlazor providers to test render tree
+        // Add required MudBlazor providers to test render tree (NOT MudSnackbarProvider - it doesn't support root render)
         RenderTree.Add<MudPopoverProvider>();
         RenderTree.Add<MudDialogProvider>();
-        RenderTree.Add<MudSnackbarProvider>();
 
         // Setup localizer to return string keys
         _localizer[Arg.Any<string>()].Returns(callInfo => new LocalizedString(callInfo.Arg<string>(), callInfo.Arg<string>()));
         _localizer[Arg.Any<string>(), Arg.Any<object[]>()].Returns(callInfo => 
             new LocalizedString(callInfo.Arg<string>(), string.Format(callInfo.Arg<string>(), callInfo.Arg<object[]>())));
 
-        // Setup UserStateService defaults
-        _userStateService.CurrentUnitSystem.Returns(UnitSystem.Metric);
-
         // Register services
         Services.AddSingleton(_weightLogService);
         Services.AddSingleton(_localizer);
-        Services.AddSingleton(_logger);
-        Services.AddSingleton(_notificationService);
-        Services.AddSingleton(_userStateService);
+        Services.AddSingleton<ILogger<EditWeightDialog>>(NullLogger<EditWeightDialog>.Instance);
+
+        // Create real instances for sealed classes (NotificationService and UserStateService)
+        // These can't be mocked with NSubstitute because they're sealed
+        var snackbar = Substitute.For<ISnackbar>();
+        var userPrefsService = Substitute.For<IUserPreferencesService>();
+        var userNotificationService = Substitute.For<IUserNotificationService>();
+        var authStateProvider = Substitute.For<AuthenticationStateProvider>();
+        var notificationLogger = NullLogger<NotificationService>.Instance;
+        var notificationService = new NotificationService(snackbar, userPrefsService, userNotificationService, authStateProvider, notificationLogger);
+
+        var userStateLogger = NullLogger<UserStateService>.Instance;
+        var userStateService = new UserStateService(userStateLogger);
+        userStateService.SetCurrentUnitSystem(UnitSystem.Metric); // Set default for tests
+
+        Services.AddSingleton(notificationService);
+        Services.AddSingleton(userStateService);
         Services.AddMudServices();
     }
 

@@ -25,10 +25,9 @@ public sealed class ChangeRoleDialogTests : TestContext, IDisposable
         // Setup JSInterop for MudBlazor components
         JSInterop.Mode = JSRuntimeMode.Loose;
 
-        // Add required MudBlazor providers to test render tree
+        // Add required MudBlazor providers to test render tree (NOT MudSnackbarProvider - it doesn't support root render)
         RenderTree.Add<MudPopoverProvider>();
         RenderTree.Add<MudDialogProvider>();
-        RenderTree.Add<MudSnackbarProvider>();
 
         // Setup mock localizer
         _localizer = Substitute.For<IStringLocalizer<ChangeRoleDialog>>();
