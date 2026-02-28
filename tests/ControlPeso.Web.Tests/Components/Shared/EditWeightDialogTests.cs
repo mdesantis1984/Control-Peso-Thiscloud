@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using MudBlazor;
+using MudBlazor.Services;
 using NSubstitute;
 
 namespace ControlPeso.Web.Tests.Components.Shared;
@@ -29,6 +30,9 @@ public sealed class EditWeightDialogTests : TestContext, IDisposable
         _logger = Substitute.For<ILogger<EditWeightDialog>>();
         _notificationService = Substitute.For<NotificationService>();
         _userStateService = Substitute.For<UserStateService>();
+
+        // Setup JSInterop for MudBlazor components
+        JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Setup localizer to return string keys
         _localizer[Arg.Any<string>()].Returns(callInfo => new LocalizedString(callInfo.Arg<string>(), callInfo.Arg<string>()));
@@ -124,7 +128,6 @@ public sealed class EditWeightDialogTests : TestContext, IDisposable
     private static IMudDialogInstance CreateMudDialogInstance()
     {
         var instance = Substitute.For<IMudDialogInstance>();
-        instance.Close(Arg.Any<DialogResult>()).Returns(Task.CompletedTask);
         return instance;
     }
 
