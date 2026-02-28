@@ -256,7 +256,7 @@ public sealed class ChangeStatusDialogTests : TestContext, IDisposable
 
         cut.InvokeAsync(async () =>
         {
-            dialogReference = await dialogService.ShowAsync<ChangeStatusDialog>("", parameters));
+            dialogReference = await dialogService.ShowAsync<ChangeStatusDialog>("", parameters);
         });
 
         cut.WaitForAssertion(() => cut.FindAll(".mud-dialog").Should().NotBeEmpty());
