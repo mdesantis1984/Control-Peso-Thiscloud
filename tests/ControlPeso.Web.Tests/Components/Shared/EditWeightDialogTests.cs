@@ -34,6 +34,11 @@ public sealed class EditWeightDialogTests : TestContext, IDisposable
         // Setup JSInterop for MudBlazor components
         JSInterop.Mode = JSRuntimeMode.Loose;
 
+        // Add required MudBlazor providers to test render tree
+        RenderTree.Add<MudPopoverProvider>();
+        RenderTree.Add<MudDialogProvider>();
+        RenderTree.Add<MudSnackbarProvider>();
+
         // Setup localizer to return string keys
         _localizer[Arg.Any<string>()].Returns(callInfo => new LocalizedString(callInfo.Arg<string>(), callInfo.Arg<string>()));
         _localizer[Arg.Any<string>(), Arg.Any<object[]>()].Returns(callInfo => 
