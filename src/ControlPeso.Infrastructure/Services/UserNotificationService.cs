@@ -13,17 +13,17 @@ namespace ControlPeso.Infrastructure.Services;
 /// </summary>
 public sealed class UserNotificationService : IUserNotificationService
 {
-    private readonly ControlPesoDbContext _context;
+    private readonly IDbContextFactory<ControlPesoDbContext> _contextFactory;
     private readonly ILogger<UserNotificationService> _logger;
 
     public UserNotificationService(
-        ControlPesoDbContext context,
+        IDbContextFactory<ControlPesoDbContext> contextFactory,
         ILogger<UserNotificationService> logger)
     {
-        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(contextFactory);
         ArgumentNullException.ThrowIfNull(logger);
 
-        _context = context;
+        _contextFactory = contextFactory;
         _logger = logger;
     }
 
@@ -33,9 +33,11 @@ public sealed class UserNotificationService : IUserNotificationService
 
         try
         {
-            var notifications = await _context.UserNotifications
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
+
+            var notifications = await context.UserNotifications
                 .AsNoTracking()
-                .Where(n => n.UserId == userId.ToString() && n.IsRead == 0)
+                .Where(n => n.UserId == userId && !n.IsRead)
                 .OrderByDescending(n => n.CreatedAt)
                 .Take(50) // Limit to most recent 50 unread
                 .ToListAsync(ct);
@@ -67,9 +69,11 @@ public sealed class UserNotificationService : IUserNotificationService
 
         try
         {
-            var query = _context.UserNotifications
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
+
+            var query = context.UserNotifications
                 .AsNoTracking()
-                .Where(n => n.UserId == userId.ToString());
+                .Where(n => n.UserId == userId);
 
             var totalCount = await query.CountAsync(ct);
 
@@ -110,9 +114,11 @@ public sealed class UserNotificationService : IUserNotificationService
 
         try
         {
-            var count = await _context.UserNotifications
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
+
+            var count = await context.UserNotifications
                 .AsNoTracking()
-                .Where(n => n.UserId == userId.ToString() && n.IsRead == 0)
+                .Where(n => n.UserId == userId && !n.IsRead)
                 .CountAsync(ct);
 
             _logger.LogDebug("User {UserId} has {Count} unread notifications", userId, count);
@@ -138,20 +144,21 @@ public sealed class UserNotificationService : IUserNotificationService
 
         try
         {
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
+
             var entity = new UserNotifications
             {
-                Id = Guid.NewGuid().ToString(),
-                UserId = dto.UserId.ToString(),
-                Type = (int)dto.Type,
-                Title = dto.Title,
+                Id = Guid.NewGuid(),
+                UserId = dto.UserId,
+                Type = dto.Type.ToString(),
+                Title = dto.Title ?? string.Empty,
                 Message = dto.Message,
-                IsRead = 0,
-                CreatedAt = DateTime.UtcNow.ToString("O"),
-                ReadAt = null
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
             };
 
-            _context.UserNotifications.Add(entity);
-            await _context.SaveChangesAsync(ct);
+            context.UserNotifications.Add(entity);
+            await context.SaveChangesAsync(ct);
 
             var result = MapToDto(entity);
 
@@ -176,8 +183,10 @@ public sealed class UserNotificationService : IUserNotificationService
 
         try
         {
-            var notification = await _context.UserNotifications
-                .FirstOrDefaultAsync(n => n.Id == notificationId.ToString(), ct);
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
+
+            var notification = await context.UserNotifications
+                .FirstOrDefaultAsync(n => n.Id == notificationId, ct);
 
             if (notification == null)
             {
@@ -185,16 +194,15 @@ public sealed class UserNotificationService : IUserNotificationService
                 return;
             }
 
-            if (notification.IsRead == 1)
+            if (notification.IsRead)
             {
                 _logger.LogDebug("Notification {NotificationId} already marked as read", notificationId);
                 return;
             }
 
-            notification.IsRead = 1;
-            notification.ReadAt = DateTime.UtcNow.ToString("O");
+            notification.IsRead = true;
 
-            await _context.SaveChangesAsync(ct);
+            await context.SaveChangesAsync(ct);
 
             _logger.LogInformation("Notification {NotificationId} marked as read", notificationId);
         }
@@ -211,8 +219,10 @@ public sealed class UserNotificationService : IUserNotificationService
 
         try
         {
-            var unreadNotifications = await _context.UserNotifications
-                .Where(n => n.UserId == userId.ToString() && n.IsRead == 0)
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
+
+            var unreadNotifications = await context.UserNotifications
+                .Where(n => n.UserId == userId && !n.IsRead)
                 .ToListAsync(ct);
 
             if (unreadNotifications.Count == 0)
@@ -221,14 +231,12 @@ public sealed class UserNotificationService : IUserNotificationService
                 return;
             }
 
-            var now = DateTime.UtcNow.ToString("O");
             foreach (var notification in unreadNotifications)
             {
-                notification.IsRead = 1;
-                notification.ReadAt = now;
+                notification.IsRead = true;
             }
 
-            await _context.SaveChangesAsync(ct);
+            await context.SaveChangesAsync(ct);
 
             _logger.LogInformation(
                 "Marked {Count} notifications as read for user {UserId}",
@@ -247,8 +255,10 @@ public sealed class UserNotificationService : IUserNotificationService
 
         try
         {
-            var notification = await _context.UserNotifications
-                .FirstOrDefaultAsync(n => n.Id == notificationId.ToString(), ct);
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
+
+            var notification = await context.UserNotifications
+                .FirstOrDefaultAsync(n => n.Id == notificationId, ct);
 
             if (notification == null)
             {
@@ -256,8 +266,8 @@ public sealed class UserNotificationService : IUserNotificationService
                 return;
             }
 
-            _context.UserNotifications.Remove(notification);
-            await _context.SaveChangesAsync(ct);
+            context.UserNotifications.Remove(notification);
+            await context.SaveChangesAsync(ct);
 
             _logger.LogInformation("Notification {NotificationId} deleted", notificationId);
         }
@@ -274,8 +284,10 @@ public sealed class UserNotificationService : IUserNotificationService
 
         try
         {
-            var notifications = await _context.UserNotifications
-                .Where(n => n.UserId == userId.ToString())
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
+
+            var notifications = await context.UserNotifications
+                .Where(n => n.UserId == userId)
                 .ToListAsync(ct);
 
             if (notifications.Count == 0)
@@ -284,8 +296,8 @@ public sealed class UserNotificationService : IUserNotificationService
                 return;
             }
 
-            _context.UserNotifications.RemoveRange(notifications);
-            await _context.SaveChangesAsync(ct);
+            context.UserNotifications.RemoveRange(notifications);
+            await context.SaveChangesAsync(ct);
 
             _logger.LogInformation(
                 "Deleted {Count} notifications for user {UserId}",
@@ -305,18 +317,22 @@ public sealed class UserNotificationService : IUserNotificationService
     {
         ArgumentNullException.ThrowIfNull(entity);
 
+        // Parse Type string to NotificationSeverity enum
+        if (!Enum.TryParse<NotificationSeverity>(entity.Type, out var severity))
+        {
+            severity = NotificationSeverity.Info; // Default fallback
+        }
+
         return new UserNotificationDto
         {
-            Id = Guid.Parse(entity.Id),
-            UserId = Guid.Parse(entity.UserId),
-            Type = (NotificationSeverity)entity.Type,
+            Id = entity.Id,
+            UserId = entity.UserId,
+            Type = severity,
             Title = entity.Title,
             Message = entity.Message,
-            IsRead = entity.IsRead == 1,
-            CreatedAt = DateTime.Parse(entity.CreatedAt),
-            ReadAt = string.IsNullOrWhiteSpace(entity.ReadAt)
-                ? null
-                : DateTime.Parse(entity.ReadAt)
+            IsRead = entity.IsRead,
+            CreatedAt = entity.CreatedAt,
+            ReadAt = null // ReadAt property no longer exists in entity
         };
     }
 }

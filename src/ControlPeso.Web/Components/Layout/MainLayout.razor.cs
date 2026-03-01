@@ -1,11 +1,12 @@
+using System.Security.Claims;
 using ControlPeso.Application.DTOs;
 using ControlPeso.Application.Interfaces;
+using ControlPeso.Web.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.Localization;
 using MudBlazor;
-using System.Security.Claims;
-using ControlPeso.Web.Services;
 
 namespace ControlPeso.Web.Components.Layout;
 
@@ -24,9 +25,11 @@ public partial class MainLayout : IDisposable
 
     private bool _drawerOpen = true;
     private bool _isDarkMode = true; // Estado del tema - default dark mode
+    private bool _isDisposed = false; // Protección contra render después de dispose
     private MudThemeProvider _themeProvider = null!; // Referencia al provider
     private UserDto? _currentUser;
     private bool _userMenuOpen = false; // Estado del menú de usuario
+    private ErrorBoundary? _errorBoundary; // ErrorBoundary para capturar excepciones de renderizado
 
     // Localized Properties
     private string AppTitle => Localizer[nameof(AppTitle)];
@@ -38,6 +41,11 @@ public partial class MainLayout : IDisposable
     private string ErrorTitle => Localizer[nameof(ErrorTitle)];
     private string ReloadButton => Localizer[nameof(ReloadButton)];
     private string DismissButton => Localizer[nameof(DismissButton)];
+
+    // ErrorBoundary Localized Properties
+    private string ErrorOccurred => Localizer[nameof(ErrorOccurred)];
+    private string ErrorInstructions => Localizer[nameof(ErrorInstructions)];
+    private string RetryButton => Localizer[nameof(RetryButton)];
 
     protected override async Task OnInitializedAsync()
     {
@@ -54,12 +62,17 @@ public partial class MainLayout : IDisposable
 
         try
         {
-            // Cargar preferencia de tema desde cookie
-            _isDarkMode = await ThemeService.GetUserThemePreferenceAsync();
-            Logger.LogInformation("MainLayout: Theme preference loaded - IsDarkMode: {IsDarkMode}", _isDarkMode);
+            // NO cargar tema aquí - se hará en OnAfterRenderAsync cuando JS interop esté disponible
+            // Durante prerendering (Blazor Server), JavaScript interop NO está disponible
 
             // Cargar usuario actual si está autenticado
             await LoadCurrentUserAsync();
+
+            // Cerrar drawer por defecto si el usuario NO está autenticado (seguridad)
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            _drawerOpen = authState.User.Identity?.IsAuthenticated ?? false;
+            Logger.LogInformation("MainLayout: Drawer initial state - IsOpen: {IsOpen}, IsAuthenticated: {IsAuth}",
+                _drawerOpen, authState.User.Identity?.IsAuthenticated ?? false);
         }
         catch (Exception ex)
         {
@@ -72,14 +85,31 @@ public partial class MainLayout : IDisposable
     /// <summary>
     /// Handler para cambios en el estado de autenticación.
     /// Se ejecuta cuando el usuario hace login/logout.
+    /// Protected against disposed component state.
     /// </summary>
     private async void OnAuthenticationStateChanged(Task<AuthenticationState> task)
     {
+        if (_isDisposed) return;
+
         try
         {
             Logger.LogInformation("MainLayout: Authentication state changed - reloading user");
+            var authState = await task;
+
+            // Cerrar drawer si el usuario hizo logout, abrirlo si hizo login
+            _drawerOpen = authState.User.Identity?.IsAuthenticated ?? false;
+            Logger.LogInformation("MainLayout: Drawer updated after auth change - IsOpen: {IsOpen}", _drawerOpen);
+
             await LoadCurrentUserAsync();
-            await InvokeAsync(StateHasChanged); // Forzar re-render
+
+            if (!_isDisposed)
+            {
+                await InvokeAsync(StateHasChanged); // Forzar re-render
+            }
+        }
+        catch (ObjectDisposedException)
+        {
+            Logger.LogDebug("MainLayout: Component disposed during auth state change - ignoring");
         }
         catch (Exception ex)
         {
@@ -90,9 +120,12 @@ public partial class MainLayout : IDisposable
     /// <summary>
     /// Handler para cambios en el perfil de usuario.
     /// Se ejecuta cuando el usuario actualiza su perfil (e.g., avatar).
+    /// Protected against disposed component state.
     /// </summary>
     private async void OnUserProfileUpdated(object? sender, UserDto updatedUser)
     {
+        if (_isDisposed) return;
+
         try
         {
             Logger.LogInformation("MainLayout: User profile updated - UserId: {UserId}, AvatarUrl: {AvatarUrl}",
@@ -101,7 +134,14 @@ public partial class MainLayout : IDisposable
             _currentUser = updatedUser;
             // No need for cache buster - avatar filename contains unique Guid
 
-            await InvokeAsync(StateHasChanged); // Force re-render
+            if (!_isDisposed)
+            {
+                await InvokeAsync(StateHasChanged); // Force re-render
+            }
+        }
+        catch (ObjectDisposedException)
+        {
+            Logger.LogDebug("MainLayout: Component disposed during profile update - ignoring");
         }
         catch (Exception ex)
         {
@@ -112,16 +152,26 @@ public partial class MainLayout : IDisposable
     /// <summary>
     /// Handler para cambios en el tema de usuario desde otros componentes (e.g., Profile page).
     /// Mantiene sincronizado el botón de AppBar con los switches de Profile.
+    /// Protected against disposed component state.
     /// </summary>
     private async void OnUserThemeUpdated(object? sender, bool isDarkMode)
     {
+        if (_isDisposed) return;
+
         try
         {
             Logger.LogInformation("MainLayout: User theme updated externally - IsDarkMode: {IsDarkMode}", isDarkMode);
 
             _isDarkMode = isDarkMode;
 
-            await InvokeAsync(StateHasChanged); // Force re-render
+            if (!_isDisposed)
+            {
+                await InvokeAsync(StateHasChanged); // Force re-render
+            }
+        }
+        catch (ObjectDisposedException)
+        {
+            Logger.LogDebug("MainLayout: Component disposed during theme update - ignoring");
         }
         catch (Exception ex)
         {
@@ -190,8 +240,11 @@ public partial class MainLayout : IDisposable
 
                     if (_currentUser != null)
                     {
-                        Logger.LogInformation("MainLayout: ✅ User loaded successfully - UserId: {UserId}, Name: {Name}, Email: {Email}, AvatarUrl: {AvatarUrl}", 
-                            userId, _currentUser.Name, _currentUser.Email, _currentUser.AvatarUrl ?? "(null)");
+                        Logger.LogInformation("MainLayout: ✅ User loaded successfully - UserId: {UserId}, Name: {Name}, Email: {Email}, AvatarUrl: {AvatarUrl}, UnitSystem: {UnitSystem}",
+                            userId, _currentUser.Name, _currentUser.Email, _currentUser.AvatarUrl ?? "(null)", _currentUser.UnitSystem);
+
+                        // Initialize global Unit System state
+                        UserStateService.SetCurrentUnitSystem(_currentUser.UnitSystem);
                     }
                     else
                     {
@@ -200,7 +253,7 @@ public partial class MainLayout : IDisposable
                 }
                 else
                 {
-                    Logger.LogWarning("MainLayout: ⚠️ User authenticated but UserId claim invalid - Claim: {Claim}", 
+                    Logger.LogWarning("MainLayout: ⚠️ User authenticated but UserId claim invalid - Claim: {Claim}",
                         userIdClaim ?? "(null)");
                     _currentUser = null;
                 }
@@ -220,10 +273,24 @@ public partial class MainLayout : IDisposable
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && _themeProvider != null)
+        if (firstRender)
         {
-            // Asegurar que el tema se aplica después del primer render
-            await InvokeAsync(StateHasChanged);
+            // CRÍTICO: Cargar tema SOLO en firstRender cuando JS interop está disponible
+            // Durante prerendering (Blazor Server), JavaScript interop NO está disponible
+            // Esta es la fase correcta del ciclo de vida para operaciones JS interop
+            try
+            {
+                _isDarkMode = await ThemeService.GetUserThemePreferenceAsync();
+                Logger.LogInformation("MainLayout: Theme preference loaded (after render) - IsDarkMode: {IsDarkMode}", _isDarkMode);
+
+                // Forzar re-render con el tema correcto cargado
+                await InvokeAsync(StateHasChanged);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "MainLayout: Error loading theme preference in OnAfterRenderAsync");
+                // Mantener default (dark mode) en caso de error
+            }
         }
 
         await base.OnAfterRenderAsync(firstRender);
@@ -265,10 +332,23 @@ public partial class MainLayout : IDisposable
     }
 
     /// <summary>
+    /// Recupera el ErrorBoundary después de un error de renderizado.
+    /// Permite al usuario reintentar sin recargar toda la página.
+    /// </summary>
+    private void RecoverFromError()
+    {
+        Logger.LogInformation("MainLayout: Recovering from ErrorBoundary - resetting error state");
+        _errorBoundary?.Recover();
+    }
+
+    /// <summary>
     /// Dispose pattern para desuscribirse de eventos.
     /// </summary>
     public void Dispose()
     {
+        // Mark as disposed FIRST to prevent any pending async operations
+        _isDisposed = true;
+
         AuthStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
         UserStateService.UserProfileUpdated -= OnUserProfileUpdated;
         UserStateService.UserThemeUpdated -= OnUserThemeUpdated;

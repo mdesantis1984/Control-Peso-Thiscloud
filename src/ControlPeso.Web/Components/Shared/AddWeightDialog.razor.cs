@@ -22,15 +22,15 @@ public partial class AddWeightDialog
     [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
     [Inject] private ILogger<AddWeightDialog> Logger { get; set; } = null!;
     [Inject] private Services.NotificationService Snackbar { get; set; } = null!; // User notification service con verificación de preferencias
+    [Inject] private Services.UserStateService UserStateService { get; set; } = null!;
 
     private MudForm? _form;
     private bool _isValid;
     private bool _isSubmitting;
-    private bool _isKg = true; // Toggle para kg/lb
+    private bool _isKg = true; // Toggle para kg/lb (initialized from user preferences)
 
     private DateTime? _date = DateTime.Today;
     private TimeSpan? _time = DateTime.Now.TimeOfDay;
-    private decimal _weight = 70;
     private string _weightText = "70.0"; // Texto del campo de peso
     private string _note = string.Empty;
 
@@ -57,7 +57,11 @@ public partial class AddWeightDialog
 
     protected override void OnInitialized()
     {
-        Logger.LogInformation("AddWeightDialog: Initialized");
+        // Initialize unit toggle from user's global preference
+        _isKg = UserStateService.CurrentUnitSystem == Domain.Enums.UnitSystem.Metric;
+
+        Logger.LogInformation("AddWeightDialog: Initialized with unit system {UnitSystem} (_isKg: {IsKg})", 
+            UserStateService.CurrentUnitSystem, _isKg);
     }
 
     /// <summary>
@@ -100,26 +104,30 @@ public partial class AddWeightDialog
                 return;
             }
 
-            // Parse weight from text field
-            if (!decimal.TryParse(_weightText, out var weightValue) || weightValue < 20 || weightValue > 500)
+            // Parse weight from text field (accept both comma and dot as decimal separator)
+            var normalizedWeight = _weightText.Replace(',', '.').Trim();
+            if (!decimal.TryParse(normalizedWeight, System.Globalization.NumberStyles.AllowDecimalPoint | System.Globalization.NumberStyles.AllowLeadingWhite | System.Globalization.NumberStyles.AllowTrailingWhite, System.Globalization.CultureInfo.InvariantCulture, out var weightValue) || weightValue < 20 || weightValue > 500)
             {
                 Logger.LogWarning("AddWeightDialog: Invalid weight value - Input: {WeightText}", _weightText);
                 Snackbar.Add(ErrorInvalidWeight, Severity.Error);
                 return;
             }
 
+            // Convert lb → kg if user entered in Imperial units (storage is always in kg)
+            var weightInKg = _isKg ? weightValue : weightValue / 2.20462m;
+
             var dto = new CreateWeightLogDto
             {
                 UserId = userId,
                 Date = DateOnly.FromDateTime(_date.Value),
                 Time = TimeOnly.FromTimeSpan(_time.Value),
-                Weight = weightValue,
+                Weight = weightInKg, // Always store in kg
                 DisplayUnit = _isKg ? WeightUnit.Kg : WeightUnit.Lb,
                 Note = string.IsNullOrWhiteSpace(_note) ? null : _note.Trim()
             };
 
-            Logger.LogInformation("AddWeightDialog: Creating weight log - User: {UserId}, Date: {Date}, Weight: {Weight}kg",
-                userId, dto.Date, dto.Weight);
+            Logger.LogInformation("AddWeightDialog: Creating weight log - User: {UserId}, Date: {Date}, Weight: {Weight}kg (input: {Input} {Unit})",
+                userId, dto.Date, dto.Weight, weightValue, _isKg ? "kg" : "lb");
 
             await WeightLogService.CreateAsync(dto);
 

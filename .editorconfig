@@ -144,3 +144,4 @@ dotnet_diagnostic.CA1303.severity = none # No requerir recursos para strings (de
 dotnet_diagnostic.CA1848.severity = none # High-performance logging (fase posterior)
 dotnet_diagnostic.IDE0005.severity = warning # Remove unnecessary usings
 dotnet_diagnostic.IDE0055.severity = warning # Fix formatting
+dotnet_diagnostic.MUD0002.severity = none # MudBlazor analyzer false positives (XAxisLabels, MaxWidth are valid)

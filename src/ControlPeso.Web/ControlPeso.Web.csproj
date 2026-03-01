@@ -27,6 +27,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>9c34c66c-b02e-4b13-b7c2-28cf7106d8a0</UserSecretsId>
+    <!-- Suppress MudBlazor analyzer false positives -->
+    <NoWarn>$(NoWarn);MUD0002</NoWarn>
   </PropertyGroup>
 
 </Project>

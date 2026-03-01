@@ -71,7 +71,7 @@ public static class AvatarHelper
 
         // Generate hash from name (case-insensitive)
         var hash = fullName.ToLowerInvariant().GetHashCode();
-        
+
         // Map to positive index
         var index = Math.Abs(hash) % MaterialColors.Length;
 

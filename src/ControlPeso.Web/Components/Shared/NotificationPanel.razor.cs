@@ -15,25 +15,25 @@ public partial class NotificationPanel : IDisposable
 {
     [Parameter]
     public bool IsOpen { get; set; }
-    
+
     [Parameter]
     public EventCallback<bool> IsOpenChanged { get; set; }
-    
+
     [Parameter]
     public EventCallback<int> OnUnreadCountChanged { get; set; }
-    
-    [Inject] 
+
+    [Inject]
     private IUserNotificationService NotificationService { get; set; } = null!;
-    
-    [Inject] 
+
+    [Inject]
     private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
-    
-    [Inject] 
+
+    [Inject]
     private ILogger<NotificationPanel> Logger { get; set; } = null!;
-    
+
     [Inject]
     private ISnackbar Snackbar { get; set; } = null!;
-    
+
     private bool _isLoading = true;
     private List<UserNotificationDto> _notifications = [];
     private Guid? _lastUserId = null;
@@ -69,7 +69,7 @@ public partial class NotificationPanel : IDisposable
         _lastUserId = null;
         await InvokeAsync(StateHasChanged);
     }
-    
+
     private async Task LoadNotificationsAsync()
     {
         _isLoading = true;
@@ -104,7 +104,7 @@ public partial class NotificationPanel : IDisposable
             _isLoading = false;
         }
     }
-    
+
     private Color GetSeverityColor(NotificationSeverity severity) => severity switch
     {
         NotificationSeverity.Normal => Color.Default,
@@ -114,7 +114,7 @@ public partial class NotificationPanel : IDisposable
         NotificationSeverity.Error => Color.Error,
         _ => Color.Default
     };
-    
+
     private string GetSeverityLabel(NotificationSeverity severity) => severity switch
     {
         NotificationSeverity.Normal => "Normal",
@@ -124,19 +124,19 @@ public partial class NotificationPanel : IDisposable
         NotificationSeverity.Error => "Error",
         _ => "Normal"
     };
-    
+
     private string GetNotificationClass(UserNotificationDto notification)
     {
-        return notification.IsRead 
-            ? "notification-read mud-theme-transparent" 
+        return notification.IsRead
+            ? "notification-read mud-theme-transparent"
             : "notification-unread mud-theme-primary-lighten";
     }
-    
+
     private string FormatTimestamp(DateTime createdAt)
     {
         var now = DateTime.UtcNow;
         var diff = now - createdAt;
-        
+
         if (diff.TotalMinutes < 1)
             return "Hace un momento";
         if (diff.TotalMinutes < 60)
@@ -145,22 +145,22 @@ public partial class NotificationPanel : IDisposable
             return $"Hace {(int)diff.TotalHours}h";
         if (diff.TotalDays < 7)
             return $"Hace {(int)diff.TotalDays}d";
-        
+
         return createdAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
     }
-    
+
     private async Task DeleteAsync(Guid notificationId)
     {
         try
         {
             await NotificationService.DeleteAsync(notificationId);
             _notifications.RemoveAll(n => n.Id == notificationId);
-            
+
             Logger.LogInformation("NotificationPanel: Deleted notification {NotificationId}", notificationId);
-            
+
             // Notificar cambio de contador
             await NotifyUnreadCountChangedAsync();
-            
+
             StateHasChanged();
         }
         catch (Exception ex)
@@ -169,22 +169,23 @@ public partial class NotificationPanel : IDisposable
             Snackbar.Add("Error al borrar notificación", Severity.Error);
         }
     }
-    
+
     private async Task DeleteAllAsync()
     {
         var userId = await GetUserIdAsync();
-        if (!userId.HasValue) return;
-        
+        if (!userId.HasValue)
+            return;
+
         try
         {
             await NotificationService.DeleteAllAsync(userId.Value);
             _notifications.Clear();
-            
+
             Logger.LogInformation("NotificationPanel: Deleted all notifications for user {UserId}", userId.Value);
-            
+
             // Notificar cambio de contador
             await NotifyUnreadCountChangedAsync();
-            
+
             StateHasChanged();
         }
         catch (Exception ex)
@@ -193,27 +194,28 @@ public partial class NotificationPanel : IDisposable
             Snackbar.Add("Error al borrar notificaciones", Severity.Error);
         }
     }
-    
+
     private async Task MarkAllAsReadAsync()
     {
         var userId = await GetUserIdAsync();
-        if (!userId.HasValue) return;
-        
+        if (!userId.HasValue)
+            return;
+
         try
         {
             await NotificationService.MarkAllAsReadAsync(userId.Value);
-            
+
             foreach (var notification in _notifications)
             {
                 notification.IsRead = true;
                 notification.ReadAt = DateTime.UtcNow;
             }
-            
+
             Logger.LogInformation("NotificationPanel: Marked all notifications as read for user {UserId}", userId.Value);
-            
+
             // Notificar cambio de contador
             await NotifyUnreadCountChangedAsync();
-            
+
             StateHasChanged();
         }
         catch (Exception ex)
@@ -222,33 +224,33 @@ public partial class NotificationPanel : IDisposable
             Snackbar.Add("Error al marcar notificaciones como leídas", Severity.Error);
         }
     }
-    
+
     private async Task NotifyUnreadCountChangedAsync()
     {
         var unreadCount = _notifications.Count(n => !n.IsRead);
-        
+
         if (OnUnreadCountChanged.HasDelegate)
         {
             await OnUnreadCountChanged.InvokeAsync(unreadCount);
         }
     }
-    
+
     private async Task<Guid?> GetUserIdAsync()
     {
         try
         {
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-            
+
             if (authState.User.Identity?.IsAuthenticated ?? false)
             {
                 var userIdClaim = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                
+
                 if (!string.IsNullOrWhiteSpace(userIdClaim) && Guid.TryParse(userIdClaim, out var userId))
                 {
                     return userId;
                 }
             }
-            
+
             return null;
         }
         catch (Exception ex)
@@ -257,7 +259,7 @@ public partial class NotificationPanel : IDisposable
             return null;
         }
     }
-    
+
     public void Dispose()
     {
         AuthStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;

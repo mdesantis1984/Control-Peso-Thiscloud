@@ -1,6 +1,6 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Localization;
-using System.Diagnostics;
 
 namespace ControlPeso.Web.Components.Pages;
 

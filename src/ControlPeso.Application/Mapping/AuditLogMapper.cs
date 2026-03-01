@@ -18,14 +18,14 @@ public static class AuditLogMapper
 
         return new AuditLogDto
         {
-            Id = Guid.Parse(entity.Id),
-            UserId = Guid.Parse(entity.UserId),
+            Id = entity.Id,
+            UserId = entity.UserId,
             Action = entity.Action,
             EntityType = entity.EntityType,
             EntityId = Guid.Parse(entity.EntityId),
             OldValue = entity.OldValue,
             NewValue = entity.NewValue,
-            CreatedAt = DateTime.Parse(entity.CreatedAt)
+            CreatedAt = entity.CreatedAt
         };
     }
 
@@ -45,14 +45,14 @@ public static class AuditLogMapper
 
         return new AuditLog
         {
-            Id = Guid.NewGuid().ToString(),
-            UserId = userId.ToString(),
+            Id = Guid.NewGuid(),
+            UserId = userId,
             Action = action,
             EntityType = entityType,
             EntityId = entityId.ToString(),
             OldValue = oldValue,
             NewValue = newValue,
-            CreatedAt = DateTime.UtcNow.ToString("O")
+            CreatedAt = DateTime.UtcNow
         };
     }
 }

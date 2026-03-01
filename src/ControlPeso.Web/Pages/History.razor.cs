@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using ControlPeso.Application.DTOs;
 using ControlPeso.Application.Filters;
 using ControlPeso.Application.Interfaces;
@@ -7,7 +8,6 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Localization;
 using MudBlazor;
-using System.Security.Claims;
 using AppDateRange = ControlPeso.Application.Filters.DateRange;
 
 namespace ControlPeso.Web.Pages;
@@ -20,6 +20,7 @@ public partial class History
     [Inject] private IDialogService DialogService { get; set; } = null!;
     [Inject] private ILogger<History> Logger { get; set; } = null!;
     [Inject] private Services.NotificationService Snackbar { get; set; } = null!;
+    [Inject] private Services.UserStateService UserStateService { get; set; } = null!;
 
     private MudDataGrid<WeightLogDto>? _grid;
     private bool _isLoading;
@@ -32,6 +33,20 @@ public partial class History
     private decimal? _averageWeight;
     private decimal? _minWeight;
     private decimal? _maxWeight;
+
+    // ========================================================================
+    // UNIT CONVERSION HELPERS
+    // ========================================================================
+
+    /// <summary>
+    /// Converts weight from kg (storage format) to user's preferred unit (kg or lb).
+    /// </summary>
+    private decimal ConvertedWeight(decimal weightInKg) => UserStateService.ConvertWeight(weightInKg);
+
+    /// <summary>
+    /// Gets the weight unit label based on user's preference (kg or lb).
+    /// </summary>
+    private string WeightUnit => UserStateService.GetWeightUnitLabel();
 
     // ========================================================================
     // LOCALIZED STRINGS
@@ -117,6 +132,7 @@ public partial class History
                     UserId = userId,
                     Page = state.Page + 1,
                     PageSize = state.PageSize,
+                    SearchTerm = !string.IsNullOrWhiteSpace(_searchText) ? _searchText : null,
                     DateRange = new AppDateRange
                     {
                         StartDate = _dateFrom.HasValue ? DateOnly.FromDateTime(_dateFrom.Value) : DateOnly.MinValue,
@@ -130,7 +146,8 @@ public partial class History
                 {
                     UserId = userId,
                     Page = state.Page + 1,
-                    PageSize = state.PageSize
+                    PageSize = state.PageSize,
+                    SearchTerm = !string.IsNullOrWhiteSpace(_searchText) ? _searchText : null
                 };
             }
 
@@ -217,9 +234,29 @@ public partial class History
     {
         Logger.LogInformation("Opening edit dialog for weight log {WeightLogId}", weightLog.Id);
 
-        // TODO: Implementar EditWeightDialog cuando esté disponible
-        Snackbar.Add(EditFeatureComingSoon, Severity.Info);
-        await Task.CompletedTask;
+        var parameters = new DialogParameters
+        {
+            ["WeightLog"] = weightLog
+        };
+
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Small,
+            CloseOnEscapeKey = true
+        };
+
+        var dialog = await DialogService.ShowAsync<EditWeightDialog>(
+            string.Empty, // Title is inside component
+            parameters,
+            options);
+
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && _grid is not null)
+        {
+            Logger.LogInformation("Edit dialog confirmed, reloading grid");
+            await _grid.ReloadServerData();
+        }
     }
 
     private async Task DeleteWeight(WeightLogDto weightLog)

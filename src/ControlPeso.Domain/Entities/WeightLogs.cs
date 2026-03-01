@@ -1,19 +1,16 @@
-using System;
-using System.Collections.Generic;
-
 namespace ControlPeso.Domain.Entities;
 
 public partial class WeightLogs
 {
-    public string Id { get; set; } = null!;
+    public Guid Id { get; set; }
 
-    public string UserId { get; set; } = null!;
+    public Guid UserId { get; set; }
 
-    public string Date { get; set; } = null!;
+    public DateOnly Date { get; set; }
 
-    public string Time { get; set; } = null!;
+    public TimeOnly Time { get; set; }
 
-    public double Weight { get; set; }
+    public decimal Weight { get; set; }
 
     public int DisplayUnit { get; set; }
 
@@ -21,7 +18,7 @@ public partial class WeightLogs
 
     public int Trend { get; set; }
 
-    public string CreatedAt { get; set; } = null!;
+    public DateTime CreatedAt { get; set; }
 
     public virtual Users User { get; set; } = null!;
 }

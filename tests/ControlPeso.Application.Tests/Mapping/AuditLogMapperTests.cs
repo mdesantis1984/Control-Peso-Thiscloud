@@ -12,25 +12,25 @@ public sealed class AuditLogMapperTests
         // Arrange
         var entity = new AuditLog
         {
-            Id = Guid.NewGuid().ToString(),
-            UserId = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid(),
+            UserId = Guid.NewGuid(),
             Action = "UserRoleChanged",
             EntityType = "User",
             EntityId = Guid.NewGuid().ToString(),
             OldValue = "{\"Role\":0}",
             NewValue = "{\"Role\":1}",
-            CreatedAt = "2026-02-17T14:30:00.0000000Z"
+            CreatedAt = DateTime.Parse("2026-02-17T14:30:00.0000000Z")
         };
 
         // Act
         var dto = AuditLogMapper.ToDto(entity);
 
         // Assert
-        dto.Id.Should().Be(Guid.Parse(entity.Id));
-        dto.UserId.Should().Be(Guid.Parse(entity.UserId));
+        dto.Id.Should().Be(entity.Id);
+        dto.UserId.Should().Be(entity.UserId);
         dto.Action.Should().Be("UserRoleChanged");
         dto.EntityType.Should().Be("User");
-        dto.EntityId.Should().Be(Guid.Parse(entity.EntityId));
+        dto.EntityId.Should().Be(entity.EntityId);
         dto.OldValue.Should().Be("{\"Role\":0}");
         dto.NewValue.Should().Be("{\"Role\":1}");
         dto.CreatedAt.Should().Be(DateTime.Parse("2026-02-17T14:30:00.0000000Z"));
@@ -42,14 +42,14 @@ public sealed class AuditLogMapperTests
         // Arrange
         var entity = new AuditLog
         {
-            Id = Guid.NewGuid().ToString(),
-            UserId = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid(),
+            UserId = Guid.NewGuid(),
             Action = "UserCreated",
             EntityType = "User",
             EntityId = Guid.NewGuid().ToString(),
             OldValue = null,
             NewValue = "{\"Name\":\"New User\"}",
-            CreatedAt = "2026-02-17T14:30:00.0000000Z"
+            CreatedAt = DateTime.Parse("2026-02-17T14:30:00.0000000Z")
         };
 
         // Act
@@ -66,14 +66,14 @@ public sealed class AuditLogMapperTests
         // Arrange
         var entity = new AuditLog
         {
-            Id = Guid.NewGuid().ToString(),
-            UserId = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid(),
+            UserId = Guid.NewGuid(),
             Action = "UserDeleted",
             EntityType = "User",
             EntityId = Guid.NewGuid().ToString(),
             OldValue = "{\"Name\":\"Deleted User\"}",
             NewValue = null,
-            CreatedAt = "2026-02-17T14:30:00.0000000Z"
+            CreatedAt = DateTime.Parse("2026-02-17T14:30:00.0000000Z")
         };
 
         // Act
@@ -118,16 +118,14 @@ public sealed class AuditLogMapperTests
             newValue);
 
         // Assert
-        Guid.TryParse(entity.Id, out var id).Should().BeTrue();
-        id.Should().NotBeEmpty();
-        entity.UserId.Should().Be(userId.ToString());
+        entity.Id.Should().NotBeEmpty();
+        entity.UserId.Should().Be(userId);
         entity.Action.Should().Be(action);
         entity.EntityType.Should().Be(entityType);
         entity.EntityId.Should().Be(entityId.ToString());
         entity.OldValue.Should().Be(oldValue);
         entity.NewValue.Should().Be(newValue);
-        DateTime.TryParse(entity.CreatedAt, out var createdAt).Should().BeTrue();
-        createdAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromHours(2));
+        entity.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromHours(2));
     }
 
     [Fact]

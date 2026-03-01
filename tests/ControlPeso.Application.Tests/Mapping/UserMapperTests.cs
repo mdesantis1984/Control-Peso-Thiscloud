@@ -14,29 +14,29 @@ public sealed class UserMapperTests
         // Arrange
         var entity = new Users
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid(),
             GoogleId = "google123",
             Name = "Test User",
             Email = "test@example.com",
             Role = (int)UserRole.User,
             AvatarUrl = "https://example.com/avatar.jpg",
-            MemberSince = "2026-01-01T00:00:00.0000000Z",
-            Height = 175.0,
+            MemberSince = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
+            Height = 175.0m,
             UnitSystem = (int)UnitSystem.Metric,
-            DateOfBirth = "1990-05-15",
+            DateOfBirth = new DateOnly(1990, 05, 15),
             Language = "es",
             Status = (int)UserStatus.Active,
-            GoalWeight = 70.0,
-            StartingWeight = 80.0,
-            CreatedAt = "2026-01-01T00:00:00.0000000Z",
-            UpdatedAt = "2026-02-17T14:30:00.0000000Z"
+            GoalWeight = 70.0m,
+            StartingWeight = 80.0m,
+            CreatedAt = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
+            UpdatedAt = DateTime.Parse("2026-02-17T14:30:00.0000000Z")
         };
 
         // Act
         var dto = UserMapper.ToDto(entity);
 
         // Assert
-        dto.Id.Should().Be(Guid.Parse(entity.Id));
+        dto.Id.Should().Be(entity.Id);
         dto.GoogleId.Should().Be("google123");
         dto.Name.Should().Be("Test User");
         dto.Email.Should().Be("test@example.com");
@@ -60,22 +60,22 @@ public sealed class UserMapperTests
         // Arrange
         var entity = new Users
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid(),
             GoogleId = "google123",
             Name = "Test User",
             Email = "test@example.com",
             Role = (int)UserRole.User,
             AvatarUrl = null,
-            MemberSince = "2026-01-01T00:00:00.0000000Z",
-            Height = 170.0,
+            MemberSince = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
+            Height = 170.0m,
             UnitSystem = (int)UnitSystem.Metric,
             DateOfBirth = null,
             Language = "es",
             Status = (int)UserStatus.Active,
             GoalWeight = null,
             StartingWeight = null,
-            CreatedAt = "2026-01-01T00:00:00.0000000Z",
-            UpdatedAt = "2026-01-01T00:00:00.0000000Z"
+            CreatedAt = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
+            UpdatedAt = DateTime.Parse("2026-01-01T00:00:00.0000000Z")
         };
 
         // Act
@@ -117,26 +117,22 @@ public sealed class UserMapperTests
         var entity = UserMapper.ToEntity(info);
 
         // Assert
-        Guid.TryParse(entity.Id, out var id).Should().BeTrue();
-        id.Should().NotBeEmpty();
+        entity.Id.Should().NotBeEmpty();
         entity.GoogleId.Should().Be("google123");
         entity.Name.Should().Be("New User");
         entity.Email.Should().Be("newuser@example.com");
         entity.Role.Should().Be((int)UserRole.User);
         entity.AvatarUrl.Should().Be("https://example.com/avatar.jpg");
-        entity.Height.Should().Be(170.0);
+        entity.Height.Should().Be(170.0m);
         entity.UnitSystem.Should().Be((int)UnitSystem.Metric);
         entity.DateOfBirth.Should().BeNull();
         entity.Language.Should().Be("es");
         entity.Status.Should().Be((int)UserStatus.Active);
         entity.GoalWeight.Should().BeNull();
         entity.StartingWeight.Should().BeNull();
-        DateTime.TryParse(entity.MemberSince, out var memberSince).Should().BeTrue();
-        memberSince.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromHours(2));
-        DateTime.TryParse(entity.CreatedAt, out var createdAt).Should().BeTrue();
-        createdAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromHours(2));
-        DateTime.TryParse(entity.UpdatedAt, out var updatedAt).Should().BeTrue();
-        updatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromHours(2));
+        entity.MemberSince.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromHours(2));
+        entity.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromHours(2));
+        entity.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromHours(2));
     }
 
     [Fact]
@@ -156,13 +152,13 @@ public sealed class UserMapperTests
     public void UpdateEntity_WithValidData_ShouldUpdateOnlyEditableFields()
     {
         // Arrange
-        var originalId = Guid.NewGuid().ToString();
+        var originalId = Guid.NewGuid();
         var originalGoogleId = "google123";
         var originalEmail = "original@example.com";
         var originalRole = (int)UserRole.Administrator;
-        var originalMemberSince = "2026-01-01T00:00:00.0000000Z";
+        var originalMemberSince = DateTime.Parse("2026-01-01T00:00:00.0000000Z");
         var originalStatus = (int)UserStatus.Active;
-        var originalCreatedAt = "2026-01-01T00:00:00.0000000Z";
+        var originalCreatedAt = DateTime.Parse("2026-01-01T00:00:00.0000000Z");
 
         var entity = new Users
         {
@@ -173,7 +169,7 @@ public sealed class UserMapperTests
             Role = originalRole,
             AvatarUrl = "https://example.com/old-avatar.jpg",
             MemberSince = originalMemberSince,
-            Height = 170.0,
+            Height = 170.0m,
             UnitSystem = (int)UnitSystem.Metric,
             DateOfBirth = null,
             Language = "en",
@@ -181,7 +177,7 @@ public sealed class UserMapperTests
             GoalWeight = null,
             StartingWeight = null,
             CreatedAt = originalCreatedAt,
-            UpdatedAt = "2026-02-01T00:00:00.0000000Z"
+            UpdatedAt = DateTime.Parse("2026-02-01T00:00:00.0000000Z")
         };
 
         var updateDto = new UpdateUserProfileDto
@@ -200,13 +196,12 @@ public sealed class UserMapperTests
         // Assert
         // Should update these fields
         entity.Name.Should().Be("Updated Name");
-        entity.Height.Should().Be(180.0);
+        entity.Height.Should().Be(180.0m);
         entity.UnitSystem.Should().Be((int)UnitSystem.Imperial);
-        entity.DateOfBirth.Should().Be("1990-05-15");
+        entity.DateOfBirth.Should().Be(new DateOnly(1990, 5, 15));
         entity.Language.Should().Be("es");
-        entity.GoalWeight.Should().Be(75.0);
-        entity.UpdatedAt.Should().NotBe("2026-02-01T00:00:00.0000000Z");
-        DateTime.TryParse(entity.UpdatedAt, out _).Should().BeTrue();
+        entity.GoalWeight.Should().Be(75.0m);
+        entity.UpdatedAt.Should().NotBe(DateTime.Parse("2026-02-01T00:00:00.0000000Z"));
 
         // Should NOT modify these fields
         entity.Id.Should().Be(originalId);
@@ -246,22 +241,22 @@ public sealed class UserMapperTests
         // Arrange
         var entity = new Users
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid(),
             GoogleId = "google123",
             Name = "Test User",
             Email = "test@example.com",
             Role = (int)UserRole.User,
             AvatarUrl = null,
-            MemberSince = "2026-01-01T00:00:00.0000000Z",
-            Height = 170.0,
+            MemberSince = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
+            Height = 170.0m,
             UnitSystem = (int)UnitSystem.Metric,
             DateOfBirth = null,
             Language = "es",
             Status = (int)UserStatus.Active,
             GoalWeight = null,
             StartingWeight = null,
-            CreatedAt = "2026-01-01T00:00:00.0000000Z",
-            UpdatedAt = "2026-01-01T00:00:00.0000000Z"
+            CreatedAt = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
+            UpdatedAt = DateTime.Parse("2026-01-01T00:00:00.0000000Z")
         };
         UpdateUserProfileDto? dto = null;
 
@@ -276,24 +271,24 @@ public sealed class UserMapperTests
     public void UpdateFromGoogle_WhenNameChanged_ShouldUpdateNameAndTimestamp()
     {
         // Arrange
-        var originalUpdatedAt = "2026-02-01T00:00:00.0000000Z";
+        var originalUpdatedAt = DateTime.Parse("2026-02-01T00:00:00.0000000Z");
         var entity = new Users
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid(),
             GoogleId = "google123",
             Name = "Old Name",
             Email = "test@example.com",
             Role = (int)UserRole.User,
             AvatarUrl = "https://example.com/avatar.jpg",
-            MemberSince = "2026-01-01T00:00:00.0000000Z",
-            Height = 170.0,
+            MemberSince = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
+            Height = 170.0m,
             UnitSystem = (int)UnitSystem.Metric,
             DateOfBirth = null,
             Language = "es",
             Status = (int)UserStatus.Active,
             GoalWeight = null,
             StartingWeight = null,
-            CreatedAt = "2026-01-01T00:00:00.0000000Z",
+            CreatedAt = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
             UpdatedAt = originalUpdatedAt
         };
 
@@ -311,31 +306,30 @@ public sealed class UserMapperTests
         // Assert
         entity.Name.Should().Be("New Name");
         entity.UpdatedAt.Should().NotBe(originalUpdatedAt);
-        DateTime.TryParse(entity.UpdatedAt, out _).Should().BeTrue();
     }
 
     [Fact]
     public void UpdateFromGoogle_WhenAvatarChanged_ShouldUpdateAvatarAndTimestamp()
     {
         // Arrange
-        var originalUpdatedAt = "2026-02-01T00:00:00.0000000Z";
+        var originalUpdatedAt = DateTime.Parse("2026-02-01T00:00:00.0000000Z");
         var entity = new Users
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid(),
             GoogleId = "google123",
             Name = "Test User",
             Email = "test@example.com",
             Role = (int)UserRole.User,
             AvatarUrl = "https://example.com/old-avatar.jpg",
-            MemberSince = "2026-01-01T00:00:00.0000000Z",
-            Height = 170.0,
+            MemberSince = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
+            Height = 170.0m,
             UnitSystem = (int)UnitSystem.Metric,
             DateOfBirth = null,
             Language = "es",
             Status = (int)UserStatus.Active,
             GoalWeight = null,
             StartingWeight = null,
-            CreatedAt = "2026-01-01T00:00:00.0000000Z",
+            CreatedAt = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
             UpdatedAt = originalUpdatedAt
         };
 
@@ -353,31 +347,30 @@ public sealed class UserMapperTests
         // Assert
         entity.AvatarUrl.Should().Be("https://example.com/new-avatar.jpg");
         entity.UpdatedAt.Should().NotBe(originalUpdatedAt);
-        DateTime.TryParse(entity.UpdatedAt, out _).Should().BeTrue();
     }
 
     [Fact]
     public void UpdateFromGoogle_WhenNothingChanged_ShouldNotUpdateTimestamp()
     {
         // Arrange
-        var originalUpdatedAt = "2026-02-01T00:00:00.0000000Z";
+        var originalUpdatedAt = DateTime.Parse("2026-02-01T00:00:00.0000000Z");
         var entity = new Users
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid(),
             GoogleId = "google123",
             Name = "Test User",
             Email = "test@example.com",
             Role = (int)UserRole.User,
             AvatarUrl = "https://example.com/avatar.jpg",
-            MemberSince = "2026-01-01T00:00:00.0000000Z",
-            Height = 170.0,
+            MemberSince = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
+            Height = 170.0m,
             UnitSystem = (int)UnitSystem.Metric,
             DateOfBirth = null,
             Language = "es",
             Status = (int)UserStatus.Active,
             GoalWeight = null,
             StartingWeight = null,
-            CreatedAt = "2026-01-01T00:00:00.0000000Z",
+            CreatedAt = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
             UpdatedAt = originalUpdatedAt
         };
 
@@ -424,22 +417,22 @@ public sealed class UserMapperTests
         // Arrange
         var entity = new Users
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid(),
             GoogleId = "google123",
             Name = "Test User",
             Email = "test@example.com",
             Role = (int)UserRole.User,
             AvatarUrl = null,
-            MemberSince = "2026-01-01T00:00:00.0000000Z",
-            Height = 170.0,
+            MemberSince = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
+            Height = 170.0m,
             UnitSystem = (int)UnitSystem.Metric,
             DateOfBirth = null,
             Language = "es",
             Status = (int)UserStatus.Active,
             GoalWeight = null,
             StartingWeight = null,
-            CreatedAt = "2026-01-01T00:00:00.0000000Z",
-            UpdatedAt = "2026-01-01T00:00:00.0000000Z"
+            CreatedAt = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
+            UpdatedAt = DateTime.Parse("2026-01-01T00:00:00.0000000Z")
         };
         GoogleUserInfo? info = null;
 
@@ -469,27 +462,23 @@ public sealed class UserMapperTests
         var entity = UserMapper.ToEntity(info);
 
         // Assert
-        Guid.TryParse(entity.Id, out var id).Should().BeTrue();
-        id.Should().NotBeEmpty();
+        entity.Id.Should().NotBeEmpty();
         entity.GoogleId.Should().Be("google123");
         entity.LinkedInId.Should().BeNull();
         entity.Name.Should().Be("New User");
         entity.Email.Should().Be("newuser@example.com");
         entity.Role.Should().Be((int)UserRole.User);
         entity.AvatarUrl.Should().Be("https://example.com/avatar.jpg");
-        entity.Height.Should().Be(170.0);
+        entity.Height.Should().Be(170.0m);
         entity.UnitSystem.Should().Be((int)UnitSystem.Metric);
         entity.DateOfBirth.Should().BeNull();
         entity.Language.Should().Be("es");
         entity.Status.Should().Be((int)UserStatus.Active);
         entity.GoalWeight.Should().BeNull();
         entity.StartingWeight.Should().BeNull();
-        DateTime.TryParse(entity.MemberSince, out var memberSince).Should().BeTrue();
-        memberSince.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromHours(2));
-        DateTime.TryParse(entity.CreatedAt, out var createdAt).Should().BeTrue();
-        createdAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromHours(2));
-        DateTime.TryParse(entity.UpdatedAt, out var updatedAt).Should().BeTrue();
-        updatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromHours(2));
+        entity.MemberSince.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromHours(2));
+        entity.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromHours(2));
+        entity.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromHours(2));
     }
 
     [Fact]
@@ -509,8 +498,7 @@ public sealed class UserMapperTests
         var entity = UserMapper.ToEntity(info);
 
         // Assert
-        Guid.TryParse(entity.Id, out var id).Should().BeTrue();
-        id.Should().NotBeEmpty();
+        entity.Id.Should().NotBeEmpty();
         entity.GoogleId.Should().BeNull();
         entity.LinkedInId.Should().Be("linkedin123");
         entity.Name.Should().Be("LinkedIn User");
@@ -659,24 +647,24 @@ public sealed class UserMapperTests
     public void UpdateFromOAuth_WhenNameChanged_ShouldUpdateNameAndTimestamp()
     {
         // Arrange
-        var originalUpdatedAt = "2026-02-01T00:00:00.0000000Z";
+        var originalUpdatedAt = DateTime.Parse("2026-02-01T00:00:00.0000000Z");
         var entity = new Users
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid(),
             GoogleId = "google123",
             Name = "Old Name",
             Email = "test@example.com",
             Role = (int)UserRole.User,
             AvatarUrl = "https://example.com/avatar.jpg",
-            MemberSince = "2026-01-01T00:00:00.0000000Z",
-            Height = 170.0,
+            MemberSince = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
+            Height = 170.0m,
             UnitSystem = (int)UnitSystem.Metric,
             DateOfBirth = null,
             Language = "es",
             Status = (int)UserStatus.Active,
             GoalWeight = null,
             StartingWeight = null,
-            CreatedAt = "2026-01-01T00:00:00.0000000Z",
+            CreatedAt = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
             UpdatedAt = originalUpdatedAt
         };
 
@@ -695,31 +683,30 @@ public sealed class UserMapperTests
         // Assert
         entity.Name.Should().Be("New Name");
         entity.UpdatedAt.Should().NotBe(originalUpdatedAt);
-        DateTime.TryParse(entity.UpdatedAt, out _).Should().BeTrue();
     }
 
     [Fact]
     public void UpdateFromOAuth_WhenEmailChanged_ShouldUpdateEmailAndTimestamp()
     {
         // Arrange
-        var originalUpdatedAt = "2026-02-01T00:00:00.0000000Z";
+        var originalUpdatedAt = DateTime.Parse("2026-02-01T00:00:00.0000000Z");
         var entity = new Users
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid(),
             GoogleId = "google123",
             Name = "Test User",
             Email = "old@example.com",
             Role = (int)UserRole.User,
             AvatarUrl = "https://example.com/avatar.jpg",
-            MemberSince = "2026-01-01T00:00:00.0000000Z",
-            Height = 170.0,
+            MemberSince = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
+            Height = 170.0m,
             UnitSystem = (int)UnitSystem.Metric,
             DateOfBirth = null,
             Language = "es",
             Status = (int)UserStatus.Active,
             GoalWeight = null,
             StartingWeight = null,
-            CreatedAt = "2026-01-01T00:00:00.0000000Z",
+            CreatedAt = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
             UpdatedAt = originalUpdatedAt
         };
 
@@ -738,31 +725,30 @@ public sealed class UserMapperTests
         // Assert
         entity.Email.Should().Be("new@example.com");
         entity.UpdatedAt.Should().NotBe(originalUpdatedAt);
-        DateTime.TryParse(entity.UpdatedAt, out _).Should().BeTrue();
     }
 
     [Fact]
     public void UpdateFromOAuth_WhenAvatarChanged_ShouldUpdateAvatarAndTimestamp()
     {
         // Arrange
-        var originalUpdatedAt = "2026-02-01T00:00:00.0000000Z";
+        var originalUpdatedAt = DateTime.Parse("2026-02-01T00:00:00.0000000Z");
         var entity = new Users
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid(),
             GoogleId = "google123",
             Name = "Test User",
             Email = "test@example.com",
             Role = (int)UserRole.User,
             AvatarUrl = "https://example.com/old-avatar.jpg",
-            MemberSince = "2026-01-01T00:00:00.0000000Z",
-            Height = 170.0,
+            MemberSince = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
+            Height = 170.0m,
             UnitSystem = (int)UnitSystem.Metric,
             DateOfBirth = null,
             Language = "es",
             Status = (int)UserStatus.Active,
             GoalWeight = null,
             StartingWeight = null,
-            CreatedAt = "2026-01-01T00:00:00.0000000Z",
+            CreatedAt = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
             UpdatedAt = originalUpdatedAt
         };
 
@@ -781,32 +767,31 @@ public sealed class UserMapperTests
         // Assert
         entity.AvatarUrl.Should().Be("https://example.com/new-avatar.jpg");
         entity.UpdatedAt.Should().NotBe(originalUpdatedAt);
-        DateTime.TryParse(entity.UpdatedAt, out _).Should().BeTrue();
     }
 
     [Fact]
     public void UpdateFromOAuth_WithCustomAvatar_ShouldPreserveCustomAvatarAndNotUpdate()
     {
         // Arrange
-        var originalUpdatedAt = "2026-02-01T00:00:00.0000000Z";
+        var originalUpdatedAt = DateTime.Parse("2026-02-01T00:00:00.0000000Z");
         var customAvatarUrl = "/uploads/avatars/custom-avatar-123.jpg";
         var entity = new Users
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid(),
             GoogleId = "google123",
             Name = "Test User",
             Email = "test@example.com",
             Role = (int)UserRole.User,
             AvatarUrl = customAvatarUrl,
-            MemberSince = "2026-01-01T00:00:00.0000000Z",
-            Height = 170.0,
+            MemberSince = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
+            Height = 170.0m,
             UnitSystem = (int)UnitSystem.Metric,
             DateOfBirth = null,
             Language = "es",
             Status = (int)UserStatus.Active,
             GoalWeight = null,
             StartingWeight = null,
-            CreatedAt = "2026-01-01T00:00:00.0000000Z",
+            CreatedAt = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
             UpdatedAt = originalUpdatedAt
         };
 
@@ -831,25 +816,25 @@ public sealed class UserMapperTests
     public void UpdateFromOAuth_WithCustomAvatarButNameChanged_ShouldPreserveAvatarButUpdateTimestamp()
     {
         // Arrange
-        var originalUpdatedAt = "2026-02-01T00:00:00.0000000Z";
+        var originalUpdatedAt = DateTime.Parse("2026-02-01T00:00:00.0000000Z");
         var customAvatarUrl = "/uploads/avatars/custom-avatar-123.jpg";
         var entity = new Users
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid(),
             GoogleId = "google123",
             Name = "Old Name",
             Email = "test@example.com",
             Role = (int)UserRole.User,
             AvatarUrl = customAvatarUrl,
-            MemberSince = "2026-01-01T00:00:00.0000000Z",
-            Height = 170.0,
+            MemberSince = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
+            Height = 170.0m,
             UnitSystem = (int)UnitSystem.Metric,
             DateOfBirth = null,
             Language = "es",
             Status = (int)UserStatus.Active,
             GoalWeight = null,
             StartingWeight = null,
-            CreatedAt = "2026-01-01T00:00:00.0000000Z",
+            CreatedAt = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
             UpdatedAt = originalUpdatedAt
         };
 
@@ -869,31 +854,30 @@ public sealed class UserMapperTests
         entity.Name.Should().Be("New Name");
         entity.AvatarUrl.Should().Be(customAvatarUrl); // Preserves custom avatar
         entity.UpdatedAt.Should().NotBe(originalUpdatedAt); // Timestamp updated because name changed
-        DateTime.TryParse(entity.UpdatedAt, out _).Should().BeTrue();
     }
 
     [Fact]
     public void UpdateFromOAuth_WhenNothingChanged_ShouldNotUpdateTimestamp()
     {
         // Arrange
-        var originalUpdatedAt = "2026-02-01T00:00:00.0000000Z";
+        var originalUpdatedAt = DateTime.Parse("2026-02-01T00:00:00.0000000Z");
         var entity = new Users
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid(),
             GoogleId = "google123",
             Name = "Test User",
             Email = "test@example.com",
             Role = (int)UserRole.User,
             AvatarUrl = "https://example.com/avatar.jpg",
-            MemberSince = "2026-01-01T00:00:00.0000000Z",
-            Height = 170.0,
+            MemberSince = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
+            Height = 170.0m,
             UnitSystem = (int)UnitSystem.Metric,
             DateOfBirth = null,
             Language = "es",
             Status = (int)UserStatus.Active,
             GoalWeight = null,
             StartingWeight = null,
-            CreatedAt = "2026-01-01T00:00:00.0000000Z",
+            CreatedAt = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
             UpdatedAt = originalUpdatedAt
         };
 
@@ -943,22 +927,22 @@ public sealed class UserMapperTests
         // Arrange
         var entity = new Users
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid(),
             GoogleId = "google123",
             Name = "Test User",
             Email = "test@example.com",
             Role = (int)UserRole.User,
             AvatarUrl = null,
-            MemberSince = "2026-01-01T00:00:00.0000000Z",
-            Height = 170.0,
+            MemberSince = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
+            Height = 170.0m,
             UnitSystem = (int)UnitSystem.Metric,
             DateOfBirth = null,
             Language = "es",
             Status = (int)UserStatus.Active,
             GoalWeight = null,
             StartingWeight = null,
-            CreatedAt = "2026-01-01T00:00:00.0000000Z",
-            UpdatedAt = "2026-01-01T00:00:00.0000000Z"
+            CreatedAt = DateTime.Parse("2026-01-01T00:00:00.0000000Z"),
+            UpdatedAt = DateTime.Parse("2026-01-01T00:00:00.0000000Z")
         };
         OAuthUserInfo? info = null;
 

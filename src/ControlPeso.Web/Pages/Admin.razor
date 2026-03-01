@@ -23,10 +23,14 @@
 </HeadContent>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
-    <MudText Typo="Typo.h4" Class="mb-4">
-        <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Class="mr-2" />
-        @AdminPanelTitle
-    </MudText>
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-4">
+        <img src="/images/og-image.png" 
+             alt="Control Peso Thiscloud Logo" 
+             style="width: 48px; height: 48px; border-radius: 8px;" />
+        <MudText Typo="Typo.h4">
+            @AdminPanelTitle
+        </MudText>
+    </MudStack>
 
     @if (_isLoadingDashboard)
     {
@@ -45,6 +49,7 @@
                 <StatsCard 
                     Title="@TotalUsers"
                     Value="@((decimal)_dashboard.TotalUsers)"
+                    DecimalPlaces="0"
                     Icon="@Icons.Material.Filled.People"
                     Color="Color.Primary" />
             </MudItem>
@@ -54,6 +59,7 @@
                 <StatsCard 
                     Title="@ActiveUsers"
                     Value="@((decimal)_dashboard.ActiveUsers)"
+                    DecimalPlaces="0"
                     Icon="@Icons.Material.Filled.CheckCircle"
                     Color="Color.Success" />
             </MudItem>
@@ -63,6 +69,7 @@
                 <StatsCard 
                     Title="@PendingUsers"
                     Value="@((decimal)_dashboard.PendingUsers)"
+                    DecimalPlaces="0"
                     Icon="@Icons.Material.Filled.HourglassEmpty"
                     Color="Color.Warning" />
             </MudItem>
@@ -72,6 +79,7 @@
                 <StatsCard 
                     Title="@InactiveUsers"
                     Value="@((decimal)_dashboard.InactiveUsers)"
+                    DecimalPlaces="0"
                     Icon="@Icons.Material.Filled.Block"
                     Color="Color.Error" />
             </MudItem>
@@ -81,6 +89,7 @@
                 <StatsCard 
                     Title="@TotalRecords"
                     Value="@((decimal)_dashboard.TotalWeightLogs)"
+                    DecimalPlaces="0"
                     Icon="@Icons.Material.Filled.FitnessCenter"
                     Color="Color.Info" />
             </MudItem>
@@ -90,6 +99,7 @@
                 <StatsCard 
                     Title="@Last7Days"
                     Value="@((decimal)_dashboard.WeightLogsLastWeek)"
+                    DecimalPlaces="0"
                     Icon="@Icons.Material.Filled.CalendarToday"
                     Color="Color.Secondary" />
             </MudItem>
@@ -99,6 +109,7 @@
                 <StatsCard 
                     Title="@Last30Days"
                     Value="@((decimal)_dashboard.WeightLogsLastMonth)"
+                    DecimalPlaces="0"
                     Icon="@Icons.Material.Filled.DateRange"
                     Color="Color.Tertiary" />
             </MudItem>

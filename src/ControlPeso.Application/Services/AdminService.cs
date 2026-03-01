@@ -12,29 +12,31 @@ namespace ControlPeso.Application.Services;
 /// <summary>
 /// Servicio para operaciones del panel de administración.
 /// Gestiona usuarios, roles y genera métricas de sistema.
+/// REFACTORED: Usa IDbContextFactory para evitar problemas de concurrencia en Blazor Server.
 /// </summary>
 public sealed class AdminService : IAdminService
 {
-    private readonly DbContext _context;
+    private readonly IDbContextFactory<DbContext> _contextFactory;
     private readonly ILogger<AdminService> _logger;
     private readonly IUserService _userService;
 
     public AdminService(
-        DbContext context,
+        IDbContextFactory<DbContext> contextFactory,
         ILogger<AdminService> logger,
         IUserService userService)
     {
-        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(contextFactory);
         ArgumentNullException.ThrowIfNull(logger);
         ArgumentNullException.ThrowIfNull(userService);
 
-        _context = context;
+        _contextFactory = contextFactory;
         _logger = logger;
         _userService = userService;
     }
 
     /// <summary>
     /// Obtiene métricas del dashboard de administración.
+    /// Crea una instancia de DbContext por operación para evitar problemas de concurrencia.
     /// </summary>
     public async Task<AdminDashboardDto> GetDashboardAsync(CancellationToken ct = default)
     {
@@ -42,8 +44,10 @@ public sealed class AdminService : IAdminService
 
         try
         {
-            var users = _context.Set<Users>().AsNoTracking();
-            var weightLogs = _context.Set<WeightLogs>().AsNoTracking();
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
+
+            var users = context.Set<Users>().AsNoTracking();
+            var weightLogs = context.Set<WeightLogs>().AsNoTracking();
 
             // Contadores de usuarios por estado
             var totalUsers = await users.CountAsync(ct);
@@ -55,29 +59,21 @@ public sealed class AdminService : IAdminService
             var totalWeightLogs = await weightLogs.CountAsync(ct);
 
             var now = DateTime.UtcNow;
-            var sevenDaysAgo = DateOnly.FromDateTime(now.AddDays(-7)).ToString("yyyy-MM-dd");
-            var thirtyDaysAgo = DateOnly.FromDateTime(now.AddDays(-30)).ToString("yyyy-MM-dd");
-            var todayString = DateOnly.FromDateTime(now).ToString("yyyy-MM-dd");
+            var sevenDaysAgo = DateOnly.FromDateTime(now.AddDays(-7));
+            var thirtyDaysAgo = DateOnly.FromDateTime(now.AddDays(-30));
+            var today = DateOnly.FromDateTime(now);
 
             var weightLogsLastWeek = await weightLogs
-                .CountAsync(wl => string.Compare(wl.Date, sevenDaysAgo) >= 0 &&
-                                  string.Compare(wl.Date, todayString) <= 0, ct);
+                .CountAsync(wl => wl.Date >= sevenDaysAgo && wl.Date <= today, ct);
 
             var weightLogsLastMonth = await weightLogs
-                .CountAsync(wl => string.Compare(wl.Date, thirtyDaysAgo) >= 0 &&
-                                  string.Compare(wl.Date, todayString) <= 0, ct);
+                .CountAsync(wl => wl.Date >= thirtyDaysAgo && wl.Date <= today, ct);
 
             // Usuario más reciente
-            var latestUserCreatedAt = await users
+            var latestUserRegistration = await users
                 .OrderByDescending(u => u.CreatedAt)
-                .Select(u => u.CreatedAt)
+                .Select(u => (DateTime?)u.CreatedAt)
                 .FirstOrDefaultAsync(ct);
-
-            DateTime? latestUserRegistration = null;
-            if (latestUserCreatedAt is not null)
-            {
-                latestUserRegistration = DateTime.Parse(latestUserCreatedAt);
-            }
 
             var dashboard = new AdminDashboardDto
             {
@@ -127,6 +123,7 @@ public sealed class AdminService : IAdminService
 
     /// <summary>
     /// Actualiza el rol de un usuario y registra la acción en AuditLog.
+    /// Crea una instancia de DbContext por operación para evitar problemas de concurrencia.
     /// </summary>
     public async Task UpdateUserRoleAsync(Guid userId, UserRole role, CancellationToken ct = default)
     {
@@ -134,8 +131,10 @@ public sealed class AdminService : IAdminService
 
         try
         {
-            var user = await _context.Set<Users>()
-                .FirstOrDefaultAsync(u => u.Id == userId.ToString(), ct);
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
+
+            var user = await context.Set<Users>()
+                .FirstOrDefaultAsync(u => u.Id == userId, ct);
 
             if (user is null)
             {
@@ -157,23 +156,23 @@ public sealed class AdminService : IAdminService
 
             // Actualizar rol
             user.Role = (int)role;
-            user.UpdatedAt = DateTime.UtcNow.ToString("O");
+            user.UpdatedAt = DateTime.UtcNow;
 
             // Crear entrada de auditoría
             var auditLog = new AuditLog
             {
-                Id = Guid.NewGuid().ToString(),
-                UserId = userId.ToString(), // El usuario afectado
+                Id = Guid.NewGuid(),
+                UserId = userId,
                 Action = "UserRoleChanged",
                 EntityType = "User",
                 EntityId = userId.ToString(),
                 OldValue = JsonSerializer.Serialize(oldValue),
                 NewValue = JsonSerializer.Serialize(newValue),
-                CreatedAt = DateTime.UtcNow.ToString("O")
+                CreatedAt = DateTime.UtcNow
             };
 
-            _context.Set<AuditLog>().Add(auditLog);
-            await _context.SaveChangesAsync(ct);
+            context.Set<AuditLog>().Add(auditLog);
+            await context.SaveChangesAsync(ct);
 
             _logger.LogInformation(
                 "User role updated successfully - UserId: {UserId}, OldRole: {OldRole}, NewRole: {NewRole}",
@@ -199,6 +198,7 @@ public sealed class AdminService : IAdminService
 
     /// <summary>
     /// Actualiza el estado de un usuario y registra la acción en AuditLog.
+    /// Crea una instancia de DbContext por operación para evitar problemas de concurrencia.
     /// </summary>
     public async Task UpdateUserStatusAsync(Guid userId, UserStatus status, CancellationToken ct = default)
     {
@@ -206,8 +206,10 @@ public sealed class AdminService : IAdminService
 
         try
         {
-            var user = await _context.Set<Users>()
-                .FirstOrDefaultAsync(u => u.Id == userId.ToString(), ct);
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
+
+            var user = await context.Set<Users>()
+                .FirstOrDefaultAsync(u => u.Id == userId, ct);
 
             if (user is null)
             {
@@ -229,23 +231,23 @@ public sealed class AdminService : IAdminService
 
             // Actualizar estado
             user.Status = (int)status;
-            user.UpdatedAt = DateTime.UtcNow.ToString("O");
+            user.UpdatedAt = DateTime.UtcNow;
 
             // Crear entrada de auditoría
             var auditLog = new AuditLog
             {
-                Id = Guid.NewGuid().ToString(),
-                UserId = userId.ToString(), // El usuario afectado
+                Id = Guid.NewGuid(),
+                UserId = userId,
                 Action = "UserStatusChanged",
                 EntityType = "User",
                 EntityId = userId.ToString(),
                 OldValue = JsonSerializer.Serialize(oldValue),
                 NewValue = JsonSerializer.Serialize(newValue),
-                CreatedAt = DateTime.UtcNow.ToString("O")
+                CreatedAt = DateTime.UtcNow
             };
 
-            _context.Set<AuditLog>().Add(auditLog);
-            await _context.SaveChangesAsync(ct);
+            context.Set<AuditLog>().Add(auditLog);
+            await context.SaveChangesAsync(ct);
 
             _logger.LogInformation(
                 "User status updated successfully - UserId: {UserId}, OldStatus: {OldStatus}, NewStatus: {NewStatus}",

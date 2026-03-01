@@ -10,7 +10,7 @@ public class UsersTests
     {
         // Arrange
         var user = new Users();
-        const string id = "test-id-123";
+        var id = Guid.NewGuid();
 
         // Act
         user.Id = id;
@@ -108,7 +108,7 @@ public class UsersTests
     {
         // Arrange
         var user = new Users();
-        const string memberSince = "2024-01-01T00:00:00Z";
+        var memberSince = DateTime.Parse("2024-01-01T00:00:00Z");
 
         // Act
         user.MemberSince = memberSince;
@@ -122,7 +122,7 @@ public class UsersTests
     {
         // Arrange
         var user = new Users();
-        const double height = 175.5;
+        const decimal height = 175.5m;
 
         // Act
         user.Height = height;
@@ -150,7 +150,7 @@ public class UsersTests
     {
         // Arrange
         var user = new Users();
-        const string dateOfBirth = "1990-01-01";
+        var dateOfBirth = new DateOnly(1990, 01, 01);
 
         // Act
         user.DateOfBirth = dateOfBirth;
@@ -192,7 +192,7 @@ public class UsersTests
     {
         // Arrange
         var user = new Users();
-        const double goalWeight = 75.5;
+        const decimal goalWeight = 75.5m;
 
         // Act
         user.GoalWeight = goalWeight;
@@ -206,7 +206,7 @@ public class UsersTests
     {
         // Arrange
         var user = new Users();
-        const double startingWeight = 85.5;
+        const decimal startingWeight = 85.5m;
 
         // Act
         user.StartingWeight = startingWeight;
@@ -220,7 +220,7 @@ public class UsersTests
     {
         // Arrange
         var user = new Users();
-        const string createdAt = "2024-01-01T00:00:00Z";
+        var createdAt = DateTime.Parse("2024-01-01T00:00:00Z");
 
         // Act
         user.CreatedAt = createdAt;
@@ -234,7 +234,7 @@ public class UsersTests
     {
         // Arrange
         var user = new Users();
-        const string updatedAt = "2024-01-02T00:00:00Z";
+        var updatedAt = DateTime.Parse("2024-01-02T00:00:00Z");
 
         // Act
         user.UpdatedAt = updatedAt;
@@ -270,3 +270,5 @@ public class UsersTests
         user.UserPreferences.Should().Be(preferences);
     }
 }
+
+

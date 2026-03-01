@@ -25,19 +25,19 @@ public sealed class SecurityHeadersMiddleware
         // NO aplicar CSP a archivos estáticos (imágenes, CSS, JS, fuentes)
         // Esto permite que las imágenes de /uploads/avatars/ se carguen sin restricciones
         var path = context.Request.Path.Value?.ToLowerInvariant() ?? string.Empty;
-        var isStaticFile = path.StartsWith("/uploads/") || 
-                          path.StartsWith("/_content/") || 
-                          path.StartsWith("/css/") || 
-                          path.StartsWith("/js/") || 
+        var isStaticFile = path.StartsWith("/uploads/") ||
+                          path.StartsWith("/_content/") ||
+                          path.StartsWith("/css/") ||
+                          path.StartsWith("/js/") ||
                           path.StartsWith("/images/") ||
                           path.StartsWith("/fonts/") ||
-                          path.EndsWith(".css") || 
-                          path.EndsWith(".js") || 
-                          path.EndsWith(".png") || 
-                          path.EndsWith(".jpg") || 
-                          path.EndsWith(".jpeg") || 
-                          path.EndsWith(".gif") || 
-                          path.EndsWith(".svg") || 
+                          path.EndsWith(".css") ||
+                          path.EndsWith(".js") ||
+                          path.EndsWith(".png") ||
+                          path.EndsWith(".jpg") ||
+                          path.EndsWith(".jpeg") ||
+                          path.EndsWith(".gif") ||
+                          path.EndsWith(".svg") ||
                           path.EndsWith(".ico") ||
                           path.EndsWith(".woff") ||
                           path.EndsWith(".woff2") ||
@@ -66,7 +66,7 @@ public sealed class SecurityHeadersMiddleware
 
             // Permissions-Policy: Controla qué APIs del navegador pueden usarse
             // Deshabilita APIs no necesarias (cámara, micrófono, geolocalización, etc)
-            context.Response.Headers["Permissions-Policy"] = 
+            context.Response.Headers["Permissions-Policy"] =
                 "camera=(), microphone=(), geolocation=(), payment=(), usb=()";
 
             // Content-Security-Policy: Política de seguridad de contenido
