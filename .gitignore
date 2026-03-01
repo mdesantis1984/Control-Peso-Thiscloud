@@ -413,3 +413,7 @@ docker-logs/
 backup-*.db
 *-backup/
 *.tar.gz
+
+# Telegram Bot tokens (development)
+telegram-config.json
+telegram-secrets.json
