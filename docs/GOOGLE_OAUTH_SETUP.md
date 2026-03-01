@@ -97,13 +97,52 @@ dotnet run --project src/ControlPeso.Web
 
 ## Troubleshooting
 
-### Error: "redirect_uri_mismatch"
-**Causa**: La URL de callback no está autorizada en Google Cloud Console
+### ❌ Error: "invalid_client" o "redirect_uri_mismatch"
 
-**Solución**:
-1. Revisar qué URL está usando la app (ver logs)
-2. Agregar esa URL exacta en **"Authorized redirect URIs"**
-3. Esperar 5 minutos (cambios tardan en propagarse)
+**CAUSA RAÍZ**: Las URIs de redirección en Google Cloud Console NO coinciden con las URLs de tu aplicación.
+
+**🔍 CÓMO VERIFICAR TU PROBLEMA**:
+
+Tu aplicación corre en los puertos especificados en `src/ControlPeso.Web/Properties/launchSettings.json`:
+- **HTTPS**: `https://localhost:7065`
+- **HTTP**: `http://localhost:5212`
+
+**✅ SOLUCIÓN PASO A PASO**:
+
+1. **Ir a Google Cloud Console**:
+   - 👉 https://console.cloud.google.com/apis/credentials
+   - Seleccionar tu proyecto
+
+2. **Encontrar tu OAuth 2.0 Client ID**:
+   - Buscar el Client ID que estás usando: `180510012560-6a1l32rfl33pdk7q7aehbe8o06urbl0h.apps.googleusercontent.com`
+   - Click en el ícono ✏️ (editar)
+
+3. **Actualizar Authorized redirect URIs**:
+   - Agregar EXACTAMENTE estas URIs (copiar/pegar):
+     ```
+     https://localhost:7065/signin-google
+     http://localhost:5212/signin-google
+     ```
+   - **IMPORTANTE**: Verificar que NO haya espacios antes/después
+   - Click **"SAVE"**
+
+4. **Esperar propagación de cambios**:
+   - Google tarda **1-2 minutos** en propagar los cambios
+   - ☕ Esperar antes de probar
+
+5. **Reiniciar la aplicación**:
+   - En Visual Studio: Detener (Shift+F5) y volver a iniciar (F5)
+   - O en terminal: `Ctrl+C` y `dotnet run --project src/ControlPeso.Web`
+
+6. **Probar login nuevamente**:
+   - Ir a: `https://localhost:7065/login`
+   - Click en "Iniciar sesión con Google"
+   - Debería funcionar ahora ✅
+
+**⚠️ NOTAS IMPORTANTES**:
+- Las URIs deben coincidir EXACTAMENTE (puerto + ruta)
+- Si cambiás el puerto en `launchSettings.json`, debés actualizar Google Cloud Console
+- Los cambios en Google pueden tardar hasta 5 minutos en aplicarse
 
 ### Error: "Access blocked: This app's request is invalid"
 **Causa**: OAuth consent screen no configurado o incompleto

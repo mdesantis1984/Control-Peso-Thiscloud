@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" use="preserve" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  
+  <!-- Page / Meta -->
+  <data name="PageTitle" xml:space="preserve">
+    <value>Sign In - Control Peso Thiscloud</value>
+    <comment>Page title shown in browser tab</comment>
+  </data>
+  <data name="MetaDescription" xml:space="preserve">
+    <value>Sign in to Control Peso Thiscloud with your Google or LinkedIn account to start tracking your weight in detail and achieve your health goals.</value>
+    <comment>Meta description for SEO</comment>
+  </data>
+  <data name="MetaKeywords" xml:space="preserve">
+    <value>weight control, sign in, login, Google, LinkedIn, weight tracking, health</value>
+    <comment>Meta keywords for SEO</comment>
+  </data>
+  <data name="OgTitle" xml:space="preserve">
+    <value>Sign In - Control Peso Thiscloud</value>
+    <comment>Open Graph title for social media</comment>
+  </data>
+  <data name="OgDescription" xml:space="preserve">
+    <value>Sign in with Google or LinkedIn and start controlling your weight intelligently</value>
+    <comment>Open Graph description for social media</comment>
+  </data>
+  <data name="TwitterTitle" xml:space="preserve">
+    <value>Sign In - Control Peso Thiscloud</value>
+    <comment>Twitter Card title</comment>
+  </data>
+  <data name="TwitterDescription" xml:space="preserve">
+    <value>Sign in with Google or LinkedIn and start controlling your weight intelligently</value>
+    <comment>Twitter Card description</comment>
+  </data>
+  
+  <!-- Main Content -->
+  <data name="MainTitle" xml:space="preserve">
+    <value>Welcome to Control Peso</value>
+    <comment>Main page title for login page</comment>
+  </data>
+  <data name="MainSubtitle" xml:space="preserve">
+    <value>Keep detailed track of your weight and achieve your health goals</value>
+    <comment>Descriptive subtitle</comment>
+  </data>
+  <data name="GoogleSignInButton" xml:space="preserve">
+    <value>Sign in with Google</value>
+    <comment>Google login button text</comment>
+  </data>
+  <data name="SecurityBadge" xml:space="preserve">
+    <value>🔒 Secure authentication with OAuth 2.0</value>
+    <comment>Security badge text</comment>
+  </data>
+  <data name="CreateAccountButton" xml:space="preserve">
+    <value>Create new account</value>
+    <comment>Create account button text (if applicable)</comment>
+  </data>
+  
+  <!-- Footer Links -->
+  <data name="TermsLink" xml:space="preserve">
+    <value>Terms and Conditions</value>
+    <comment>Terms and conditions link</comment>
+  </data>
+  <data name="PrivacyLink" xml:space="preserve">
+    <value>Privacy Policy</value>
+    <comment>Privacy policy link</comment>
+  </data>
+  <data name="NeedHelp" xml:space="preserve">
+    <value>Need help?</value>
+    <comment>Help text</comment>
+  </data>
+  <data name="ContactSupport" xml:space="preserve">
+    <value>Contact Support</value>
+    <comment>Support contact link</comment>
+  </data>
+</root>

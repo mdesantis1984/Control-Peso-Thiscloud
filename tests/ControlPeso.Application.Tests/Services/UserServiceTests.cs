@@ -5,6 +5,7 @@ using ControlPeso.Domain.Entities;
 using ControlPeso.Domain.Enums;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -12,25 +13,61 @@ namespace ControlPeso.Application.Tests.Services;
 
 public sealed class UserServiceTests : IDisposable
 {
-    private readonly DbContext _context;
+    private readonly DbContextOptions<DbContext> _contextOptions;
+    private readonly Mock<IDbContextFactory<DbContext>> _contextFactoryMock;
     private readonly Mock<ILogger<UserService>> _loggerMock;
+    private readonly IMemoryCache _memoryCache;
     private readonly UserService _service;
+    private readonly TestDbContext _context; // TEMP: For legacy test assertions - will be removed
 
     public UserServiceTests()
     {
-        var options = new DbContextOptionsBuilder<DbContext>()
+        _contextOptions = new DbContextOptionsBuilder<DbContext>()
             .UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}")
             .Options;
 
-        _context = new TestDbContext(options);
+        // TEMP: Single context for legacy test assertions
+        _context = new TestDbContext(_contextOptions);
+
+        // Mock IDbContextFactory to return NEW context instance per call (avoid tracking conflicts)
+        _contextFactoryMock = new Mock<IDbContextFactory<DbContext>>();
+        _contextFactoryMock
+            .Setup(f => f.CreateDbContext())
+            .Returns(() => new TestDbContext(_contextOptions));
+        _contextFactoryMock
+            .Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => new TestDbContext(_contextOptions));
+
         _loggerMock = new Mock<ILogger<UserService>>();
-        _service = new UserService(_context, _loggerMock.Object);
+
+        // Create real MemoryCache for testing (simpler than mocking)
+        _memoryCache = new MemoryCache(new MemoryCacheOptions());
+
+        _service = new UserService(_contextFactoryMock.Object, _memoryCache, _loggerMock.Object);
     }
 
     public void Dispose()
     {
-        _context.Database.EnsureDeleted();
+        // Clean up in-memory database
         _context.Dispose();
+        using var context = new TestDbContext(_contextOptions);
+        context.Database.EnsureDeleted();
+        context.Dispose();
+        _memoryCache.Dispose();
+    }
+
+    /// <summary>
+    /// Helper to seed data into the in-memory database.
+    /// Call this at the start of tests that need existing data.
+    /// </summary>
+    private async Task SeedDataAsync(params object[] entities)
+    {
+        using var context = new TestDbContext(_contextOptions);
+        foreach (var entity in entities)
+        {
+            context.Add(entity);
+        }
+        await context.SaveChangesAsync();
     }
 
     #region GetByIdAsync Tests
@@ -292,7 +329,7 @@ public sealed class UserServiceTests : IDisposable
         // Arrange
         var userId = Guid.NewGuid();
         var user = CreateUserEntity(userId, "google_123", "Old Name", "test@example.com");
-        user.Height = 170.0;
+        user.Height = 170.0m;
         user.Language = "es";
         _context.Set<Users>().Add(user);
         await _context.SaveChangesAsync();
@@ -533,18 +570,18 @@ public sealed class UserServiceTests : IDisposable
     {
         return new Users
         {
-            Id = id.ToString(),
+            Id = id,
             GoogleId = googleId,
             Name = name,
             Email = email,
             Role = (int)UserRole.User,
-            MemberSince = DateTime.UtcNow.ToString("O"),
-            Height = 170.0,
+            MemberSince = DateTime.UtcNow,
+            Height = 170.0m,
             UnitSystem = (int)UnitSystem.Metric,
             Language = "es",
             Status = (int)UserStatus.Active,
-            CreatedAt = DateTime.UtcNow.ToString("O"),
-            UpdatedAt = DateTime.UtcNow.ToString("O")
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
     }
 
@@ -645,7 +682,7 @@ public sealed class UserServiceTests : IDisposable
         // Assert
         result.Should().NotBeNull();
         result!.Name.Should().Be("LinkedIn User");
-        var savedUser = await _context.Set<Users>().FirstAsync(u => u.Id == result.Id.ToString());
+        var savedUser = await _context.Set<Users>().FirstAsync(u => u.Id == result.Id);
         savedUser.LinkedInId.Should().Be(linkedInId);
     }
 
@@ -730,7 +767,7 @@ public sealed class UserServiceTests : IDisposable
         result.Role.Should().Be(UserRole.User);
         result.Status.Should().Be(UserStatus.Active);
         // Verify LinkedIn not set
-        var savedUser = await _context.Set<Users>().FirstAsync(u => u.Id == result.Id.ToString());
+        var savedUser = await _context.Set<Users>().FirstAsync(u => u.Id == result.Id);
         savedUser.LinkedInId.Should().BeNull();
     }
 
@@ -759,7 +796,7 @@ public sealed class UserServiceTests : IDisposable
         result.Role.Should().Be(UserRole.User);
         result.Status.Should().Be(UserStatus.Active);
         // Verify LinkedInId in entity
-        var savedUser = await _context.Set<Users>().FirstAsync(u => u.Id == result.Id.ToString());
+        var savedUser = await _context.Set<Users>().FirstAsync(u => u.Id == result.Id);
         savedUser.LinkedInId.Should().Be("linkedin_new_123");
         savedUser.GoogleId.Should().BeNull();
     }
@@ -827,7 +864,7 @@ public sealed class UserServiceTests : IDisposable
         result.Email.Should().Contain("updatedlinkedin");
         result.AvatarUrl.Should().Be("https://new-linkedin-avatar.com/pic.jpg");
         // Verify LinkedInId in entity
-        var savedUser = await _context.Set<Users>().FirstAsync(u => u.Id == userId.ToString());
+        var savedUser = await _context.Set<Users>().FirstAsync(u => u.Id == userId);
         savedUser.LinkedInId.Should().Be(linkedInId);
     }
 
@@ -1132,6 +1169,133 @@ public sealed class UserServiceTests : IDisposable
 
         // Assert
         await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    #endregion
+
+    #region Database Error Scenarios
+
+    [Fact]
+    public async Task GetByIdAsync_WhenDatabaseError_ShouldThrowException()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+
+        // Create a factory that throws on CreateDbContextAsync
+        var factoryMock = new Mock<IDbContextFactory<DbContext>>();
+        factoryMock
+            .Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Database connection failed"));
+
+        var service = new UserService(factoryMock.Object, _memoryCache, _loggerMock.Object);
+
+        // Act
+        var act = async () => await service.GetByIdAsync(userId);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Database connection failed");
+    }
+
+    [Fact]
+    public async Task GetByGoogleIdAsync_WhenDatabaseError_ShouldThrowException()
+    {
+        // Arrange
+        var googleId = "google_123";
+
+        // Create a factory that throws on CreateDbContextAsync
+        var factoryMock = new Mock<IDbContextFactory<DbContext>>();
+        factoryMock
+            .Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Database connection failed"));
+
+        var service = new UserService(factoryMock.Object, _memoryCache, _loggerMock.Object);
+
+        // Act
+        var act = async () => await service.GetByGoogleIdAsync(googleId);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Database connection failed");
+    }
+
+    [Fact]
+    public async Task GetByLinkedInIdAsync_WhenDatabaseError_ShouldThrowException()
+    {
+        // Arrange
+        var linkedInId = "linkedin_123";
+
+        // Create a factory that throws on CreateDbContextAsync
+        var factoryMock = new Mock<IDbContextFactory<DbContext>>();
+        factoryMock
+            .Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Database connection failed"));
+
+        var service = new UserService(factoryMock.Object, _memoryCache, _loggerMock.Object);
+
+        // Act
+        var act = async () => await service.GetByLinkedInIdAsync(linkedInId);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Database connection failed");
+    }
+
+    [Fact]
+    public async Task GetByEmailAsync_WhenDatabaseError_ShouldThrowException()
+    {
+        // Arrange
+        var email = "test@example.com";
+
+        // Create a factory that throws on CreateDbContextAsync
+        var factoryMock = new Mock<IDbContextFactory<DbContext>>();
+        factoryMock
+            .Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Database connection failed"));
+
+        var service = new UserService(factoryMock.Object, _memoryCache, _loggerMock.Object);
+
+        // Act
+        var act = async () => await service.GetByEmailAsync(email);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Database connection failed");
+    }
+
+    [Fact]
+    public async Task UpdateProfileAsync_WhenUserNotFound_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var nonExistentId = Guid.NewGuid();
+        var dto = new UpdateUserProfileDto
+        {
+            Name = "Updated Name",
+            Height = 175.0m,
+            Language = "en",
+            UnitSystem = UnitSystem.Metric
+        };
+
+        // Act
+        var act = async () => await _service.UpdateProfileAsync(nonExistentId, dto);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage($"User with ID {nonExistentId} not found.");
+    }
+
+    [Fact]
+    public async Task UpdateProfileAsync_WithNullDto_ShouldThrowArgumentNullException()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        UpdateUserProfileDto? dto = null;
+
+        // Act
+        var act = async () => await _service.UpdateProfileAsync(userId, dto!);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentNullException>();
     }
 
     #endregion

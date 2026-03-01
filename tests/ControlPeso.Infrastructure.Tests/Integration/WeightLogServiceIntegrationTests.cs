@@ -37,7 +37,7 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
         var existingUser = await _context.Users.FirstAsync();
         var createDto = new CreateWeightLogDto
         {
-            UserId = Guid.Parse(existingUser.Id),
+            UserId = existingUser.Id,
             Date = DateOnly.FromDateTime(DateTime.Today),
             Time = new TimeOnly(8, 30),
             Weight = 75.5m,
@@ -55,9 +55,9 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
         Assert.Equal(createDto.Note, result.Note);
 
         // Verify persistence: query DB directly
-        var savedLog = await _context.WeightLogs.FindAsync(result.Id.ToString());
+        var savedLog = await _context.WeightLogs.FindAsync(result.Id);
         Assert.NotNull(savedLog);
-        Assert.Equal(75.5, savedLog.Weight, precision: 2);
+        Assert.Equal(75.5m, savedLog.Weight, precision: 2);
         Assert.Equal("Test weight log from integration test", savedLog.Note);
     }
 
@@ -70,7 +70,7 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
         var service = new WeightLogService(_context, NullLogger<WeightLogService>.Instance);
 
         var existingUser = await _context.Users.FirstAsync();
-        var userId = Guid.Parse(existingUser.Id);
+        var userId = existingUser.Id;
 
         var filter = new WeightLogFilter
         {
@@ -102,7 +102,7 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
         var service = new WeightLogService(_context, NullLogger<WeightLogService>.Instance);
 
         var existingUser = await _context.Users.FirstAsync();
-        var userId = Guid.Parse(existingUser.Id);
+        var userId = existingUser.Id;
 
         var startDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-7));
         var endDate = DateOnly.FromDateTime(DateTime.Today);
@@ -141,12 +141,12 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
 
         // Get existing weight log
         var existingLog = await _context.WeightLogs.FirstAsync();
-        var logId = Guid.Parse(existingLog.Id);
+        var logId = existingLog.Id;
 
         var updateDto = new UpdateWeightLogDto
         {
-            Date = DateOnly.Parse(existingLog.Date),
-            Time = TimeOnly.Parse(existingLog.Time),
+            Date = existingLog.Date,
+            Time = existingLog.Time,
             Weight = 80.0m,
             DisplayUnit = (WeightUnit)existingLog.DisplayUnit,
             Note = "Updated note from integration test"
@@ -162,9 +162,9 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
         Assert.Equal("Updated note from integration test", result.Note);
 
         // Verify persistence
-        var updatedLog = await _context.WeightLogs.FindAsync(logId.ToString());
+        var updatedLog = await _context.WeightLogs.FindAsync(logId);
         Assert.NotNull(updatedLog);
-        Assert.Equal(80.0, updatedLog.Weight, precision: 2);
+        Assert.Equal(80.0m, updatedLog.Weight, precision: 2);
         Assert.Equal("Updated note from integration test", updatedLog.Note);
     }
 
@@ -177,13 +177,13 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
         var service = new WeightLogService(_context, NullLogger<WeightLogService>.Instance);
 
         var existingLog = await _context.WeightLogs.FirstAsync();
-        var logId = Guid.Parse(existingLog.Id);
+        var logId = existingLog.Id;
 
         // Act
         await service.DeleteAsync(logId);
 
         // Assert - verify record is deleted
-        var deletedLog = await _context.WeightLogs.FindAsync(logId.ToString());
+        var deletedLog = await _context.WeightLogs.FindAsync(logId);
         Assert.Null(deletedLog);
     }
 
@@ -196,7 +196,7 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
         var service = new WeightLogService(_context, NullLogger<WeightLogService>.Instance);
 
         var existingUser = await _context.Users.FirstAsync();
-        var userId = Guid.Parse(existingUser.Id);
+        var userId = existingUser.Id;
 
         var range = new DateRange
         {
@@ -235,20 +235,20 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
         // Create a user WITHOUT starting weight
         var newUser = new Domain.Entities.Users
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid(),
             GoogleId = uniqueGoogleId,
             Name = "Test User",
             Email = $"test_{Guid.NewGuid():N}@test.com",
             Role = (int)UserRole.User,
-            MemberSince = DateTime.UtcNow.ToString("O"),
-            Height = 175.0,
+            MemberSince = DateTime.UtcNow,
+            Height = 175.0m,
             UnitSystem = (int)UnitSystem.Metric,
             Language = "es",
             Status = (int)UserStatus.Active,
             StartingWeight = null, // NO starting weight yet
-            GoalWeight = 70.0,
-            CreatedAt = DateTime.UtcNow.ToString("O"),
-            UpdatedAt = DateTime.UtcNow.ToString("O")
+            GoalWeight = 70.0m,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
 
         _context.Users.Add(newUser);
@@ -256,7 +256,7 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
 
         var createDto = new CreateWeightLogDto
         {
-            UserId = Guid.Parse(newUser.Id),
+            UserId = newUser.Id,
             Date = DateOnly.FromDateTime(DateTime.Today),
             Time = new TimeOnly(8, 0),
             Weight = 85.5m,
@@ -274,7 +274,7 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
         var updatedUser = await _context.Users.FindAsync(newUser.Id);
         Assert.NotNull(updatedUser);
         Assert.NotNull(updatedUser.StartingWeight);
-        Assert.Equal(85.5, updatedUser.StartingWeight.Value, precision: 2);
+        Assert.Equal(85.5m, updatedUser.StartingWeight.Value, precision: 2);
     }
 
     [Fact]

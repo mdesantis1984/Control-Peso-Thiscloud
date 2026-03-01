@@ -1,10 +1,9 @@
-using ControlPeso.Shared.Resources.Localization;
-using FluentAssertions;
-using Microsoft.Extensions.Localization;
-using Microsoft.Extensions.Logging;
-using Moq;
 using System.Globalization;
 using System.Resources;
+using ControlPeso.Shared.Resources.Localization;
+using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace ControlPeso.Shared.Resources.Tests.Localization;
 

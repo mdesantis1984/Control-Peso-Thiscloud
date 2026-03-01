@@ -77,70 +77,70 @@ public sealed class DbSeeder : IDbSeeder
     /// </summary>
     private static List<Users> CreateDemoUsers()
     {
-        var now = DateTime.UtcNow.ToString("O"); // ISO 8601 format
+        var now = DateTime.UtcNow;
 
         return
         [
             // Usuario 1: Administrador (Marco - el dueño del proyecto)
             new Users
             {
-                Id = "550e8400-e29b-41d4-a716-446655440001",
+                Id = Guid.Parse("550e8400-e29b-41d4-a716-446655440001"),
                 GoogleId = "google_demo_admin_001",
                 Name = "Marco De Santis",
                 Email = "marco.desantis@thiscloud.com",
                 Role = 1, // Administrator
                 AvatarUrl = "https://lh3.googleusercontent.com/a/default-user=s96-c",
-                MemberSince = DateTime.UtcNow.AddMonths(-6).ToString("O"),
-                Height = 178.0, // 178 cm
+                MemberSince = DateTime.UtcNow.AddMonths(-6),
+                Height = 178.0m, // 178 cm
                 UnitSystem = 0, // Metric
-                DateOfBirth = new DateTime(1984, 5, 15).ToString("yyyy-MM-dd"),
+                DateOfBirth = new DateOnly(1984, 5, 15),
                 Language = "es",
                 Status = 0, // Active
-                GoalWeight = 75.0, // 75 kg
-                StartingWeight = 82.5, // 82.5 kg (se establecerá con el primer log)
-                CreatedAt = DateTime.UtcNow.AddMonths(-6).ToString("O"),
+                GoalWeight = 75.0m, // 75 kg
+                StartingWeight = 82.5m, // 82.5 kg
+                CreatedAt = DateTime.UtcNow.AddMonths(-6),
                 UpdatedAt = now
             },
 
             // Usuario 2: Usuario regular masculino (progreso descendente)
             new Users
             {
-                Id = "550e8400-e29b-41d4-a716-446655440002",
+                Id = Guid.Parse("550e8400-e29b-41d4-a716-446655440002"),
                 GoogleId = "google_demo_user_002",
                 Name = "Juan Pérez",
                 Email = "juan.perez@example.com",
                 Role = 0, // User
                 AvatarUrl = null,
-                MemberSince = DateTime.UtcNow.AddMonths(-3).ToString("O"),
-                Height = 175.0, // 175 cm
+                MemberSince = DateTime.UtcNow.AddMonths(-3),
+                Height = 175.0m, // 175 cm
                 UnitSystem = 0, // Metric
-                DateOfBirth = new DateTime(1990, 8, 20).ToString("yyyy-MM-dd"),
+                DateOfBirth = new DateOnly(1990, 8, 20),
                 Language = "es",
                 Status = 0, // Active
-                GoalWeight = 70.0, // 70 kg
-                StartingWeight = 78.0, // 78 kg
-                CreatedAt = DateTime.UtcNow.AddMonths(-3).ToString("O"),
+                GoalWeight = 70.0m, // 70 kg
+                StartingWeight = 78.0m, // 78 kg
+                CreatedAt = DateTime.UtcNow.AddMonths(-3),
                 UpdatedAt = now
             },
 
             // Usuario 3: Usuario regular femenino (progreso ascendente - ganando peso saludable)
             new Users
             {
-                Id = "550e8400-e29b-41d4-a716-446655440003",
+                Id = Guid.Parse("550e8400-e29b-41d4-a716-446655440003"),
                 GoogleId = "google_demo_user_003",
                 Name = "María García",
                 Email = "maria.garcia@example.com",
                 Role = 0, // User
                 AvatarUrl = "https://lh3.googleusercontent.com/a/default-user=s96-c",
-                MemberSince = DateTime.UtcNow.AddMonths(-2).ToString("O"),
-                Height = 165.0, // 165 cm
+                MemberSince = DateTime.UtcNow.AddMonths(-2),
+                Height = 165.0m, // 165 cm
                 UnitSystem = 1, // Imperial (usa lb)
-                DateOfBirth = new DateTime(1992, 3, 10).ToString("yyyy-MM-dd"),
+                DateOfBirth = new DateOnly(1992, 3, 10),
                 Language = "en",
                 Status = 0, // Active
-                GoalWeight = 58.0, // 58 kg (~128 lb)
-                StartingWeight = 52.0, // 52 kg (~115 lb)
-                CreatedAt = DateTime.UtcNow.AddMonths(-2).ToString("O"),
+                GoalWeight = 58.0m, // 58 kg (~128 lb)
+                StartingWeight = 52.0m, // 52 kg (~115 lb)
+                CreatedAt = DateTime.UtcNow.AddMonths(-2),
                 UpdatedAt = now
             }
         ];
@@ -151,14 +151,14 @@ public sealed class DbSeeder : IDbSeeder
     /// </summary>
     private static List<UserPreferences> CreateUserPreferences(List<Users> users)
     {
-        var now = DateTime.UtcNow.ToString("O");
+        var now = DateTime.UtcNow;
 
         return users.Select(user => new UserPreferences
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid(),
             UserId = user.Id,
-            DarkMode = 1, // Modo oscuro habilitado por defecto
-            NotificationsEnabled = 1, // Notificaciones habilitadas
+            DarkMode = true, // Modo oscuro habilitado por defecto
+            NotificationsEnabled = true, // Notificaciones habilitadas
             TimeZone = "America/Argentina/Buenos_Aires", // Zona horaria por defecto
             UpdatedAt = now
         }).ToList();
@@ -176,28 +176,28 @@ public sealed class DbSeeder : IDbSeeder
         // Usuario 1 (Marco): Pérdida de peso gradual (82.5 → 78 kg en 30 días)
         logs.AddRange(GenerateWeightLogsForUser(
             user: users[0],
-            startWeight: 82.5,
-            endWeight: 78.0,
+            startWeight: 82.5m,
+            endWeight: 78.0m,
             days: 30,
-            variance: 0.3, // ±300g de variación diaria
+            variance: 0.3m, // ±300g de variación diaria
             random: random));
 
         // Usuario 2 (Juan): Pérdida de peso más rápida (78 → 72 kg en 30 días)
         logs.AddRange(GenerateWeightLogsForUser(
             user: users[1],
-            startWeight: 78.0,
-            endWeight: 72.0,
+            startWeight: 78.0m,
+            endWeight: 72.0m,
             days: 30,
-            variance: 0.4, // ±400g de variación
+            variance: 0.4m, // ±400g de variación
             random: random));
 
         // Usuario 3 (María): Ganancia de peso saludable (52 → 55 kg en 30 días)
         logs.AddRange(GenerateWeightLogsForUser(
             user: users[2],
-            startWeight: 52.0,
-            endWeight: 55.0,
+            startWeight: 52.0m,
+            endWeight: 55.0m,
             days: 30,
-            variance: 0.2, // ±200g de variación (más estable)
+            variance: 0.2m, // ±200g de variación (más estable)
             random: random));
 
         return logs;
@@ -209,10 +209,10 @@ public sealed class DbSeeder : IDbSeeder
     /// </summary>
     private static List<WeightLogs> GenerateWeightLogsForUser(
         Users user,
-        double startWeight,
-        double endWeight,
+        decimal startWeight,
+        decimal endWeight,
         int days,
-        double variance,
+        decimal variance,
         Random random)
     {
         var logs = new List<WeightLogs>();
@@ -232,20 +232,20 @@ public sealed class DbSeeder : IDbSeeder
 
             // Calcular peso con progreso lineal + variación aleatoria
             var baseWeight = startWeight + (dailyChange * i);
-            var dailyVariance = (random.NextDouble() - 0.5) * 2 * variance; // ±variance
+            var dailyVariance = (decimal)((random.NextDouble() - 0.5) * 2) * variance; // ±variance
             var weight = Math.Round(baseWeight + dailyVariance, 1);
 
             // Asegurar que el peso esté dentro de rangos razonables
-            weight = Math.Max(20.0, Math.Min(500.0, weight));
+            weight = Math.Max(20.0m, Math.Min(500.0m, weight));
 
             // Calcular tendencia (comparar con registro anterior si existe)
             var trend = 2; // Neutral por defecto
             if (logs.Count > 0)
             {
                 var previousWeight = logs[^1].Weight;
-                if (weight > previousWeight + 0.1)
+                if (weight > previousWeight + 0.1m)
                     trend = 0; // Up
-                else if (weight < previousWeight - 0.1)
+                else if (weight < previousWeight - 0.1m)
                     trend = 1; // Down
                 // else: Neutral (diferencia menor a 100g)
             }
@@ -257,15 +257,15 @@ public sealed class DbSeeder : IDbSeeder
 
             logs.Add(new WeightLogs
             {
-                Id = Guid.NewGuid().ToString(),
+                Id = Guid.NewGuid(),
                 UserId = user.Id,
-                Date = currentDate.ToString("yyyy-MM-dd"),
-                Time = timeOfDay.ToString("HH:mm"),
+                Date = DateOnly.FromDateTime(currentDate),
+                Time = timeOfDay,
                 Weight = weight,
                 DisplayUnit = user.UnitSystem, // Usar la preferencia del usuario
                 Note = GenerateRandomNote(i, trend, random),
                 Trend = trend,
-                CreatedAt = currentDate.ToString("O")
+                CreatedAt = currentDate
             });
 
             currentDate = currentDate.AddDays(1);

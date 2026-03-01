@@ -38,11 +38,37 @@
                     @AdminPanel
                 </MudNavLink>
 
-                <MudNavLink Href="/diagnostics/telegram" 
-                            Icon="@Icons.Material.Filled.Settings"
-                            IconColor="Color.Info">
-                    @TelegramDiagnostics
-                </MudNavLink>
+                <MudDivider Class="my-4" />
+                <MudText Typo="Typo.caption" Class="px-4 mud-text-secondary">@DiagnosticsSection</MudText>
+
+                <MudNavGroup Title="@Tests" 
+                             Icon="@Icons.Material.Filled.BugReport" 
+                             IconColor="Color.Error"
+                             Expanded="false">
+                    <MudNavLink Href="/diag-auth" 
+                                Icon="@Icons.Material.Filled.Security"
+                                IconColor="Color.Success">
+                        @DiagAuth
+                    </MudNavLink>
+
+                    <MudNavLink Href="/diagnostics/telegram" 
+                                Icon="@Icons.Custom.Brands.Telegram"
+                                IconColor="Color.Info">
+                        @TelegramDiagnostics
+                    </MudNavLink>
+
+                    <MudNavLink Href="/test-badges" 
+                                Icon="@Icons.Material.Filled.Style"
+                                IconColor="Color.Secondary">
+                        @TestBadges
+                    </MudNavLink>
+
+                    <MudNavLink Href="/test-flags" 
+                                Icon="@Icons.Material.Filled.Flag"
+                                IconColor="Color.Primary">
+                        @TestFlags
+                    </MudNavLink>
+                </MudNavGroup>
             }
         </Authorized>
         <NotAuthorized>

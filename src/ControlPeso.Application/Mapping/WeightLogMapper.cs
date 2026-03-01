@@ -19,15 +19,15 @@ public static class WeightLogMapper
 
         return new WeightLogDto
         {
-            Id = Guid.Parse(entity.Id),
-            UserId = Guid.Parse(entity.UserId),
-            Date = DateOnly.Parse(entity.Date),
-            Time = TimeOnly.Parse(entity.Time),
-            Weight = (decimal)entity.Weight,
+            Id = entity.Id,
+            UserId = entity.UserId,
+            Date = entity.Date,
+            Time = entity.Time,
+            Weight = entity.Weight,
             DisplayUnit = (WeightUnit)entity.DisplayUnit,
             Note = entity.Note,
             Trend = (WeightTrend)entity.Trend,
-            CreatedAt = DateTime.Parse(entity.CreatedAt)
+            CreatedAt = entity.CreatedAt
         };
     }
 
@@ -43,15 +43,15 @@ public static class WeightLogMapper
 
         return new WeightLogs
         {
-            Id = Guid.NewGuid().ToString(),
-            UserId = dto.UserId.ToString(),
-            Date = dto.Date.ToString("yyyy-MM-dd"),
-            Time = dto.Time.ToString("HH:mm"),
-            Weight = (double)dto.Weight,
+            Id = Guid.NewGuid(),
+            UserId = dto.UserId,
+            Date = dto.Date,
+            Time = dto.Time,
+            Weight = dto.Weight,
             DisplayUnit = (int)dto.DisplayUnit,
             Note = dto.Note,
-            Trend = (int)WeightTrend.Neutral,  // Default, se calcula en servicio
-            CreatedAt = now.ToString("O")  // ISO 8601
+            Trend = (int)WeightTrend.Neutral,
+            CreatedAt = now
         };
     }
 
@@ -64,9 +64,9 @@ public static class WeightLogMapper
         ArgumentNullException.ThrowIfNull(entity);
         ArgumentNullException.ThrowIfNull(dto);
 
-        entity.Date = dto.Date.ToString("yyyy-MM-dd");
-        entity.Time = dto.Time.ToString("HH:mm");
-        entity.Weight = (double)dto.Weight;
+        entity.Date = dto.Date;
+        entity.Time = dto.Time;
+        entity.Weight = dto.Weight;
         entity.DisplayUnit = (int)dto.DisplayUnit;
         entity.Note = dto.Note;
         // Trend se recalcula en el servicio después de la actualización

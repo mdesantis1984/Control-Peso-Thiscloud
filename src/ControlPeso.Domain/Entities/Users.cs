@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-
 namespace ControlPeso.Domain.Entities;
 
 public partial class Users
 {
-    public string Id { get; set; } = null!;
+    public Guid Id { get; set; }
 
     public string? GoogleId { get; set; }
 
@@ -19,25 +16,25 @@ public partial class Users
 
     public string? AvatarUrl { get; set; }
 
-    public string MemberSince { get; set; } = null!;
+    public DateTime MemberSince { get; set; }
 
-    public double Height { get; set; }
+    public decimal Height { get; set; }
 
     public int UnitSystem { get; set; }
 
-    public string? DateOfBirth { get; set; }
+    public DateOnly? DateOfBirth { get; set; }
 
     public string Language { get; set; } = null!;
 
     public int Status { get; set; }
 
-    public double? GoalWeight { get; set; }
+    public decimal? GoalWeight { get; set; }
 
-    public double? StartingWeight { get; set; }
+    public decimal? StartingWeight { get; set; }
 
-    public string CreatedAt { get; set; } = null!;
+    public DateTime CreatedAt { get; set; }
 
-    public string UpdatedAt { get; set; } = null!;
+    public DateTime UpdatedAt { get; set; }
 
     public virtual ICollection<AuditLog> AuditLog { get; set; } = new List<AuditLog>();
 

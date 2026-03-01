@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Reflection;
 
 namespace ControlPeso.Shared.Resources.Localization;
 
@@ -132,15 +131,13 @@ public sealed class SharedResourceStringLocalizerFactory : IStringLocalizerFacto
             return $"Validators/{typeName}";
         }
 
-        // Handle Web components - ALL go under Components/ prefix
+        // Handle Web components (todas las subcarpetas mantienen la estructura completa)
         if (typeNamespace.StartsWith("ControlPeso.Web.Components.", StringComparison.Ordinal))
         {
             // ControlPeso.Web.Components.Pages.Home → Components/Pages/Home
             // ControlPeso.Web.Components.Shared.NavMenu → Components/Shared/NavMenu
             // ControlPeso.Web.Components.Layout.MainLayout → Components/Layout/MainLayout
             var afterComponents = typeNamespace.Substring("ControlPeso.Web.Components.".Length);
-
-            // All components map to Components/{subpath}/{typeName}
             return $"Components/{afterComponents}/{typeName}";
         }
 

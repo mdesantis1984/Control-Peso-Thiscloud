@@ -1,6 +1,6 @@
+using System.Security.Claims;
 using ControlPeso.Application.Interfaces;
 using Microsoft.AspNetCore.Authentication;
-using System.Security.Claims;
 
 namespace ControlPeso.Web.Services;
 
@@ -74,7 +74,7 @@ internal sealed class UserClaimsTransformation : IClaimsTransformation
                 return principal;
             }
 
-            _logger.LogInformation("UserClaimsTransformation: User found in DB - UserId: {UserId}, Email: {Email}", 
+            _logger.LogInformation("UserClaimsTransformation: User found in DB - UserId: {UserId}, Email: {Email}",
                 user.Id, user.Email);
 
             // CRÍTICO: REMOVER claim NameIdentifier existente (GoogleId/LinkedInId del proveedor OAuth)
@@ -82,7 +82,7 @@ internal sealed class UserClaimsTransformation : IClaimsTransformation
             if (existingNameIdentifier != null)
             {
                 identity.RemoveClaim(existingNameIdentifier);
-                _logger.LogInformation("UserClaimsTransformation: Removed existing NameIdentifier claim: {Value}", 
+                _logger.LogInformation("UserClaimsTransformation: Removed existing NameIdentifier claim: {Value}",
                     existingNameIdentifier.Value);
             }
 

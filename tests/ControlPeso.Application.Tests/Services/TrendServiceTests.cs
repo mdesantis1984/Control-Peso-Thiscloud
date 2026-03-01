@@ -235,7 +235,7 @@ public sealed class TrendServiceTests : IDisposable
         // Arrange
         var userId = Guid.NewGuid();
         var user = CreateUserEntity(userId);
-        user.GoalWeight = 70.0;
+        user.GoalWeight = 70.0m;
         _context.Set<Users>().Add(user);
         await _context.SaveChangesAsync();
 
@@ -256,7 +256,7 @@ public sealed class TrendServiceTests : IDisposable
         // Arrange
         var userId = Guid.NewGuid();
         var user = CreateUserEntity(userId);
-        user.GoalWeight = 68.0;
+        user.GoalWeight = 68.0m;
         _context.Set<Users>().Add(user);
 
         // Crear registros con tendencia lineal descendente (75kg → 70kg en 30 días)
@@ -288,7 +288,7 @@ public sealed class TrendServiceTests : IDisposable
         // Arrange
         var userId = Guid.NewGuid();
         var user = CreateUserEntity(userId);
-        user.GoalWeight = 68.0;
+        user.GoalWeight = 68.0m;
         _context.Set<Users>().Add(user);
 
         // Crear registros con tendencia fuerte hacia el objetivo
@@ -318,7 +318,7 @@ public sealed class TrendServiceTests : IDisposable
         // Arrange
         var userId = Guid.NewGuid();
         var user = CreateUserEntity(userId);
-        user.GoalWeight = 65.0; // Objetivo muy bajo
+        user.GoalWeight = 65.0m; // Objetivo muy bajo
         _context.Set<Users>().Add(user);
 
         // Crear registros con tendencia ascendente (opuesta al objetivo)
@@ -394,18 +394,18 @@ public sealed class TrendServiceTests : IDisposable
     {
         return new Users
         {
-            Id = id.ToString(),
+            Id = id,
             GoogleId = $"google_{id}",
             Name = "Test User",
             Email = $"user{id}@example.com",
             Role = (int)UserRole.User,
-            MemberSince = DateTime.UtcNow.ToString("O"),
-            Height = 170.0,
+            MemberSince = DateTime.UtcNow,
+            Height = 170.0m,
             UnitSystem = (int)UnitSystem.Metric,
             Language = "es",
             Status = (int)UserStatus.Active,
-            CreatedAt = DateTime.UtcNow.ToString("O"),
-            UpdatedAt = DateTime.UtcNow.ToString("O")
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
     }
 
@@ -413,14 +413,14 @@ public sealed class TrendServiceTests : IDisposable
     {
         return new WeightLogs
         {
-            Id = Guid.NewGuid().ToString(),
-            UserId = userId.ToString(),
-            Date = date.ToString("yyyy-MM-dd"),
-            Time = "12:00",
-            Weight = weight,
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            Date = date,
+            Time = new TimeOnly(12, 00),
+            Weight = (decimal)weight,
             DisplayUnit = (int)WeightUnit.Kg,
             Trend = (int)WeightTrend.Neutral,
-            CreatedAt = DateTime.UtcNow.ToString("O")
+            CreatedAt = DateTime.UtcNow
         };
     }
 
