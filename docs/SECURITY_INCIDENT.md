@@ -179,11 +179,11 @@ dotnet run --project src/ControlPeso.Web
 - [x] `.gitignore` actualizado
 - [x] Template `.example` creado
 - [x] Documentación completa
-- [ ] **Historial verificado** (PENDIENTE - CRÍTICO)
-- [ ] **Archivo removido del tracking** (PENDIENTE)
-- [ ] **Commit de seguridad** (PENDIENTE)
-- [ ] **User Secrets configurados** (PENDIENTE)
-- [ ] **App tested localmente** (PENDIENTE)
+- [x] **Historial verificado** (COMPLETADO - 2026-03-01)
+- [x] **Archivo removido del tracking** (COMPLETADO)
+- [x] **Commit de seguridad** (COMPLETADO - git-filter-repo)
+- [ ] **User Secrets configurados** (REQUIERE ROTACIÓN MANUAL)
+- [ ] **App tested localmente** (PENDIENTE DESPUÉS DE ROTACIÓN)
 
 ---
 
