@@ -120,8 +120,8 @@ internal sealed class TelegramNotificationService : INotificationService
 
         // Deduplicación: crear clave única para esta excepción
         var exceptionType = exception?.GetType().Name ?? "Unknown";
-        var messagePart = errorMessage.Length > 50 
-            ? errorMessage.Substring(0, 50) 
+        var messagePart = errorMessage.Length > 50
+            ? errorMessage.Substring(0, 50)
             : errorMessage;
         var key = $"{exceptionType}:{messagePart}";
 
@@ -165,7 +165,7 @@ internal sealed class TelegramNotificationService : INotificationService
         {
             sb.AppendLine();
             sb.AppendLine($"<b>❌ Excepción:</b> <code>{EscapeHtml(exception.GetType().Name)}</code>");
-            
+
             var exMessage = exception.Message;
             if (exMessage.Length > 500)
             {

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true"><xsd:complexType><xsd:choice maxOccurs="unbounded"><xsd:element name="data"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /><xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" /></xsd:complexType></xsd:element><xsd:element name="resheader"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" /></xsd:complexType></xsd:element></xsd:choice></xsd:complexType></xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  
+  <data name="DialogTitle" xml:space="preserve"><value>Edit Weight</value><comment>Dialog title</comment></data>
+  <data name="DialogSubtitle" xml:space="preserve"><value>Modify this weight record as needed.</value><comment>Dialog subtitle</comment></data>
+  <data name="WeightLabel" xml:space="preserve"><value>Weight</value><comment>Weight input label</comment></data>
+  <data name="ToggleUnitAriaLabel" xml:space="preserve"><value>Toggle weight unit</value><comment>Aria label for unit toggle</comment></data>
+  <data name="UnitHelperText" xml:space="preserve"><value>Click unit to switch between Kg and Lb</value><comment>Helper text for unit toggle</comment></data>
+  <data name="WeightPlaceholder" xml:space="preserve"><value>0.0</value><comment>Weight input placeholder</comment></data>
+  <data name="DateLabel" xml:space="preserve"><value>Date</value><comment>Date input label</comment></data>
+  <data name="TimeLabel" xml:space="preserve"><value>Time</value><comment>Time input label</comment></data>
+  <data name="NotesLabel" xml:space="preserve"><value>Notes (Optional)</value><comment>Notes input label</comment></data>
+  <data name="NotesPlaceholder" xml:space="preserve"><value>How do you feel? E.g: Post-workout, morning weight...</value><comment>Notes placeholder</comment></data>
+  <data name="NotesHelperText" xml:space="preserve"><value>Add any relevant details about this measurement</value><comment>Notes helper text</comment></data>
+  <data name="InfoMessage" xml:space="preserve"><value>For the most accurate results, try to weigh yourself at the same time each day, preferably in the morning before eating.</value><comment>Info alert message</comment></data>
+  <data name="CancelButton" xml:space="preserve"><value>Cancel</value><comment>Cancel button</comment></data>
+  <data name="SaveButton" xml:space="preserve"><value>Save Changes</value><comment>Save button</comment></data>
+  <data name="SuccessMessage" xml:space="preserve"><value>Weight updated successfully</value><comment>Success notification</comment></data>
+  <data name="ErrorDateTimeRequired" xml:space="preserve"><value>Error: Date and time are required</value><comment>Error date/time required</comment></data>
+  <data name="ErrorInvalidWeight" xml:space="preserve"><value>Error: Invalid weight. Enter a value between 20 and 500.</value><comment>Error invalid weight</comment></data>
+  <data name="ErrorSaving" xml:space="preserve"><value>Error updating weight: {0}</value><comment>Error saving weight with details</comment></data>
+
+</root>

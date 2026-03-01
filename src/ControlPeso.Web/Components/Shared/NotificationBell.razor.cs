@@ -37,9 +37,9 @@ public partial class NotificationBell : IDisposable
 
         // Iniciar polling cada 60 segundos para actualizar contador
         _pollingTimer = new System.Threading.Timer(
-            async _ => await LoadUnreadCountAsync(), 
-            null, 
-            TimeSpan.FromSeconds(60), 
+            async _ => await LoadUnreadCountAsync(),
+            null,
+            TimeSpan.FromSeconds(60),
             TimeSpan.FromSeconds(60));
     }
 

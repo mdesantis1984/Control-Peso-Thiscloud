@@ -9,7 +9,7 @@ public class UserPreferencesTests
     public void UserPreferences_ShouldSetAndGetId()
     {
         var prefs = new UserPreferences();
-        const string id = "pref-123";
+        var id = Guid.NewGuid();
 
         prefs.Id = id;
 
@@ -20,7 +20,7 @@ public class UserPreferencesTests
     public void UserPreferences_ShouldSetAndGetUserId()
     {
         var prefs = new UserPreferences();
-        const string userId = "user-123";
+        var userId = Guid.NewGuid();
 
         prefs.UserId = userId;
 
@@ -31,7 +31,7 @@ public class UserPreferencesTests
     public void UserPreferences_ShouldSetAndGetDarkMode()
     {
         var prefs = new UserPreferences();
-        const int darkMode = 1;
+        const bool darkMode = true;
 
         prefs.DarkMode = darkMode;
 
@@ -42,7 +42,7 @@ public class UserPreferencesTests
     public void UserPreferences_ShouldSetAndGetNotificationsEnabled()
     {
         var prefs = new UserPreferences();
-        const int notificationsEnabled = 0;
+        const bool notificationsEnabled = false;
 
         prefs.NotificationsEnabled = notificationsEnabled;
 
@@ -64,7 +64,7 @@ public class UserPreferencesTests
     public void UserPreferences_ShouldSetAndGetUpdatedAt()
     {
         var prefs = new UserPreferences();
-        const string updatedAt = "2024-01-15T00:00:00Z";
+        var updatedAt = DateTime.Parse("2024-01-15T00:00:00Z");
 
         prefs.UpdatedAt = updatedAt;
 
@@ -89,7 +89,7 @@ public class UserNotificationsTests
     public void UserNotifications_ShouldSetAndGetId()
     {
         var notification = new UserNotifications();
-        const string id = "notif-123";
+        var id = Guid.NewGuid();
 
         notification.Id = id;
 
@@ -100,7 +100,7 @@ public class UserNotificationsTests
     public void UserNotifications_ShouldSetAndGetUserId()
     {
         var notification = new UserNotifications();
-        const string userId = "user-123";
+        var userId = Guid.NewGuid();
 
         notification.UserId = userId;
 
@@ -133,7 +133,7 @@ public class UserNotificationsTests
     public void UserNotifications_ShouldSetAndGetType()
     {
         var notification = new UserNotifications();
-        const int type = 0;
+        const string type = "Info";
 
         notification.Type = type;
 
@@ -144,7 +144,7 @@ public class UserNotificationsTests
     public void UserNotifications_ShouldSetAndGetIsRead()
     {
         var notification = new UserNotifications();
-        const int isRead = 1;
+        const bool isRead = true;
 
         notification.IsRead = isRead;
 
@@ -152,21 +152,10 @@ public class UserNotificationsTests
     }
 
     [Fact]
-    public void UserNotifications_ShouldSetAndGetReadAt()
-    {
-        var notification = new UserNotifications();
-        const string readAt = "2024-01-15T10:00:00Z";
-
-        notification.ReadAt = readAt;
-
-        notification.ReadAt.Should().Be(readAt);
-    }
-
-    [Fact]
     public void UserNotifications_ShouldSetAndGetCreatedAt()
     {
         var notification = new UserNotifications();
-        const string createdAt = "2024-01-15T00:00:00Z";
+        var createdAt = DateTime.Parse("2024-01-15T00:00:00Z");
 
         notification.CreatedAt = createdAt;
 
@@ -191,7 +180,7 @@ public class AuditLogTests
     public void AuditLog_ShouldSetAndGetId()
     {
         var log = new AuditLog();
-        const string id = "audit-123";
+        var id = Guid.NewGuid();
 
         log.Id = id;
 
@@ -202,7 +191,7 @@ public class AuditLogTests
     public void AuditLog_ShouldSetAndGetUserId()
     {
         var log = new AuditLog();
-        const string userId = "user-123";
+        var userId = Guid.NewGuid();
 
         log.UserId = userId;
 
@@ -268,7 +257,7 @@ public class AuditLogTests
     public void AuditLog_ShouldSetAndGetCreatedAt()
     {
         var log = new AuditLog();
-        const string createdAt = "2024-01-15T00:00:00Z";
+        var createdAt = DateTime.Parse("2024-01-15T00:00:00Z");
 
         log.CreatedAt = createdAt;
 
@@ -286,3 +275,6 @@ public class AuditLogTests
         log.User.Should().Be(user);
     }
 }
+
+
+

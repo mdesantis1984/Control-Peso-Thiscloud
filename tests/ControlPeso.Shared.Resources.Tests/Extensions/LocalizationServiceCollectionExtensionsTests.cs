@@ -2,7 +2,6 @@ using ControlPeso.Shared.Resources.Extensions;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
-using Microsoft.Extensions.Logging;
 
 namespace ControlPeso.Shared.Resources.Tests.Extensions;
 
@@ -28,10 +27,10 @@ public class LocalizationServiceCollectionExtensionsTests
 
         // Assert
         var provider = services.BuildServiceProvider();
-        
+
         var factory = provider.GetService<IStringLocalizerFactory>();
         factory.Should().NotBeNull();
-        
+
         var localizer = provider.GetService<IStringLocalizer<LocalizationServiceCollectionExtensionsTests>>();
         localizer.Should().NotBeNull();
     }
@@ -52,7 +51,7 @@ public class LocalizationServiceCollectionExtensionsTests
         // Assert
         var provider = services.BuildServiceProvider();
         var options = provider.GetService<Microsoft.Extensions.Options.IOptions<LocalizationOptions>>();
-        
+
         options.Should().NotBeNull();
         options!.Value.ResourcesPath.Should().Be("CustomResources");
     }
@@ -71,7 +70,7 @@ public class LocalizationServiceCollectionExtensionsTests
         var provider = services.BuildServiceProvider();
         var factory1 = provider.GetService<IStringLocalizerFactory>();
         var factory2 = provider.GetService<IStringLocalizerFactory>();
-        
+
         factory1.Should().BeSameAs(factory2);
     }
 
@@ -89,7 +88,7 @@ public class LocalizationServiceCollectionExtensionsTests
         var provider = services.BuildServiceProvider();
         var localizer1 = provider.GetService<IStringLocalizer<LocalizationServiceCollectionExtensionsTests>>();
         var localizer2 = provider.GetService<IStringLocalizer<LocalizationServiceCollectionExtensionsTests>>();
-        
+
         localizer1.Should().NotBeSameAs(localizer2);
     }
 

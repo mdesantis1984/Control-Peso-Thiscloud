@@ -35,4 +35,10 @@ public sealed record WeightLogFilter
     /// Orden descendente (default: true - más reciente primero).
     /// </summary>
     public bool Descending { get; init; } = true;
+
+    /// <summary>
+    /// Término de búsqueda opcional para filtrar por nota.
+    /// Busca coincidencias parciales (contains) en el campo Note.
+    /// </summary>
+    public string? SearchTerm { get; init; }
 }

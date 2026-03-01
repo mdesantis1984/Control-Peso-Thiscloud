@@ -11,6 +11,7 @@ COPY ["Directory.Packages.props", "./"]
 COPY ["src/ControlPeso.Domain/ControlPeso.Domain.csproj", "src/ControlPeso.Domain/"]
 COPY ["src/ControlPeso.Application/ControlPeso.Application.csproj", "src/ControlPeso.Application/"]
 COPY ["src/ControlPeso.Infrastructure/ControlPeso.Infrastructure.csproj", "src/ControlPeso.Infrastructure/"]
+COPY ["src/ControlPeso.Shared.Resources/ControlPeso.Shared.Resources.csproj", "src/ControlPeso.Shared.Resources/"]
 COPY ["src/ControlPeso.Web/ControlPeso.Web.csproj", "src/ControlPeso.Web/"]
 
 # Restore dependencies
@@ -35,9 +36,9 @@ RUN dotnet publish "ControlPeso.Web.csproj" -c Release -o /app/publish /p:UseApp
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
-# Install SQLite (for Database First workflow) and curl (for health checks)
+# Install curl for health checks
 RUN apt-get update && \
-    apt-get install -y sqlite3 curl && \
+    apt-get install -y curl && \
     rm -rf /var/lib/apt/lists/*
 
 # Create directories for database and logs

@@ -219,6 +219,18 @@
     <value>Error loading data: {0}</value>
     <comment>Error message when data loading fails. {0} = error details</comment>
   </data>
+  <data name="ErrorExportingData" xml:space="preserve">
+    <value>Error exporting data. Please try again.</value>
+    <comment>Error message when CSV export fails</comment>
+  </data>
+  <data name="NoDataToExport" xml:space="preserve">
+    <value>No data to export. Add some weight logs first.</value>
+    <comment>Warning message when trying to export with no data</comment>
+  </data>
+  <data name="ExportSuccess" xml:space="preserve">
+    <value>{0} records exported successfully.</value>
+    <comment>Success message after CSV export. {0} = number of records exported</comment>
+  </data>
   <data name="TimeAgoMinutes" xml:space="preserve">
     <value>a few minutes ago</value>
     <comment>Relative time text for last measured (less than 1 hour ago)</comment>

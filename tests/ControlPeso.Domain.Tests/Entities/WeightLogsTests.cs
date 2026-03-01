@@ -9,7 +9,7 @@ public class WeightLogsTests
     public void WeightLogs_ShouldSetAndGetId()
     {
         var log = new WeightLogs();
-        const string id = "log-123";
+        var id = Guid.NewGuid();
 
         log.Id = id;
 
@@ -20,7 +20,7 @@ public class WeightLogsTests
     public void WeightLogs_ShouldSetAndGetUserId()
     {
         var log = new WeightLogs();
-        const string userId = "user-123";
+        var userId = Guid.NewGuid();
 
         log.UserId = userId;
 
@@ -31,7 +31,7 @@ public class WeightLogsTests
     public void WeightLogs_ShouldSetAndGetDate()
     {
         var log = new WeightLogs();
-        const string date = "2024-01-15";
+        var date = new DateOnly(2024, 01, 15);
 
         log.Date = date;
 
@@ -42,7 +42,7 @@ public class WeightLogsTests
     public void WeightLogs_ShouldSetAndGetTime()
     {
         var log = new WeightLogs();
-        const string time = "14:30";
+        var time = new TimeOnly(14, 30);
 
         log.Time = time;
 
@@ -53,7 +53,7 @@ public class WeightLogsTests
     public void WeightLogs_ShouldSetAndGetWeight()
     {
         var log = new WeightLogs();
-        const double weight = 75.5;
+        const decimal weight = 75.5m;
 
         log.Weight = weight;
 
@@ -97,7 +97,7 @@ public class WeightLogsTests
     public void WeightLogs_ShouldSetAndGetCreatedAt()
     {
         var log = new WeightLogs();
-        const string createdAt = "2024-01-15T14:30:00Z";
+        var createdAt = DateTime.Parse("2024-01-15T14:30:00Z");
 
         log.CreatedAt = createdAt;
 
@@ -115,3 +115,4 @@ public class WeightLogsTests
         log.User.Should().Be(user);
     }
 }
+

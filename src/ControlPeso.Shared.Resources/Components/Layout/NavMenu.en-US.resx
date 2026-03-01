@@ -16,7 +16,12 @@
   <data name="Profile" xml:space="preserve"><value>Profile</value><comment>Profile link</comment></data>
   <data name="AdminSection" xml:space="preserve"><value>Administration</value><comment>Admin section title</comment></data>
   <data name="AdminPanel" xml:space="preserve"><value>Admin Panel</value><comment>Admin panel link</comment></data>
+  <data name="DiagnosticsSection" xml:space="preserve"><value>Diagnostics</value><comment>Diagnostics section title</comment></data>
+  <data name="Tests" xml:space="preserve"><value>Tests</value><comment>Tests group title</comment></data>
+  <data name="DiagAuth" xml:space="preserve"><value>Auth Diagnostics</value><comment>Auth diagnostics link</comment></data>
   <data name="TelegramDiagnostics" xml:space="preserve"><value>Telegram Diagnostics</value><comment>Telegram diagnostics link</comment></data>
+  <data name="TestBadges" xml:space="preserve"><value>Badge Tests</value><comment>Badge test link</comment></data>
+  <data name="TestFlags" xml:space="preserve"><value>Flag Tests</value><comment>Flags test link</comment></data>
   <data name="Home" xml:space="preserve"><value>Home</value><comment>Home link for unauthenticated users</comment></data>
   <data name="Login" xml:space="preserve"><value>Sign In</value><comment>Login link for unauthenticated users</comment></data>
   <data name="AppVersion" xml:space="preserve"><value>Control Peso Thiscloud v1.0</value><comment>App version footer</comment></data>

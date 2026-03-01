@@ -1,0 +1,154 @@
+@page "/privacy"
+@page "/privacidad"
+
+<PageTitle>@PageTitleText</PageTitle>
+
+<HeadContent>
+    <meta name="description" content="@MetaDescription" />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:title" content="@PageTitleText" />
+    <meta property="og:description" content="@MetaDescription" />
+    <meta property="og:url" content="https://controlpeso.thiscloud.com.ar/privacy" />
+</HeadContent>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-8">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudStack Spacing="4">
+            @* Header *@
+            <MudStack Row="true" Justify="Justify.SpaceBetween" Spacing="2" AlignItems="AlignItems.Center">
+                <img src="/images/og-image.png" alt="Control Peso Thiscloud Logo" style="width: 48px; height: 48px; border-radius: 8px;" />
+                <MudText Typo="Typo.h3" Color="Color.Primary">@Title</MudText>
+                <MudSpacer />
+                <MudTooltip Text="@LanguageSwitchTooltip">
+                    <MudIconButton Icon="@Icons.Material.Filled.Translate"
+                                   Color="Color.Secondary"
+                                   OnClick="ToggleLanguage" />
+                </MudTooltip>
+            </MudStack>
+
+            <MudDivider />
+
+            @* Dates *@
+            <MudStack Row="true" Spacing="4">
+                <MudChip T="string" Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small">
+                    @EffectiveDateLabel: @EffectiveDate
+                </MudChip>
+                <MudChip T="string" Icon="@Icons.Material.Filled.Update" Size="Size.Small">
+                    @LastUpdatedLabel: @LastUpdated
+                </MudChip>
+            </MudStack>
+
+            <MudDivider />
+
+            @* Introduction *@
+            <MudText Typo="Typo.h5">@IntroductionTitle</MudText>
+            <MudText>@IntroductionText</MudText>
+            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+                @AcceptanceText
+            </MudAlert>
+
+            @* Information We Collect *@
+            <MudText Typo="Typo.h5">@InfoCollectedTitle</MudText>
+
+            <MudText Typo="Typo.h6">@DirectInfoTitle</MudText>
+            <MudList T="string">
+                <MudListItem T="string" Icon="@Icons.Material.Filled.AccountCircle">
+                    <MudText><strong>@GoogleAccountLabel:</strong> @GoogleAccountInfo</MudText>
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.MonitorWeight">
+                    <MudText><strong>@WeightDataLabel:</strong> @WeightDataInfo</MudText>
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Settings">
+                    <MudText><strong>@PreferencesLabel:</strong> @PreferencesInfo</MudText>
+                </MudListItem>
+            </MudList>
+
+            <MudText Typo="Typo.h6">@AutoCollectedTitle</MudText>
+            <MudList T="string">
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Analytics">
+                    <MudText><strong>@UsageDataLabel:</strong> @UsageDataInfo</MudText>
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Cookie">
+                    <MudText><strong>@CookiesLabel:</strong> @CookiesInfo</MudText>
+                </MudListItem>
+            </MudList>
+
+            @* How We Use Your Information *@
+            <MudText Typo="Typo.h5">@HowWeUseTitle</MudText>
+            <MudList T="string">
+                <MudListItem T="string" Icon="@Icons.Material.Filled.CheckCircle">@UseProvide</MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.TrendingUp">@UseImprove</MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Email">@UseCommunication</MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Security">@UseSecurity</MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Insights">@UseAnalytics</MudListItem>
+            </MudList>
+
+            @* Data Storage and Security *@
+            <MudText Typo="Typo.h5">@StorageSecurityTitle</MudText>
+            <MudSimpleTable Elevation="0" Dense="true">
+                <thead>
+                    <tr>
+                        <th>@SecurityMeasureHeader</th>
+                        <th>@DetailsHeader</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Small" /> @EncryptionLabel</td>
+                        <td>@EncryptionDetails</td>
+                    </tr>
+                    <tr>
+                        <td><MudIcon Icon="@Icons.Material.Filled.Storage" Size="Size.Small" /> @DatabaseLabel</td>
+                        <td>@DatabaseDetails</td>
+                    </tr>
+                    <tr>
+                        <td><MudIcon Icon="@Icons.Material.Filled.VpnKey" Size="Size.Small" /> @AuthenticationLabel</td>
+                        <td>@AuthenticationDetails</td>
+                    </tr>
+                </tbody>
+            </MudSimpleTable>
+
+            @* Your Rights *@
+            <MudText Typo="Typo.h5">@YourRightsTitle</MudText>
+            <MudExpansionPanels MultiExpansion="true">
+                <MudExpansionPanel Text="@AccessRightTitle">
+                    <MudText>@AccessRightText</MudText>
+                </MudExpansionPanel>
+                <MudExpansionPanel Text="@CorrectionRightTitle">
+                    <MudText>@CorrectionRightText</MudText>
+                </MudExpansionPanel>
+                <MudExpansionPanel Text="@DeletionRightTitle">
+                    <MudText>@DeletionRightText</MudText>
+                </MudExpansionPanel>
+                <MudExpansionPanel Text="@OptOutRightTitle">
+                    <MudText>@OptOutRightText</MudText>
+                </MudExpansionPanel>
+            </MudExpansionPanels>
+
+            @* Contact *@
+            <MudAlert Severity="Severity.Normal" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.ContactMail">
+                <MudText Typo="Typo.h6">@ContactTitle</MudText>
+                <MudText>@ContactText</MudText>
+                <MudLink Href="https://controlpeso.thiscloud.com.ar" Target="_blank">
+                    https://controlpeso.thiscloud.com.ar
+                </MudLink>
+            </MudAlert>
+
+            @* Key Summary *@
+            <MudText Typo="Typo.h5">@SummaryTitle</MudText>
+            <MudDataGrid Items="@SummaryItems" Dense="true" Elevation="0">
+                <Columns>
+                    <PropertyColumn Property="x => x.Topic" Title="@TopicHeader" />
+                    <PropertyColumn Property="x => x.Summary" Title="@SummaryHeader" />
+                </Columns>
+            </MudDataGrid>
+
+            @* Acknowledgment *@
+            <MudAlert Severity="Severity.Success" Variant="Variant.Filled">
+                <MudText Typo="Typo.body1" Align="Align.Center">
+                    <strong>@AcknowledgmentText</strong>
+                </MudText>
+            </MudAlert>
+        </MudStack>
+    </MudPaper>
+</MudContainer>

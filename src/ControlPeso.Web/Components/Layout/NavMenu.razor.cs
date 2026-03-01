@@ -24,7 +24,12 @@ public partial class NavMenu
     private string Profile => Localizer[nameof(Profile)];
     private string AdminSection => Localizer[nameof(AdminSection)];
     private string AdminPanel => Localizer[nameof(AdminPanel)];
+    private string DiagnosticsSection => Localizer[nameof(DiagnosticsSection)];
+    private string Tests => Localizer[nameof(Tests)];
+    private string DiagAuth => Localizer[nameof(DiagAuth)];
     private string TelegramDiagnostics => Localizer[nameof(TelegramDiagnostics)];
+    private string TestBadges => Localizer[nameof(TestBadges)];
+    private string TestFlags => Localizer[nameof(TestFlags)];
     private string Home => Localizer[nameof(Home)];
     private string Login => Localizer[nameof(Login)];
     private string AppVersion => Localizer[nameof(AppVersion)];

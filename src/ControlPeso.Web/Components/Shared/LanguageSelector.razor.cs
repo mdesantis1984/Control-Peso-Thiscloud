@@ -35,11 +35,15 @@ public partial class LanguageSelector
     // Control de apertura del menú (mismo patrón que avatar menu)
     private bool _menuOpen = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!firstRender)
+            return;
+
         try
         {
             // Intentar obtener idioma desde localStorage
+            // CRÍTICO: JSInterop SOLO funciona después del primer render (no en prerendering)
             var savedLanguage = await JSRuntime.InvokeAsync<string?>("localStorage.getItem", "language");
 
             // Solo actualizar si se encontró un idioma guardado válido
@@ -49,6 +53,7 @@ public partial class LanguageSelector
                 if (matchedLanguage != null)
                 {
                     _currentLanguage = matchedLanguage;
+                    StateHasChanged(); // Forzar re-render con idioma actualizado
                 }
             }
         }

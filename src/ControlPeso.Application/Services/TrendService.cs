@@ -49,9 +49,8 @@ public sealed class TrendService : ITrendService
             // Obtener registros de peso en el rango ordenados cronológicamente
             var logs = await _context.Set<WeightLogs>()
                 .AsNoTracking()
-                .Where(wl => wl.UserId == userId.ToString())
-                .Where(wl => string.Compare(wl.Date, range.StartDate.ToString("yyyy-MM-dd")) >= 0 &&
-                             string.Compare(wl.Date, range.EndDate.ToString("yyyy-MM-dd")) <= 0)
+                .Where(wl => wl.UserId == userId)
+                .Where(wl => wl.Date >= range.StartDate && wl.Date <= range.EndDate)
                 .OrderBy(wl => wl.Date)
                 .ThenBy(wl => wl.Time)
                 .ToListAsync(ct);
@@ -75,14 +74,14 @@ public sealed class TrendService : ITrendService
             var dataPoints = logs
                 .Select(log => new TrendDataPoint
                 {
-                    Date = DateOnly.Parse(log.Date),
-                    Weight = (decimal)log.Weight
+                    Date = log.Date,
+                    Weight = log.Weight
                 })
                 .ToList();
 
             // Calcular tendencia general (comparar primer vs último registro)
-            var firstWeight = (decimal)logs.First().Weight;
-            var lastWeight = (decimal)logs.Last().Weight;
+            var firstWeight = logs.First().Weight;
+            var lastWeight = logs.Last().Weight;
             var weightChange = lastWeight - firstWeight;
 
             var overallTrend = Math.Abs(weightChange) <= WeightThreshold
@@ -92,8 +91,8 @@ public sealed class TrendService : ITrendService
                     : WeightTrend.Down;
 
             // Calcular cambio promedio diario y semanal
-            var firstDate = DateOnly.Parse(logs.First().Date);
-            var lastDate = DateOnly.Parse(logs.Last().Date);
+            var firstDate = logs.First().Date;
+            var lastDate = logs.Last().Date;
             var daysInRange = (lastDate.ToDateTime(TimeOnly.MinValue) - firstDate.ToDateTime(TimeOnly.MinValue)).Days;
 
             decimal? averageDailyChange = null;
@@ -144,7 +143,7 @@ public sealed class TrendService : ITrendService
             // Obtener usuario para verificar peso objetivo
             var user = await _context.Set<Users>()
                 .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Id == userId.ToString(), ct);
+                .FirstOrDefaultAsync(u => u.Id == userId, ct);
 
             if (user is null)
             {
@@ -152,7 +151,7 @@ public sealed class TrendService : ITrendService
                 throw new InvalidOperationException($"User with ID {userId} not found.");
             }
 
-            var goalWeight = user.GoalWeight.HasValue ? (decimal)user.GoalWeight.Value : (decimal?)null;
+            var goalWeight = user.GoalWeight;
 
             // Obtener registros de peso de los últimos 30 días para la regresión
             var thirtyDaysAgo = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30));
@@ -160,9 +159,8 @@ public sealed class TrendService : ITrendService
 
             var logs = await _context.Set<WeightLogs>()
                 .AsNoTracking()
-                .Where(wl => wl.UserId == userId.ToString())
-                .Where(wl => string.Compare(wl.Date, thirtyDaysAgo.ToString("yyyy-MM-dd")) >= 0 &&
-                             string.Compare(wl.Date, today.ToString("yyyy-MM-dd")) <= 0)
+                .Where(wl => wl.UserId == userId)
+                .Where(wl => wl.Date >= thirtyDaysAgo && wl.Date <= today)
                 .OrderBy(wl => wl.Date)
                 .ThenBy(wl => wl.Time)
                 .ToListAsync(ct);
@@ -184,13 +182,13 @@ public sealed class TrendService : ITrendService
 
             // Calcular regresión lineal simple: y = mx + b
             // Donde x = días desde el primer registro, y = peso
-            var firstDate = DateOnly.Parse(logs.First().Date);
+            var firstDate = logs.First().Date;
 
             var dataPoints = logs
                 .Select(log => new
                 {
-                    X = (DateOnly.Parse(log.Date).ToDateTime(TimeOnly.MinValue) - firstDate.ToDateTime(TimeOnly.MinValue)).Days,
-                    Y = (decimal)log.Weight
+                    X = (log.Date.ToDateTime(TimeOnly.MinValue) - firstDate.ToDateTime(TimeOnly.MinValue)).Days,
+                    Y = log.Weight
                 })
                 .ToList();
 

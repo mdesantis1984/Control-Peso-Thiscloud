@@ -1,8 +1,8 @@
+using System.Security.Claims;
 using ControlPeso.Application.DTOs;
 using ControlPeso.Application.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
-using System.Security.Claims;
 
 namespace ControlPeso.Web.Extensions;
 

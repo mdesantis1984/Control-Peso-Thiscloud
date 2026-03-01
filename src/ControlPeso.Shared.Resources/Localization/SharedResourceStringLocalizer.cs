@@ -1,8 +1,8 @@
-using Microsoft.Extensions.Localization;
-using Microsoft.Extensions.Logging;
 using System.Globalization;
 using System.Reflection;
 using System.Resources;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
 
 namespace ControlPeso.Shared.Resources.Localization;
 
