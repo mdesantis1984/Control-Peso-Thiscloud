@@ -184,53 +184,60 @@
                                 <MudStack Spacing="3">
                                     <!-- Name Field -->
                                     <MudTextField Label="@NameLabel"
-                                                  @bind-Value="_name"
+                                                  @bind-Value="FormModel.Name"
                                                   Required="true"
                                                   RequiredError="@NameRequired"
                                                   MaxLength="200"
                                                   Variant="Variant.Outlined" />
 
-                                    <!-- Height Field -->
-                                    <MudNumericField Label="@HeightLabel"
-                                                     @bind-Value="_height"
-                                                     Required="true"
-                                                     RequiredError="@HeightRequired"
-                                                     Min="50"
-                                                     Max="300"
-                                                     Variant="Variant.Outlined"
-                                                     Adornment="Adornment.End"
-                                                     AdornmentText="@CmUnit" />
+                                    <!-- Height Field with Unit on Right (MudTextField workaround) -->
+                                    <MudStack Row="true" AlignItems="AlignItems.End" Spacing="2">
+                                        <MudTextField Label="@HeightLabel"
+                                                      Value="@FormModel.Height.ToString("F0")"
+                                                      ValueChanged="@(async (string val) => await OnHeightChanged(val))"
+                                                      InputType="InputType.Number"
+                                                      Required="true"
+                                                      HelperText="@HeightRequired"
+                                                      Variant="Variant.Outlined"
+                                                      Immediate="true"
+                                                      Style="flex: 1;" />
+                                        <MudText Typo="Typo.body1" Style="padding-bottom: 8px;">@CmUnit</MudText>
+                                    </MudStack>
 
                                     <!-- Unit System Select -->
                                     <MudSelect Label="@UnitSystemLabel"
                                                T="UnitSystem"
-                                               @bind-Value="_unitSystem"
+                                               @bind-Value="FormModel.UnitSystem"
                                                Variant="Variant.Outlined">
-                                        <MudSelectItem T="UnitSystem" Value="UnitSystem.Metric">@UnitSystemMetric</MudSelectItem>
-                                        <MudSelectItem T="UnitSystem" Value="UnitSystem.Imperial">@UnitSystemImperial</MudSelectItem>
+                                        <MudSelectItem T="UnitSystem" Value="Domain.Enums.UnitSystem.Metric">@UnitSystemMetric</MudSelectItem>
+                                        <MudSelectItem T="UnitSystem" Value="Domain.Enums.UnitSystem.Imperial">@UnitSystemImperial</MudSelectItem>
                                     </MudSelect>
 
                                     <!-- Date of Birth -->
                                     <MudDatePicker Label="@DateOfBirthLabel"
-                                                   @bind-Date="_dateOfBirth"
+                                                   @bind-Date="FormModel.DateOfBirth"
                                                    MaxDate="DateTime.Today"
                                                    Editable="true"
                                                    Variant="Variant.Outlined"
                                                    DateFormat="MM/dd/yyyy" />
 
-                                    <!-- Goal Weight -->
-                                    <MudNumericField Label="@GoalWeightLabel"
-                                                     @bind-Value="_goalWeight"
-                                                     Min="20"
-                                                     Max="500"
-                                                     Variant="Variant.Outlined"
-                                                     Adornment="Adornment.End"
-                                                     AdornmentText="@KgUnit" />
+                                    <!-- Goal Weight with Unit on Right (MudTextField workaround) -->
+                                    <MudStack Row="true" AlignItems="AlignItems.End" Spacing="2">
+                                        <MudTextField Label="@GoalWeightLabel"
+                                                      Value="@(FormModel.GoalWeight?.ToString("F0") ?? string.Empty)"
+                                                      ValueChanged="@(async (string val) => await OnGoalWeightChanged(val))"
+                                                      InputType="InputType.Number"
+                                                      HelperText="Opcional: Tu peso objetivo"
+                                                      Variant="Variant.Outlined"
+                                                      Immediate="true"
+                                                      Style="flex: 1;" />
+                                        <MudText Typo="Typo.body1" Style="padding-bottom: 8px;">@KgUnit</MudText>
+                                    </MudStack>
 
                                     <!-- Language Select -->
                                     <MudSelect Label="@LanguageLabel"
                                                T="string"
-                                               @bind-Value="_language"
+                                               @bind-Value="FormModel.Language"
                                                Variant="Variant.Outlined">
                                         <MudSelectItem T="string" Value="@("es")">@LanguageSpanish</MudSelectItem>
                                         <MudSelectItem T="string" Value="@("en")">@LanguageEnglish</MudSelectItem>
@@ -238,14 +245,14 @@
 
                                     <!-- Dark Mode Switch -->
                                     <MudSwitch T="bool" 
-                                               Value="@DarkMode" 
+                                               Value="@FormModel.DarkMode" 
                                                ValueChanged="@OnDarkModeChanged" 
                                                Color="Color.Primary"
                                                Label="@DarkModeLabel" />
 
                                     <!-- Notifications Switch -->
                                     <MudSwitch T="bool" 
-                                               Value="@NotificationsEnabled" 
+                                               Value="@FormModel.NotificationsEnabled" 
                                                ValueChanged="@OnNotificationsEnabledChanged" 
                                                Color="Color.Primary"
                                                Label="@NotificationsLabel" />

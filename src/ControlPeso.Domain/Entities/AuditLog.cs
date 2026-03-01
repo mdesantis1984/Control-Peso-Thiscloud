@@ -1,13 +1,10 @@
-using System;
-using System.Collections.Generic;
-
 namespace ControlPeso.Domain.Entities;
 
 public partial class AuditLog
 {
-    public string Id { get; set; } = null!;
+    public Guid Id { get; set; }
 
-    public string UserId { get; set; } = null!;
+    public Guid UserId { get; set; }
 
     public string Action { get; set; } = null!;
 
@@ -19,7 +16,7 @@ public partial class AuditLog
 
     public string? NewValue { get; set; }
 
-    public string CreatedAt { get; set; } = null!;
+    public DateTime CreatedAt { get; set; }
 
     public virtual Users User { get; set; } = null!;
 }

@@ -52,10 +52,10 @@ internal sealed class DevelopmentAuthMiddleware
                 new(ClaimTypes.Email, FakeEmail),
                 new(ClaimTypes.Name, FakeName),
                 new("google_id", FakeGoogleId),
-                
+
                 // Claims custom de nuestra app (agregados por UserClaimsTransformation)
                 new("user_id", FakeUserId), // GUID del usuario en BD
-                new("role", "User"), // UserRole.User
+                new(ClaimTypes.Role, "User"), // UserRole.User - CON ClaimTypes.Role para IsInRole()
                 new("status", "Active") // UserStatus.Active
             };
 

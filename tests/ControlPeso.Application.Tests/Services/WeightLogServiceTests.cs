@@ -178,6 +178,110 @@ public sealed class WeightLogServiceTests : IDisposable
         result.HasNextPage.Should().BeTrue();
     }
 
+    [Fact]
+    public async Task GetByUserAsync_WithSearchTerm_ShouldFilterByNote()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var log1 = CreateWeightLogEntity(Guid.NewGuid(), userId, new DateOnly(2026, 2, 15), 75.5);
+        log1.Note = "Morning weight after breakfast";
+
+        var log2 = CreateWeightLogEntity(Guid.NewGuid(), userId, new DateOnly(2026, 2, 16), 75.2);
+        log2.Note = "Evening weight before dinner";
+
+        var log3 = CreateWeightLogEntity(Guid.NewGuid(), userId, new DateOnly(2026, 2, 17), 74.8);
+        log3.Note = "Morning routine checkup";
+
+        _context.Set<WeightLogs>().AddRange(log1, log2, log3);
+        await _context.SaveChangesAsync();
+
+        var filter = new WeightLogFilter 
+        { 
+            UserId = userId, 
+            Page = 1, 
+            PageSize = 10,
+            SearchTerm = "morning" // Case-insensitive search
+        };
+
+        // Act
+        var result = await _service.GetByUserAsync(userId, filter);
+
+        // Assert
+        result.Items.Should().HaveCount(2);
+        result.TotalCount.Should().Be(2);
+        result.Items.Should().Contain(l => l.Note!.Contains("Morning weight", StringComparison.OrdinalIgnoreCase));
+        result.Items.Should().Contain(l => l.Note!.Contains("Morning routine", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task GetByUserAsync_WithSearchTerm_WhenNoMatches_ShouldReturnEmpty()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var log1 = CreateWeightLogEntity(Guid.NewGuid(), userId, new DateOnly(2026, 2, 15), 75.5);
+        log1.Note = "Morning weight";
+
+        var log2 = CreateWeightLogEntity(Guid.NewGuid(), userId, new DateOnly(2026, 2, 16), 75.2);
+        log2.Note = "Evening weight";
+
+        _context.Set<WeightLogs>().AddRange(log1, log2);
+        await _context.SaveChangesAsync();
+
+        var filter = new WeightLogFilter 
+        { 
+            UserId = userId, 
+            Page = 1, 
+            PageSize = 10,
+            SearchTerm = "nonexistent" 
+        };
+
+        // Act
+        var result = await _service.GetByUserAsync(userId, filter);
+
+        // Assert
+        result.Items.Should().BeEmpty();
+        result.TotalCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task GetByUserAsync_WithSearchTermAndDateRange_ShouldApplyBothFilters()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var log1 = CreateWeightLogEntity(Guid.NewGuid(), userId, new DateOnly(2026, 2, 10), 76.0);
+        log1.Note = "Morning weight";
+
+        var log2 = CreateWeightLogEntity(Guid.NewGuid(), userId, new DateOnly(2026, 2, 15), 75.5);
+        log2.Note = "Morning routine";
+
+        var log3 = CreateWeightLogEntity(Guid.NewGuid(), userId, new DateOnly(2026, 2, 20), 75.0);
+        log3.Note = "Evening weight";
+
+        _context.Set<WeightLogs>().AddRange(log1, log2, log3);
+        await _context.SaveChangesAsync();
+
+        var filter = new WeightLogFilter
+        {
+            UserId = userId,
+            SearchTerm = "morning",
+            DateRange = new DateRange
+            {
+                StartDate = new DateOnly(2026, 2, 12),
+                EndDate = new DateOnly(2026, 2, 18)
+            },
+            Page = 1,
+            PageSize = 10
+        };
+
+        // Act
+        var result = await _service.GetByUserAsync(userId, filter);
+
+        // Assert
+        result.Items.Should().HaveCount(1);
+        result.Items[0].Date.Should().Be(new DateOnly(2026, 2, 15));
+        result.Items[0].Note.Should().Contain("Morning routine");
+    }
+
     #endregion
 
     #region CreateAsync Tests
@@ -208,7 +312,7 @@ public sealed class WeightLogServiceTests : IDisposable
         result.Weight.Should().Be(75.5m);
         result.Trend.Should().Be(WeightTrend.Neutral); // No previous weight
 
-        var saved = await _context.Set<WeightLogs>().FirstOrDefaultAsync(w => w.Id == result.Id.ToString());
+        var saved = await _context.Set<WeightLogs>().FirstOrDefaultAsync(w => w.Id == result.Id);
         saved.Should().NotBeNull();
     }
 
@@ -232,8 +336,8 @@ public sealed class WeightLogServiceTests : IDisposable
         await _service.CreateAsync(dto);
 
         // Assert
-        var user = await _context.Set<Users>().FirstOrDefaultAsync(u => u.Id == userId.ToString());
-        user!.StartingWeight.Should().Be(75.5);
+        var user = await _context.Set<Users>().FirstOrDefaultAsync(u => u.Id == userId);
+        user!.StartingWeight.Should().Be(75.5m);
     }
 
     [Fact]
@@ -390,7 +494,7 @@ public sealed class WeightLogServiceTests : IDisposable
         await _service.DeleteAsync(logId);
 
         // Assert
-        var deleted = await _context.Set<WeightLogs>().FirstOrDefaultAsync(w => w.Id == logId.ToString());
+        var deleted = await _context.Set<WeightLogs>().FirstOrDefaultAsync(w => w.Id == logId);
         deleted.Should().BeNull();
     }
 
@@ -571,18 +675,19 @@ public sealed class WeightLogServiceTests : IDisposable
 
     #region Helper Methods
 
-    private static WeightLogs CreateWeightLogEntity(Guid id, Guid userId, DateOnly date, double weight)
+    private static WeightLogs CreateWeightLogEntity(Guid id, Guid userId, DateOnly date, double weight, string? note = null)
     {
         return new WeightLogs
         {
-            Id = id.ToString(),
-            UserId = userId.ToString(),
-            Date = date.ToString("yyyy-MM-dd"),
-            Time = "08:00",
-            Weight = weight,
+            Id = id,
+            UserId = userId,
+            Date = date,
+            Time = new TimeOnly(08, 00),
+            Weight = (decimal)weight,
             DisplayUnit = (int)WeightUnit.Kg,
             Trend = (int)WeightTrend.Neutral,
-            CreatedAt = DateTime.UtcNow.ToString("O")
+            Note = note,
+            CreatedAt = DateTime.UtcNow
         };
     }
 
@@ -590,22 +695,62 @@ public sealed class WeightLogServiceTests : IDisposable
     {
         var user = new Users
         {
-            Id = userId.ToString(),
+            Id = userId,
             GoogleId = $"google_{userId}",
             Name = "Test User",
             Email = $"test_{userId}@example.com",
             Role = (int)UserRole.User,
-            MemberSince = DateTime.UtcNow.ToString("O"),
-            Height = 170.0,
+            MemberSince = DateTime.UtcNow,
+            Height = 170.0m,
             UnitSystem = (int)UnitSystem.Metric,
             Language = "es",
             Status = (int)UserStatus.Active,
-            CreatedAt = DateTime.UtcNow.ToString("O"),
-            UpdatedAt = DateTime.UtcNow.ToString("O")
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
 
         _context.Set<Users>().Add(user);
         _context.SaveChanges();
+    }
+
+    #endregion
+
+    #region Database Error Scenarios
+
+    [Fact]
+    public async Task DeleteAsync_WhenWeightLogNotFound_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var nonExistentId = Guid.NewGuid();
+
+        // Act
+        var act = async () => await _service.DeleteAsync(nonExistentId);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage($"Weight log with ID {nonExistentId} not found.");
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WhenWeightLogNotFound_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var nonExistentId = Guid.NewGuid();
+        var dto = new UpdateWeightLogDto
+        {
+            Date = DateOnly.FromDateTime(DateTime.Today),
+            Time = new TimeOnly(12, 0),
+            Weight = 75.5m,
+            DisplayUnit = WeightUnit.Kg,
+            Note = "Updated note"
+        };
+
+        // Act
+        var act = async () => await _service.UpdateAsync(nonExistentId, dto);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage($"Weight log with ID {nonExistentId} not found.");
     }
 
     #endregion

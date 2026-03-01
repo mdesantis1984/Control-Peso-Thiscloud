@@ -15,21 +15,34 @@ namespace ControlPeso.Infrastructure.Tests.Services;
 /// </summary>
 public class UserNotificationServiceTests
 {
-    private static ControlPesoDbContext CreateDbContext()
+    private static (ControlPesoDbContext context, string dbName) CreateDbContext()
     {
+        var dbName = $"TestDb_{Guid.NewGuid()}";
         var options = new DbContextOptionsBuilder<ControlPesoDbContext>()
-            .UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}")
+            .UseInMemoryDatabase(dbName)
             .Options;
 
-        return new ControlPesoDbContext(options);
+        return (new ControlPesoDbContext(options), dbName);
     }
 
     private static UserNotificationService CreateService(
-        ControlPesoDbContext context,
+        string dbName,
         Mock<ILogger<UserNotificationService>>? loggerMock = null)
     {
         loggerMock ??= new Mock<ILogger<UserNotificationService>>();
-        return new UserNotificationService(context, loggerMock.Object);
+
+        var dbOptions = new DbContextOptionsBuilder<ControlPesoDbContext>()
+            .UseInMemoryDatabase(dbName)
+            .Options;
+
+        // Crear factory mock que crea nuevas instancias apuntando a la misma DB
+        var factoryMock = new Mock<IDbContextFactory<ControlPesoDbContext>>();
+        factoryMock.Setup(f => f.CreateDbContext())
+            .Returns(() => new ControlPesoDbContext(dbOptions));
+        factoryMock.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync((CancellationToken ct) => new ControlPesoDbContext(dbOptions));
+
+        return new UserNotificationService(factoryMock.Object, loggerMock.Object);
     }
 
     #region Constructor Tests
@@ -49,11 +62,11 @@ public class UserNotificationServiceTests
     public void Constructor_WithNullLogger_ShouldThrowArgumentNullException()
     {
         // Arrange
-        using var context = CreateDbContext();
+        var factoryMock = new Mock<IDbContextFactory<ControlPesoDbContext>>();
 
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
-            new UserNotificationService(context, null!));
+            new UserNotificationService(factoryMock.Object, null!));
     }
 
     #endregion
@@ -64,101 +77,106 @@ public class UserNotificationServiceTests
     public async Task GetUnreadAsync_WhenUnreadNotificationsExist_ShouldReturnUnreadNotifications()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var userId = Guid.NewGuid();
-
-        var notification1 = new UserNotifications
+        var (context, dbName) = CreateDbContext();
+        var service = CreateService(dbName);
+        using (context)
         {
-            Id = Guid.NewGuid().ToString(),
-            UserId = userId.ToString(),
-            Type = (int)NotificationSeverity.Info,
-            Title = "Test 1",
-            Message = "Message 1",
-            IsRead = 0,
-            CreatedAt = DateTime.UtcNow.ToString("O"),
-            ReadAt = null
-        };
+            var userId = Guid.NewGuid();
 
-        var notification2 = new UserNotifications
-        {
-            Id = Guid.NewGuid().ToString(),
-            UserId = userId.ToString(),
-            Type = (int)NotificationSeverity.Warning,
-            Title = "Test 2",
-            Message = "Message 2",
-            IsRead = 0,
-            CreatedAt = DateTime.UtcNow.AddMinutes(1).ToString("O"),
-            ReadAt = null
-        };
+            var notification1 = new UserNotifications
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                Type = nameof(NotificationSeverity.Info),
+                Title = "Test 1",
+                Message = "Message 1",
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            };
 
-        context.UserNotifications.AddRange(notification1, notification2);
-        await context.SaveChangesAsync();
+            var notification2 = new UserNotifications
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                Type = nameof(NotificationSeverity.Warning),
+                Title = "Test 2",
+                Message = "Message 2",
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow.AddMinutes(1)
+            };
 
-        // Act
-        var result = await service.GetUnreadAsync(userId);
+            context.UserNotifications.AddRange(notification1, notification2);
+            await context.SaveChangesAsync();
 
-        // Assert
-        result.Should().HaveCount(2);
-        result.All(n => n.IsRead == false).Should().BeTrue();
+            // Act
+            var result = await service.GetUnreadAsync(userId);
+
+            // Assert
+            result.Should().HaveCount(2);
+            result.All(n => n.IsRead == false).Should().BeTrue();
+        }
     }
 
     [Fact]
     public async Task GetUnreadAsync_WhenNoUnreadNotifications_ShouldReturnEmptyList()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var (context, dbName) = CreateDbContext();
+        var service = CreateService(dbName);
+        using (context)
+        {
+            var userId = Guid.NewGuid();
 
-        // Act
-        var result = await service.GetUnreadAsync(userId);
+            // Act
+            var result = await service.GetUnreadAsync(userId);
 
-        // Assert
-        result.Should().BeEmpty();
+            // Assert
+            result.Should().BeEmpty();
+        }
     }
 
     [Fact]
     public async Task GetUnreadAsync_ShouldIgnoreReadNotifications()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var userId = Guid.NewGuid();
-
-        var unreadNotification = new UserNotifications
+        var (context, dbName) = CreateDbContext();
+        var service = CreateService(dbName);
+        using (context)
         {
-            Id = Guid.NewGuid().ToString(),
-            UserId = userId.ToString(),
-            Type = (int)NotificationSeverity.Info,
-            Title = "Unread",
-            Message = "Message",
-            IsRead = 0,
-            CreatedAt = DateTime.UtcNow.ToString("O"),
-            ReadAt = null
-        };
+            var userId = Guid.NewGuid();
 
-        var readNotification = new UserNotifications
-        {
-            Id = Guid.NewGuid().ToString(),
-            UserId = userId.ToString(),
-            Type = (int)NotificationSeverity.Info,
-            Title = "Read",
-            Message = "Message",
-            IsRead = 1,
-            CreatedAt = DateTime.UtcNow.ToString("O"),
-            ReadAt = DateTime.UtcNow.ToString("O")
-        };
+            var unreadNotification = new UserNotifications
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                Type = nameof(NotificationSeverity.Info),
+                Title = "Unread",
+                Message = "Message",
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            };
 
-        context.UserNotifications.AddRange(unreadNotification, readNotification);
-        await context.SaveChangesAsync();
+            var readNotification = new UserNotifications
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                Type = nameof(NotificationSeverity.Info),
+                Title = "Read",
+                Message = "Message",
+                IsRead = true,
+                CreatedAt = DateTime.UtcNow
+            };
 
-        // Act
-        var result = await service.GetUnreadAsync(userId);
+            context.UserNotifications.AddRange(unreadNotification, readNotification);
+            await context.SaveChangesAsync();
 
-        // Assert
-        result.Should().HaveCount(1);
-        result[0].Title.Should().Be("Unread");
+            // Act
+            var result = await service.GetUnreadAsync(userId);
+
+            // Assert
+            result.Should().HaveCount(1);
+            result[0].Title.Should().Be("Unread");
+        }
     }
 
     #endregion
@@ -169,75 +187,99 @@ public class UserNotificationServiceTests
     public async Task GetAllAsync_ShouldReturnPagedResults()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var userId = Guid.NewGuid();
-
-        for (int i = 0; i < 25; i++)
+        var (context, dbName) = CreateDbContext();
+        var service = CreateService(dbName);
+        using (context)
         {
-            var notification = new UserNotifications
+            var userId = Guid.NewGuid();
+
+            for (int i = 0; i < 25; i++)
             {
-                Id = Guid.NewGuid().ToString(),
-                UserId = userId.ToString(),
-                Type = (int)NotificationSeverity.Info,
-                Title = $"Test {i}",
-                Message = "Message",
-                IsRead = 0,
-                CreatedAt = DateTime.UtcNow.AddMinutes(i).ToString("O"),
-                ReadAt = null
-            };
+                var notification = new UserNotifications
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = userId,
+                    Type = nameof(NotificationSeverity.Info),
+                    Title = $"Test {i}",
+                    Message = "Message",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow.AddMinutes(i)
+                };
 
-            context.UserNotifications.Add(notification);
+                context.UserNotifications.Add(notification);
+            }
+
+            await context.SaveChangesAsync();
+
+            // Act
+            var result = await service.GetAllAsync(userId, page: 1, pageSize: 10);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Items.Should().HaveCount(10);
+            result.TotalCount.Should().Be(25);
+            result.Page.Should().Be(1);
+            result.PageSize.Should().Be(10);
         }
-
-        await context.SaveChangesAsync();
-
-        // Act
-        var result = await service.GetAllAsync(userId, page: 1, pageSize: 10);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.Items.Should().HaveCount(10);
-        result.TotalCount.Should().Be(25);
-        result.Page.Should().Be(1);
-        result.PageSize.Should().Be(10);
     }
 
     [Fact]
     public async Task GetAllAsync_ShouldReturnSecondPage()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var userId = Guid.NewGuid();
-
-        for (int i = 0; i < 25; i++)
+        var (context, dbName) = CreateDbContext();
+        var service = CreateService(dbName);
+        using (context)
         {
-            var notification = new UserNotifications
+            var userId = Guid.NewGuid();
+
+            for (int i = 0; i < 25; i++)
             {
-                Id = Guid.NewGuid().ToString(),
-                UserId = userId.ToString(),
-                Type = (int)NotificationSeverity.Info,
-                Title = $"Test {i}",
-                Message = "Message",
-                IsRead = 0,
-                CreatedAt = DateTime.UtcNow.AddMinutes(i).ToString("O"),
-                ReadAt = null
-            };
+                var notification = new UserNotifications
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = userId,
+                    Type = nameof(NotificationSeverity.Info),
+                    Title = $"Test {i}",
+                    Message = "Message",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow.AddMinutes(i)
+                };
 
-            context.UserNotifications.Add(notification);
+                context.UserNotifications.Add(notification);
+            }
+
+            await context.SaveChangesAsync();
+
+            // Act
+            var result = await service.GetAllAsync(userId, page: 2, pageSize: 10);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Items.Should().HaveCount(10);
+            result.TotalCount.Should().Be(25);
+            result.Page.Should().Be(2);
         }
+    }
 
-        await context.SaveChangesAsync();
+    [Fact]
+    public async Task GetAllAsync_WhenNoNotifications_ShouldReturnEmptyResult()
+    {
+        // Arrange
+        var (context, dbName) = CreateDbContext();
+        var service = CreateService(dbName);
+        using (context)
+        {
+            var userId = Guid.NewGuid();
 
-        // Act
-        var result = await service.GetAllAsync(userId, page: 2, pageSize: 10);
+            // Act
+            var result = await service.GetAllAsync(userId);
 
-        // Assert
-        result.Should().NotBeNull();
-        result.Items.Should().HaveCount(10);
-        result.TotalCount.Should().Be(25);
-        result.Page.Should().Be(2);
+            // Assert
+            result.Should().NotBeNull();
+            result.Items.Should().BeEmpty();
+            result.TotalCount.Should().Be(0);
+        }
     }
 
     #endregion
@@ -248,49 +290,54 @@ public class UserNotificationServiceTests
     public async Task GetUnreadCountAsync_ShouldReturnCorrectCount()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var userId = Guid.NewGuid();
-
-        for (int i = 0; i < 5; i++)
+        var (context, dbName) = CreateDbContext();
+        var service = CreateService(dbName);
+        using (context)
         {
-            var notification = new UserNotifications
+            var userId = Guid.NewGuid();
+
+            for (int i = 0; i < 5; i++)
             {
-                Id = Guid.NewGuid().ToString(),
-                UserId = userId.ToString(),
-                Type = (int)NotificationSeverity.Info,
-                Title = $"Test {i}",
-                Message = "Message",
-                IsRead = 0,
-                CreatedAt = DateTime.UtcNow.AddMinutes(i).ToString("O"),
-                ReadAt = null
-            };
+                var notification = new UserNotifications
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = userId,
+                    Type = nameof(NotificationSeverity.Info),
+                    Title = $"Test {i}",
+                    Message = "Message",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow.AddMinutes(i)
+                };
 
-            context.UserNotifications.Add(notification);
+                context.UserNotifications.Add(notification);
+            }
+
+            await context.SaveChangesAsync();
+
+            // Act
+            var result = await service.GetUnreadCountAsync(userId);
+
+            // Assert
+            result.Should().Be(5);
         }
-
-        await context.SaveChangesAsync();
-
-        // Act
-        var result = await service.GetUnreadCountAsync(userId);
-
-        // Assert
-        result.Should().Be(5);
     }
 
     [Fact]
     public async Task GetUnreadCountAsync_WhenNoUnreadNotifications_ShouldReturnZero()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var (context, dbName) = CreateDbContext();
+        var service = CreateService(dbName);
+        using (context)
+        {
+            var userId = Guid.NewGuid();
 
-        // Act
-        var result = await service.GetUnreadCountAsync(userId);
+            // Act
+            var result = await service.GetUnreadCountAsync(userId);
 
-        // Assert
-        result.Should().Be(0);
+            // Assert
+            result.Should().Be(0);
+        }
     }
 
     #endregion
@@ -301,44 +348,49 @@ public class UserNotificationServiceTests
     public async Task CreateAsync_ShouldCreateNotification()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var dto = new CreateUserNotificationDto
+        var (context, dbName) = CreateDbContext();
+        var service = CreateService(dbName);
+        using (context)
         {
-            UserId = Guid.NewGuid(),
-            Type = NotificationSeverity.Info,
-            Title = "Test Notification",
-            Message = "Test Message"
-        };
+            var dto = new CreateUserNotificationDto
+            {
+                UserId = Guid.NewGuid(),
+                Type = NotificationSeverity.Info,
+                Title = "Test Notification",
+                Message = "Test Message"
+            };
 
-        // Act
-        var result = await service.CreateAsync(dto);
+            // Act
+            var result = await service.CreateAsync(dto);
 
-        // Assert
-        result.Should().NotBeNull();
-        result.UserId.Should().Be(dto.UserId);
-        result.Type.Should().Be(dto.Type);
-        result.Title.Should().Be(dto.Title);
-        result.Message.Should().Be(dto.Message);
-        result.IsRead.Should().BeFalse();
+            // Assert
+            result.Should().NotBeNull();
+            result.UserId.Should().Be(dto.UserId);
+            result.Type.Should().Be(dto.Type);
+            result.Title.Should().Be(dto.Title);
+            result.Message.Should().Be(dto.Message);
+            result.IsRead.Should().BeFalse();
 
-        // Verificar que se guardó en DB
-        var saved = await context.UserNotifications
-            .FirstOrDefaultAsync(n => n.Id == result.Id.ToString());
+            // Verificar que se guardó en DB
+            var saved = await context.UserNotifications
+                .FirstOrDefaultAsync(n => n.Id == result.Id);
 
-        saved.Should().NotBeNull();
+            saved.Should().NotBeNull();
+        }
     }
 
     [Fact]
     public async Task CreateAsync_WithNullDto_ShouldThrowArgumentNullException()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-
-        // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            service.CreateAsync(null!));
+        var (context, dbName) = CreateDbContext();
+        var service = CreateService(dbName);
+        using (context)
+        {
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                service.CreateAsync(null!));
+        }
     }
 
     #endregion
@@ -349,82 +401,99 @@ public class UserNotificationServiceTests
     public async Task MarkAsReadAsync_WhenNotificationExists_ShouldMarkAsRead()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
+        var (context, dbName) = CreateDbContext();
+        var service = CreateService(dbName);
         var notificationId = Guid.NewGuid();
 
-        var notification = new UserNotifications
+        using (context)
         {
-            Id = notificationId.ToString(),
-            UserId = Guid.NewGuid().ToString(),
-            Type = (int)NotificationSeverity.Info,
-            Title = "Test",
-            Message = "Message",
-            IsRead = 0,
-            CreatedAt = DateTime.UtcNow.ToString("O"),
-            ReadAt = null
-        };
+            var notification = new UserNotifications
+            {
+                Id = notificationId,
+                UserId = Guid.NewGuid(),
+                Type = nameof(NotificationSeverity.Info),
+                Title = "Test",
+                Message = "Message",
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            };
 
-        context.UserNotifications.Add(notification);
-        await context.SaveChangesAsync();
+            context.UserNotifications.Add(notification);
+            await context.SaveChangesAsync();
 
-        // Act
-        await service.MarkAsReadAsync(notificationId);
+            // Act
+            await service.MarkAsReadAsync(notificationId);
+        }
 
-        // Assert
-        var updated = await context.UserNotifications
-            .FirstOrDefaultAsync(n => n.Id == notificationId.ToString());
+        // Assert - crear nuevo contexto para verificar cambios
+        using (var verifyContext = new ControlPesoDbContext(
+            new DbContextOptionsBuilder<ControlPesoDbContext>()
+                .UseInMemoryDatabase(dbName)
+                .Options))
+        {
+            var updated = await verifyContext.UserNotifications
+                .FirstOrDefaultAsync(n => n.Id == notificationId);
 
-        updated.Should().NotBeNull();
-        updated!.IsRead.Should().Be(1);
-        updated.ReadAt.Should().NotBeNullOrEmpty();
+            updated.Should().NotBeNull();
+            updated!.IsRead.Should().BeTrue();
+        }
     }
 
     [Fact]
     public async Task MarkAsReadAsync_WhenNotificationDoesNotExist_ShouldNotThrow()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var notificationId = Guid.NewGuid();
+        var (context, dbName) = CreateDbContext();
+        var service = CreateService(dbName);
+        using (context)
+        {
+            var notificationId = Guid.NewGuid();
 
-        // Act & Assert
-        await service.MarkAsReadAsync(notificationId); // Should not throw
+            // Act & Assert
+            await service.MarkAsReadAsync(notificationId); // Should not throw
+        }
     }
 
     [Fact]
-    public async Task MarkAsReadAsync_WhenAlreadyRead_ShouldNotChangeReadAt()
+    public async Task MarkAsReadAsync_WhenAlreadyRead_ShouldRemainRead()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
+        var (context, dbName) = CreateDbContext();
+        var service = CreateService(dbName);
         var notificationId = Guid.NewGuid();
-        var originalReadAt = DateTime.UtcNow.AddHours(-1).ToString("O");
 
-        var notification = new UserNotifications
+        using (context)
         {
-            Id = notificationId.ToString(),
-            UserId = Guid.NewGuid().ToString(),
-            Type = (int)NotificationSeverity.Info,
-            Title = "Test",
-            Message = "Message",
-            IsRead = 1,
-            CreatedAt = DateTime.UtcNow.ToString("O"),
-            ReadAt = originalReadAt
-        };
+            var notification = new UserNotifications
+            {
+                Id = notificationId,
+                UserId = Guid.NewGuid(),
+                Type = nameof(NotificationSeverity.Info),
+                Title = "Test",
+                Message = "Message",
+                IsRead = true,
+                CreatedAt = DateTime.UtcNow
+            };
 
-        context.UserNotifications.Add(notification);
-        await context.SaveChangesAsync();
+            context.UserNotifications.Add(notification);
+            await context.SaveChangesAsync();
 
-        // Act
-        await service.MarkAsReadAsync(notificationId);
+            // Act
+            await service.MarkAsReadAsync(notificationId);
+        }
 
-        // Assert
-        var updated = await context.UserNotifications
-            .FirstOrDefaultAsync(n => n.Id == notificationId.ToString());
+        // Assert - crear nuevo contexto para verificar cambios
+        using (var verifyContext = new ControlPesoDbContext(
+            new DbContextOptionsBuilder<ControlPesoDbContext>()
+                .UseInMemoryDatabase(dbName)
+                .Options))
+        {
+            var updated = await verifyContext.UserNotifications
+                .FirstOrDefaultAsync(n => n.Id == notificationId);
 
-        updated.Should().NotBeNull();
-        updated!.ReadAt.Should().Be(originalReadAt);
+            updated.Should().NotBeNull();
+            updated!.IsRead.Should().BeTrue();
+        }
     }
 
     #endregion
@@ -435,52 +504,62 @@ public class UserNotificationServiceTests
     public async Task MarkAllAsReadAsync_ShouldMarkAllUnreadNotifications()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
+        var (context, dbName) = CreateDbContext();
+        var service = CreateService(dbName);
         var userId = Guid.NewGuid();
 
-        for (int i = 0; i < 3; i++)
+        using (context)
         {
-            var notification = new UserNotifications
+            for (int i = 0; i < 3; i++)
             {
-                Id = Guid.NewGuid().ToString(),
-                UserId = userId.ToString(),
-                Type = (int)NotificationSeverity.Info,
-                Title = $"Test {i}",
-                Message = "Message",
-                IsRead = 0,
-                CreatedAt = DateTime.UtcNow.AddMinutes(i).ToString("O"),
-                ReadAt = null
-            };
+                var notification = new UserNotifications
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = userId,
+                    Type = nameof(NotificationSeverity.Info),
+                    Title = $"Test {i}",
+                    Message = "Message",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow.AddMinutes(i)
+                };
 
-            context.UserNotifications.Add(notification);
+                context.UserNotifications.Add(notification);
+            }
+
+            await context.SaveChangesAsync();
+
+            // Act
+            await service.MarkAllAsReadAsync(userId);
         }
 
-        await context.SaveChangesAsync();
+        // Assert - crear nuevo contexto para verificar cambios
+        using (var verifyContext = new ControlPesoDbContext(
+            new DbContextOptionsBuilder<ControlPesoDbContext>()
+                .UseInMemoryDatabase(dbName)
+                .Options))
+        {
+            var allNotifications = await verifyContext.UserNotifications
+                .Where(n => n.UserId == userId)
+                .ToListAsync();
 
-        // Act
-        await service.MarkAllAsReadAsync(userId);
-
-        // Assert
-        var allNotifications = await context.UserNotifications
-            .Where(n => n.UserId == userId.ToString())
-            .ToListAsync();
-
-        allNotifications.Should().HaveCount(3);
-        allNotifications.All(n => n.IsRead == 1).Should().BeTrue();
-        allNotifications.All(n => !string.IsNullOrWhiteSpace(n.ReadAt)).Should().BeTrue();
+            allNotifications.Should().HaveCount(3);
+            allNotifications.All(n => n.IsRead).Should().BeTrue();
+        }
     }
 
     [Fact]
     public async Task MarkAllAsReadAsync_WhenNoUnreadNotifications_ShouldNotThrow()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var (context, dbName) = CreateDbContext();
+        var service = CreateService(dbName);
+        using (context)
+        {
+            var userId = Guid.NewGuid();
 
-        // Act & Assert
-        await service.MarkAllAsReadAsync(userId); // Should not throw
+            // Act & Assert
+            await service.MarkAllAsReadAsync(userId); // Should not throw
+        }
     }
 
     #endregion
@@ -491,45 +570,56 @@ public class UserNotificationServiceTests
     public async Task DeleteAsync_WhenNotificationExists_ShouldDeleteNotification()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
+        var (context, dbName) = CreateDbContext();
+        var service = CreateService(dbName);
         var notificationId = Guid.NewGuid();
 
-        var notification = new UserNotifications
+        using (context)
         {
-            Id = notificationId.ToString(),
-            UserId = Guid.NewGuid().ToString(),
-            Type = (int)NotificationSeverity.Info,
-            Title = "Test",
-            Message = "Message",
-            IsRead = 0,
-            CreatedAt = DateTime.UtcNow.ToString("O"),
-            ReadAt = null
-        };
+            var notification = new UserNotifications
+            {
+                Id = notificationId,
+                UserId = Guid.NewGuid(),
+                Type = nameof(NotificationSeverity.Info),
+                Title = "Test",
+                Message = "Message",
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            };
 
-        context.UserNotifications.Add(notification);
-        await context.SaveChangesAsync();
+            context.UserNotifications.Add(notification);
+            await context.SaveChangesAsync();
 
-        // Act
-        await service.DeleteAsync(notificationId);
+            // Act
+            await service.DeleteAsync(notificationId);
+        }
 
-        // Assert
-        var deleted = await context.UserNotifications
-            .FirstOrDefaultAsync(n => n.Id == notificationId.ToString());
+        // Assert - crear nuevo contexto para verificar cambios
+        using (var verifyContext = new ControlPesoDbContext(
+            new DbContextOptionsBuilder<ControlPesoDbContext>()
+                .UseInMemoryDatabase(dbName)
+                .Options))
+        {
+            var deleted = await verifyContext.UserNotifications
+                .FirstOrDefaultAsync(n => n.Id == notificationId);
 
-        deleted.Should().BeNull();
+            deleted.Should().BeNull();
+        }
     }
 
     [Fact]
     public async Task DeleteAsync_WhenNotificationDoesNotExist_ShouldNotThrow()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var notificationId = Guid.NewGuid();
+        var (context, dbName) = CreateDbContext();
+        var service = CreateService(dbName);
+        using (context)
+        {
+            var notificationId = Guid.NewGuid();
 
-        // Act & Assert
-        await service.DeleteAsync(notificationId); // Should not throw
+            // Act & Assert
+            await service.DeleteAsync(notificationId); // Should not throw
+        }
     }
 
     #endregion
@@ -540,50 +630,61 @@ public class UserNotificationServiceTests
     public async Task DeleteAllAsync_ShouldDeleteAllNotifications()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
+        var (context, dbName) = CreateDbContext();
+        var service = CreateService(dbName);
         var userId = Guid.NewGuid();
 
-        for (int i = 0; i < 5; i++)
+        using (context)
         {
-            var notification = new UserNotifications
+            for (int i = 0; i < 5; i++)
             {
-                Id = Guid.NewGuid().ToString(),
-                UserId = userId.ToString(),
-                Type = (int)NotificationSeverity.Info,
-                Title = $"Test {i}",
-                Message = "Message",
-                IsRead = 0,
-                CreatedAt = DateTime.UtcNow.AddMinutes(i).ToString("O"),
-                ReadAt = null
-            };
+                var notification = new UserNotifications
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = userId,
+                    Type = nameof(NotificationSeverity.Info),
+                    Title = $"Test {i}",
+                    Message = "Message",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow.AddMinutes(i)
+                };
 
-            context.UserNotifications.Add(notification);
+                context.UserNotifications.Add(notification);
+            }
+
+            await context.SaveChangesAsync();
+
+            // Act
+            await service.DeleteAllAsync(userId);
         }
 
-        await context.SaveChangesAsync();
+        // Assert - crear nuevo contexto para verificar cambios
+        using (var verifyContext = new ControlPesoDbContext(
+            new DbContextOptionsBuilder<ControlPesoDbContext>()
+                .UseInMemoryDatabase(dbName)
+                .Options))
+        {
+            var remaining = await verifyContext.UserNotifications
+                .Where(n => n.UserId == userId)
+                .ToListAsync();
 
-        // Act
-        await service.DeleteAllAsync(userId);
-
-        // Assert
-        var remaining = await context.UserNotifications
-            .Where(n => n.UserId == userId.ToString())
-            .ToListAsync();
-
-        remaining.Should().BeEmpty();
+            remaining.Should().BeEmpty();
+        }
     }
 
     [Fact]
     public async Task DeleteAllAsync_WhenNoNotifications_ShouldNotThrow()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var (context, dbName) = CreateDbContext();
+        var service = CreateService(dbName);
+        using (context)
+        {
+            var userId = Guid.NewGuid();
 
-        // Act & Assert
-        await service.DeleteAllAsync(userId); // Should not throw
+            // Act & Assert
+            await service.DeleteAllAsync(userId); // Should not throw
+        }
     }
 
     #endregion
@@ -598,11 +699,17 @@ public class UserNotificationServiceTests
             .UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}")
             .Options;
 
-        using var context = new ControlPesoDbContext(options);
-        context.Dispose(); // Dispose context to cause exception
-
         var loggerMock = new Mock<ILogger<UserNotificationService>>();
-        var service = new UserNotificationService(context, loggerMock.Object);
+        var factoryMock = new Mock<IDbContextFactory<ControlPesoDbContext>>();
+        factoryMock.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() =>
+            {
+                var ctx = new ControlPesoDbContext(options);
+                ctx.Dispose();
+                return ctx;
+            });
+
+        var service = new UserNotificationService(factoryMock.Object, loggerMock.Object);
         var userId = Guid.NewGuid();
 
         // Act
@@ -628,11 +735,17 @@ public class UserNotificationServiceTests
             .UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}")
             .Options;
 
-        using var context = new ControlPesoDbContext(options);
-        context.Dispose(); // Dispose context to cause exception
-
         var loggerMock = new Mock<ILogger<UserNotificationService>>();
-        var service = new UserNotificationService(context, loggerMock.Object);
+        var factoryMock = new Mock<IDbContextFactory<ControlPesoDbContext>>();
+        factoryMock.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() =>
+            {
+                var ctx = new ControlPesoDbContext(options);
+                ctx.Dispose();
+                return ctx;
+            });
+
+        var service = new UserNotificationService(factoryMock.Object, loggerMock.Object);
         var userId = Guid.NewGuid();
 
         // Act
@@ -658,11 +771,17 @@ public class UserNotificationServiceTests
             .UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}")
             .Options;
 
-        using var context = new ControlPesoDbContext(options);
-        context.Dispose(); // Dispose context to cause exception
-
         var loggerMock = new Mock<ILogger<UserNotificationService>>();
-        var service = new UserNotificationService(context, loggerMock.Object);
+        var factoryMock = new Mock<IDbContextFactory<ControlPesoDbContext>>();
+        factoryMock.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() =>
+            {
+                var ctx = new ControlPesoDbContext(options);
+                ctx.Dispose();
+                return ctx;
+            });
+
+        var service = new UserNotificationService(factoryMock.Object, loggerMock.Object);
         var userId = Guid.NewGuid();
 
         // Act
@@ -688,11 +807,17 @@ public class UserNotificationServiceTests
             .UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}")
             .Options;
 
-        using var context = new ControlPesoDbContext(options);
-        context.Dispose(); // Dispose context to cause exception
-
         var loggerMock = new Mock<ILogger<UserNotificationService>>();
-        var service = new UserNotificationService(context, loggerMock.Object);
+        var factoryMock = new Mock<IDbContextFactory<ControlPesoDbContext>>();
+        factoryMock.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() =>
+            {
+                var ctx = new ControlPesoDbContext(options);
+                ctx.Dispose();
+                return ctx;
+            });
+
+        var service = new UserNotificationService(factoryMock.Object, loggerMock.Object);
         var dto = new CreateUserNotificationDto
         {
             UserId = Guid.NewGuid(),
@@ -724,11 +849,17 @@ public class UserNotificationServiceTests
             .UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}")
             .Options;
 
-        using var context = new ControlPesoDbContext(options);
-        context.Dispose(); // Dispose context to cause exception
-
         var loggerMock = new Mock<ILogger<UserNotificationService>>();
-        var service = new UserNotificationService(context, loggerMock.Object);
+        var factoryMock = new Mock<IDbContextFactory<ControlPesoDbContext>>();
+        factoryMock.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() =>
+            {
+                var ctx = new ControlPesoDbContext(options);
+                ctx.Dispose();
+                return ctx;
+            });
+
+        var service = new UserNotificationService(factoryMock.Object, loggerMock.Object);
         var notificationId = Guid.NewGuid();
 
         // Act
@@ -754,11 +885,17 @@ public class UserNotificationServiceTests
             .UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}")
             .Options;
 
-        using var context = new ControlPesoDbContext(options);
-        context.Dispose(); // Dispose context to cause exception
-
         var loggerMock = new Mock<ILogger<UserNotificationService>>();
-        var service = new UserNotificationService(context, loggerMock.Object);
+        var factoryMock = new Mock<IDbContextFactory<ControlPesoDbContext>>();
+        factoryMock.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() =>
+            {
+                var ctx = new ControlPesoDbContext(options);
+                ctx.Dispose();
+                return ctx;
+            });
+
+        var service = new UserNotificationService(factoryMock.Object, loggerMock.Object);
         var userId = Guid.NewGuid();
 
         // Act
@@ -784,11 +921,17 @@ public class UserNotificationServiceTests
             .UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}")
             .Options;
 
-        using var context = new ControlPesoDbContext(options);
-        context.Dispose(); // Dispose context to cause exception
-
         var loggerMock = new Mock<ILogger<UserNotificationService>>();
-        var service = new UserNotificationService(context, loggerMock.Object);
+        var factoryMock = new Mock<IDbContextFactory<ControlPesoDbContext>>();
+        factoryMock.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() =>
+            {
+                var ctx = new ControlPesoDbContext(options);
+                ctx.Dispose();
+                return ctx;
+            });
+
+        var service = new UserNotificationService(factoryMock.Object, loggerMock.Object);
         var notificationId = Guid.NewGuid();
 
         // Act
@@ -814,11 +957,17 @@ public class UserNotificationServiceTests
             .UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}")
             .Options;
 
-        using var context = new ControlPesoDbContext(options);
-        context.Dispose(); // Dispose context to cause exception
-
         var loggerMock = new Mock<ILogger<UserNotificationService>>();
-        var service = new UserNotificationService(context, loggerMock.Object);
+        var factoryMock = new Mock<IDbContextFactory<ControlPesoDbContext>>();
+        factoryMock.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() =>
+            {
+                var ctx = new ControlPesoDbContext(options);
+                ctx.Dispose();
+                return ctx;
+            });
+
+        var service = new UserNotificationService(factoryMock.Object, loggerMock.Object);
         var userId = Guid.NewGuid();
 
         // Act

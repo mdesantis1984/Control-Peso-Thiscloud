@@ -4,6 +4,7 @@ using ControlPeso.Application.Interfaces;
 using ControlPeso.Application.Mapping;
 using ControlPeso.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 namespace ControlPeso.Application.Services;
@@ -11,35 +12,59 @@ namespace ControlPeso.Application.Services;
 /// <summary>
 /// Servicio para gestión de usuarios (Users).
 /// Implementa operaciones CRUD y sincronización con Google OAuth.
+/// REFACTORED: Usa IDbContextFactory para evitar problemas de concurrencia en Blazor Server.
+/// OPTIMIZED: Implementa caching con IMemoryCache para prevenir N+1 query problems.
 /// </summary>
 public sealed class UserService : IUserService
 {
-    private readonly DbContext _context;
+    private readonly IDbContextFactory<DbContext> _contextFactory;
+    private readonly IMemoryCache _cache;
     private readonly ILogger<UserService> _logger;
 
+    // Cache configuration
+    private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
+    private const string CacheKeyPrefixById = "User_ById_";
+    private const string CacheKeyPrefixByEmail = "User_ByEmail_";
+
     public UserService(
-        DbContext context,
+        IDbContextFactory<DbContext> contextFactory,
+        IMemoryCache cache,
         ILogger<UserService> logger)
     {
-        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(contextFactory);
+        ArgumentNullException.ThrowIfNull(cache);
         ArgumentNullException.ThrowIfNull(logger);
 
-        _context = context;
+        _contextFactory = contextFactory;
+        _cache = cache;
         _logger = logger;
     }
 
     /// <summary>
     /// Obtiene un usuario por su ID.
+    /// Implementa caching para evitar queries repetidas del mismo usuario.
+    /// TTL: 5 minutos.
     /// </summary>
     public async Task<UserDto?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
-        _logger.LogInformation("Getting user by ID: {UserId}", id);
+        var cacheKey = $"{CacheKeyPrefixById}{id}";
+
+        // Try to get from cache first
+        if (_cache.TryGetValue(cacheKey, out UserDto? cachedUser))
+        {
+            _logger.LogDebug("User retrieved from cache: {UserId}", id);
+            return cachedUser;
+        }
+
+        _logger.LogInformation("Cache miss - Getting user by ID from database: {UserId}", id);
 
         try
         {
-            var user = await _context.Set<Users>()
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
+
+            var user = await context.Set<Users>()
                 .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Id == id.ToString(), ct);
+                .FirstOrDefaultAsync(u => u.Id == id, ct);
 
             if (user is null)
             {
@@ -48,7 +73,14 @@ public sealed class UserService : IUserService
             }
 
             var dto = UserMapper.ToDto(user);
-            _logger.LogInformation("User retrieved successfully: {UserId}, Email: {Email}", id, dto.Email);
+
+            // Store in cache with absolute expiration
+            var cacheEntryOptions = new MemoryCacheEntryOptions()
+                .SetAbsoluteExpiration(CacheDuration);
+
+            _cache.Set(cacheKey, dto, cacheEntryOptions);
+
+            _logger.LogInformation("User retrieved and cached: {UserId}, Email: {Email}", id, dto.Email);
             return dto;
         }
         catch (Exception ex)
@@ -60,6 +92,7 @@ public sealed class UserService : IUserService
 
     /// <summary>
     /// Obtiene un usuario por su Google ID.
+    /// Crea una instancia de DbContext por operación para evitar problemas de concurrencia.
     /// </summary>
     public async Task<UserDto?> GetByGoogleIdAsync(string googleId, CancellationToken ct = default)
     {
@@ -69,7 +102,9 @@ public sealed class UserService : IUserService
 
         try
         {
-            var user = await _context.Set<Users>()
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
+
+            var user = await context.Set<Users>()
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.GoogleId == googleId, ct);
 
@@ -92,6 +127,7 @@ public sealed class UserService : IUserService
 
     /// <summary>
     /// Obtiene un usuario por su LinkedIn ID.
+    /// Crea una instancia de DbContext por operación para evitar problemas de concurrencia.
     /// </summary>
     public async Task<UserDto?> GetByLinkedInIdAsync(string linkedInId, CancellationToken ct = default)
     {
@@ -101,7 +137,9 @@ public sealed class UserService : IUserService
 
         try
         {
-            var user = await _context.Set<Users>()
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
+
+            var user = await context.Set<Users>()
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.LinkedInId == linkedInId, ct);
 
@@ -124,16 +162,29 @@ public sealed class UserService : IUserService
 
     /// <summary>
     /// Obtiene un usuario por su email.
+    /// Implementa caching para evitar queries repetidas del mismo usuario.
+    /// TTL: 5 minutos.
     /// </summary>
     public async Task<UserDto?> GetByEmailAsync(string email, CancellationToken ct = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(email);
 
-        _logger.LogInformation("Getting user by email: {Email}", email);
+        var cacheKey = $"{CacheKeyPrefixByEmail}{email.ToLowerInvariant()}";
+
+        // Try to get from cache first
+        if (_cache.TryGetValue(cacheKey, out UserDto? cachedUser))
+        {
+            _logger.LogDebug("User retrieved from cache by email: {Email}", email);
+            return cachedUser;
+        }
+
+        _logger.LogInformation("Cache miss - Getting user by email from database: {Email}", email);
 
         try
         {
-            var user = await _context.Set<Users>()
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
+
+            var user = await context.Set<Users>()
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.Email == email, ct);
 
@@ -144,7 +195,14 @@ public sealed class UserService : IUserService
             }
 
             var dto = UserMapper.ToDto(user);
-            _logger.LogInformation("User retrieved by email: {UserId}, Email: {Email}", dto.Id, dto.Email);
+
+            // Store in cache with absolute expiration
+            var cacheEntryOptions = new MemoryCacheEntryOptions()
+                .SetAbsoluteExpiration(CacheDuration);
+
+            _cache.Set(cacheKey, dto, cacheEntryOptions);
+
+            _logger.LogInformation("User retrieved and cached by email: {UserId}, Email: {Email}", dto.Id, dto.Email);
             return dto;
         }
         catch (Exception ex)
@@ -158,6 +216,7 @@ public sealed class UserService : IUserService
     /// Crea o actualiza un usuario desde información de Google OAuth.
     /// Si el usuario existe (por GoogleId), actualiza Name, Email, AvatarUrl.
     /// Si no existe, crea uno nuevo con status Active y role User.
+    /// Crea una instancia de DbContext por operación para evitar problemas de concurrencia.
     /// </summary>
     public async Task<UserDto> CreateOrUpdateFromGoogleAsync(GoogleUserInfo googleInfo, CancellationToken ct = default)
     {
@@ -172,7 +231,9 @@ public sealed class UserService : IUserService
 
         try
         {
-            var existingUser = await _context.Set<Users>()
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
+
+            var existingUser = await context.Set<Users>()
                 .FirstOrDefaultAsync(u => u.GoogleId == googleInfo.GoogleId, ct);
 
             if (existingUser is not null)
@@ -187,7 +248,7 @@ public sealed class UserService : IUserService
 
                 UserMapper.UpdateFromGoogle(existingUser, googleInfo);
 
-                await _context.SaveChangesAsync(ct);
+                await context.SaveChangesAsync(ct);
 
                 var updatedDto = UserMapper.ToDto(existingUser);
 
@@ -211,8 +272,8 @@ public sealed class UserService : IUserService
             _logger.LogInformation("User does not exist, creating new user");
 
             var newUser = UserMapper.ToEntity(googleInfo);
-            _context.Set<Users>().Add(newUser);
-            await _context.SaveChangesAsync(ct);
+            context.Set<Users>().Add(newUser);
+            await context.SaveChangesAsync(ct);
 
             var createdDto = UserMapper.ToDto(newUser);
             _logger.LogInformation(
@@ -257,13 +318,15 @@ public sealed class UserService : IUserService
 
         try
         {
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
+
             // Query by provider-specific ID
             Users? existingUser = oauthInfo.Provider switch
             {
-                "Google" => await _context.Set<Users>()
+                "Google" => await context.Set<Users>()
                     .FirstOrDefaultAsync(u => u.GoogleId == oauthInfo.ExternalId, ct),
 
-                "LinkedIn" => await _context.Set<Users>()
+                "LinkedIn" => await context.Set<Users>()
                     .FirstOrDefaultAsync(u => u.LinkedInId == oauthInfo.ExternalId, ct),
 
                 _ => throw new NotSupportedException($"OAuth provider '{oauthInfo.Provider}' is not supported. Supported providers: Google, LinkedIn")
@@ -281,7 +344,7 @@ public sealed class UserService : IUserService
 
                 UserMapper.UpdateFromOAuth(existingUser, oauthInfo);
 
-                await _context.SaveChangesAsync(ct);
+                await context.SaveChangesAsync(ct);
 
                 var updatedDto = UserMapper.ToDto(existingUser);
 
@@ -307,8 +370,8 @@ public sealed class UserService : IUserService
                 oauthInfo.Provider);
 
             var newUser = UserMapper.ToEntity(oauthInfo);
-            _context.Set<Users>().Add(newUser);
-            await _context.SaveChangesAsync(ct);
+            context.Set<Users>().Add(newUser);
+            await context.SaveChangesAsync(ct);
 
             var createdDto = UserMapper.ToDto(newUser);
             _logger.LogInformation(
@@ -354,8 +417,10 @@ public sealed class UserService : IUserService
 
         try
         {
-            var user = await _context.Set<Users>()
-                .FirstOrDefaultAsync(u => u.Id == id.ToString(), ct);
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
+
+            var user = await context.Set<Users>()
+                .FirstOrDefaultAsync(u => u.Id == id, ct);
 
             if (user is null)
             {
@@ -365,7 +430,7 @@ public sealed class UserService : IUserService
 
             UserMapper.UpdateEntity(user, dto);
 
-            await _context.SaveChangesAsync(ct);
+            await context.SaveChangesAsync(ct);
 
             var updatedDto = UserMapper.ToDto(user);
             _logger.LogInformation(
@@ -404,7 +469,9 @@ public sealed class UserService : IUserService
 
         try
         {
-            var query = _context.Set<Users>().AsNoTracking();
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
+
+            var query = context.Set<Users>().AsNoTracking();
 
             // Apply search filter (name or email)
             if (!string.IsNullOrWhiteSpace(filter.SearchTerm))

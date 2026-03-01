@@ -19,22 +19,22 @@ public static class UserMapper
 
         return new UserDto
         {
-            Id = Guid.Parse(entity.Id),
-            GoogleId = entity.GoogleId ?? string.Empty, // Scaffold nullable but SQL is NOT NULL
+            Id = entity.Id,
+            GoogleId = entity.GoogleId ?? string.Empty,
             Name = entity.Name,
             Email = entity.Email,
             Role = (UserRole)entity.Role,
             AvatarUrl = entity.AvatarUrl,
-            MemberSince = DateTime.Parse(entity.MemberSince),
-            Height = (decimal)entity.Height,
+            MemberSince = entity.MemberSince,
+            Height = entity.Height,
             UnitSystem = (UnitSystem)entity.UnitSystem,
-            DateOfBirth = entity.DateOfBirth != null ? DateOnly.Parse(entity.DateOfBirth) : null,
+            DateOfBirth = entity.DateOfBirth,
             Language = entity.Language,
             Status = (UserStatus)entity.Status,
-            GoalWeight = entity.GoalWeight.HasValue ? (decimal)entity.GoalWeight.Value : null,
-            StartingWeight = entity.StartingWeight.HasValue ? (decimal)entity.StartingWeight.Value : null,
-            CreatedAt = DateTime.Parse(entity.CreatedAt),
-            UpdatedAt = DateTime.Parse(entity.UpdatedAt)
+            GoalWeight = entity.GoalWeight,
+            StartingWeight = entity.StartingWeight,
+            CreatedAt = entity.CreatedAt,
+            UpdatedAt = entity.UpdatedAt
         };
     }
 
@@ -47,26 +47,25 @@ public static class UserMapper
         ArgumentNullException.ThrowIfNull(info);
 
         var now = DateTime.UtcNow;
-        var nowIso = now.ToString("O");
 
         return new Users
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid(),
             GoogleId = info.GoogleId,
             Name = info.Name,
             Email = info.Email,
-            Role = (int)UserRole.User,  // Default
+            Role = (int)UserRole.User,
             AvatarUrl = info.AvatarUrl,
-            MemberSince = nowIso,
-            Height = 170.0,  // Default del schema SQL
-            UnitSystem = (int)UnitSystem.Metric,  // Default
+            MemberSince = now,
+            Height = 170.0m,
+            UnitSystem = (int)UnitSystem.Metric,
             DateOfBirth = null,
-            Language = "es",  // Default
-            Status = (int)UserStatus.Active,  // Default
+            Language = "es",
+            Status = (int)UserStatus.Active,
             GoalWeight = null,
             StartingWeight = null,
-            CreatedAt = nowIso,
-            UpdatedAt = nowIso
+            CreatedAt = now,
+            UpdatedAt = now
         };
     }
 
@@ -81,11 +80,11 @@ public static class UserMapper
         ArgumentNullException.ThrowIfNull(dto);
 
         entity.Name = dto.Name;
-        entity.Height = (double)dto.Height;
+        entity.Height = dto.Height;
         entity.UnitSystem = (int)dto.UnitSystem;
-        entity.DateOfBirth = dto.DateOfBirth?.ToString("yyyy-MM-dd");
+        entity.DateOfBirth = dto.DateOfBirth;
         entity.Language = dto.Language;
-        entity.GoalWeight = dto.GoalWeight.HasValue ? (double)dto.GoalWeight.Value : null;
+        entity.GoalWeight = dto.GoalWeight;
 
         // Actualizar AvatarUrl si se proporciona
         if (dto.AvatarUrl is not null)
@@ -93,7 +92,7 @@ public static class UserMapper
             entity.AvatarUrl = dto.AvatarUrl;
         }
 
-        entity.UpdatedAt = DateTime.UtcNow.ToString("O");
+        entity.UpdatedAt = DateTime.UtcNow;
     }
 
     /// <summary>
@@ -134,7 +133,7 @@ public static class UserMapper
 
         if (changed)
         {
-            entity.UpdatedAt = DateTime.UtcNow.ToString("O");
+            entity.UpdatedAt = DateTime.UtcNow;
         }
     }
 
@@ -150,27 +149,26 @@ public static class UserMapper
         ArgumentException.ThrowIfNullOrWhiteSpace(info.ExternalId);
 
         var now = DateTime.UtcNow;
-        var nowIso = now.ToString("O");
 
         var entity = new Users
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid(),
             GoogleId = info.Provider == "Google" ? info.ExternalId : null,
             LinkedInId = info.Provider == "LinkedIn" ? info.ExternalId : null,
             Name = info.Name,
             Email = info.Email,
             Role = (int)UserRole.User,
             AvatarUrl = info.AvatarUrl,
-            MemberSince = nowIso,
-            Height = 170.0,
+            MemberSince = now,
+            Height = 170.0m,
             UnitSystem = (int)UnitSystem.Metric,
             DateOfBirth = null,
             Language = "es",
             Status = (int)UserStatus.Active,
             GoalWeight = null,
             StartingWeight = null,
-            CreatedAt = nowIso,
-            UpdatedAt = nowIso
+            CreatedAt = now,
+            UpdatedAt = now
         };
 
         return entity;
@@ -214,7 +212,7 @@ public static class UserMapper
 
         if (changed)
         {
-            entity.UpdatedAt = DateTime.UtcNow.ToString("O");
+            entity.UpdatedAt = DateTime.UtcNow;
         }
     }
 }

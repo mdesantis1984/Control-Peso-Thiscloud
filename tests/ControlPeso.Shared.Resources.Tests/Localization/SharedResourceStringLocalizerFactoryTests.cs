@@ -262,7 +262,7 @@ public class SharedResourceStringLocalizerFactoryTests
         var loggerMock = new Mock<ILogger>();
         loggerFactoryMock.Setup(f => f.CreateLogger(It.IsAny<string>()))
             .Returns(loggerMock.Object);
-        
+
         var factory = CreateFactory(loggerFactoryMock);
 
         // Act
@@ -270,7 +270,7 @@ public class SharedResourceStringLocalizerFactoryTests
 
         // Assert
         localizer.Should().NotBeNull();
-        
+
         // Verify warning was logged
         loggerMock.Verify(
             x => x.Log(

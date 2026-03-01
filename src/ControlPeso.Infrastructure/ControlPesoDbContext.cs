@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using ControlPeso.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,91 +26,72 @@ public partial class ControlPesoDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
+        // Only configure connection string if not already configured (via DI)
+        // This allows scaffold to work standalone while production uses appsettings.json
         if (!optionsBuilder.IsConfigured)
         {
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-            optionsBuilder.UseSqlite("Data Source=../../controlpeso.db");
+            optionsBuilder.UseSqlServer("Server=localhost\\SQLEXPRESS;Database=ControlPeso;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True");
         }
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.UseCollation("SQL_Latin1_General_CP1_CI_AS");
+
         modelBuilder.Entity<AuditLog>(entity =>
         {
-            entity.HasIndex(e => e.Action, "IX_AuditLog_Action");
+            entity.HasKey(e => e.Id).HasName("PK__AuditLog__3214EC07E8B49735");
 
-            entity.HasIndex(e => e.CreatedAt, "IX_AuditLog_CreatedAt").IsDescending();
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
 
-            entity.HasIndex(e => new { e.EntityType, e.EntityId }, "IX_AuditLog_EntityType_EntityId");
-
-            entity.HasIndex(e => e.UserId, "IX_AuditLog_UserId");
-
-            entity.HasOne(d => d.User).WithMany(p => p.AuditLog)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+            entity.HasOne(d => d.User).WithMany(p => p.AuditLog).HasConstraintName("FK__AuditLog__UserId__73BA3083");
         });
 
         modelBuilder.Entity<UserNotifications>(entity =>
         {
-            entity.HasIndex(e => e.CreatedAt, "IX_UserNotifications_CreatedAt").IsDescending();
+            entity.HasKey(e => e.Id).HasName("PK__UserNoti__3214EC076607A559");
 
-            entity.HasIndex(e => e.IsRead, "IX_UserNotifications_IsRead");
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
 
-            entity.HasIndex(e => e.UserId, "IX_UserNotifications_UserId");
-
-            entity.HasIndex(e => new { e.UserId, e.IsRead }, "IX_UserNotifications_UserId_IsRead");
-
-            entity.HasOne(d => d.User).WithMany(p => p.UserNotifications).HasForeignKey(d => d.UserId);
+            entity.HasOne(d => d.User).WithMany(p => p.UserNotifications).HasConstraintName("FK_UserNotifications_Users");
         });
 
         modelBuilder.Entity<UserPreferences>(entity =>
         {
-            entity.HasIndex(e => e.UserId, "IX_UserPreferences_UserId").IsUnique();
+            entity.HasKey(e => e.Id).HasName("PK__UserPref__3214EC07225CFCD0");
 
-            entity.HasIndex(e => e.UserId, "IX_UserPreferences_UserId");
-
-            entity.Property(e => e.DarkMode).HasDefaultValue(1);
-            entity.Property(e => e.NotificationsEnabled).HasDefaultValue(1);
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.DarkMode).HasDefaultValue(true);
+            entity.Property(e => e.NotificationsEnabled).HasDefaultValue(true);
             entity.Property(e => e.TimeZone).HasDefaultValue("America/Argentina/Buenos_Aires");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("(getutcdate())");
 
-            entity.HasOne(d => d.User).WithOne(p => p.UserPreferences).HasForeignKey<UserPreferences>(d => d.UserId);
+            entity.HasOne(d => d.User).WithOne(p => p.UserPreferences).HasConstraintName("FK__UserPrefe__UserI__6C190EBB");
         });
 
         modelBuilder.Entity<Users>(entity =>
         {
-            entity.HasIndex(e => e.Email, "IX_Users_Email").IsUnique();
+            entity.HasKey(e => e.Id).HasName("PK__Users__3214EC0706812F7C");
 
-            entity.HasIndex(e => e.GoogleId, "IX_Users_GoogleId").IsUnique();
-
-            entity.HasIndex(e => e.LinkedInId, "IX_Users_LinkedInId").IsUnique();
-
-            entity.HasIndex(e => e.Email, "IX_Users_Email");
-
-            entity.HasIndex(e => e.GoogleId, "IX_Users_GoogleId");
-
-            entity.HasIndex(e => e.Language, "IX_Users_Language");
-
-            entity.HasIndex(e => e.LinkedInId, "IX_Users_LinkedInId");
-
-            entity.HasIndex(e => e.Role, "IX_Users_Role");
-
-            entity.HasIndex(e => e.Status, "IX_Users_Status");
-
-            entity.Property(e => e.Height).HasDefaultValue(170.0);
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.Height).HasDefaultValue(170.0m);
             entity.Property(e => e.Language).HasDefaultValue("es");
+            entity.Property(e => e.MemberSince).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("(getutcdate())");
         });
 
         modelBuilder.Entity<WeightLogs>(entity =>
         {
-            entity.HasIndex(e => e.Date, "IX_WeightLogs_Date").IsDescending();
+            entity.HasKey(e => e.Id).HasName("PK__WeightLo__3214EC0734D73176");
 
-            entity.HasIndex(e => e.UserId, "IX_WeightLogs_UserId");
-
-            entity.HasIndex(e => new { e.UserId, e.Date }, "IX_WeightLogs_UserId_Date").IsDescending(false, true);
-
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
             entity.Property(e => e.Trend).HasDefaultValue(2);
 
-            entity.HasOne(d => d.User).WithMany(p => p.WeightLogs).HasForeignKey(d => d.UserId);
+            entity.HasOne(d => d.User).WithMany(p => p.WeightLogs).HasConstraintName("FK__WeightLog__UserI__619B8048");
         });
 
         OnModelCreatingPartial(modelBuilder);
