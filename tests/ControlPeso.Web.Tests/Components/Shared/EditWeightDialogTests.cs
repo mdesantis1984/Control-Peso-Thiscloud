@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
@@ -29,10 +30,6 @@ public sealed class EditWeightDialogTests : TestContext, IDisposable
         // Setup JSInterop for MudBlazor components
         JSInterop.Mode = JSRuntimeMode.Loose;
 
-        // Add required MudBlazor providers to test render tree (NOT MudSnackbarProvider - it doesn't support root render)
-        RenderTree.Add<MudPopoverProvider>();
-        RenderTree.Add<MudDialogProvider>();
-
         // Setup localizer to return string keys
         _localizer[Arg.Any<string>()].Returns(callInfo => new LocalizedString(callInfo.Arg<string>(), callInfo.Arg<string>()));
         _localizer[Arg.Any<string>(), Arg.Any<object[]>()].Returns(callInfo => 
@@ -41,7 +38,7 @@ public sealed class EditWeightDialogTests : TestContext, IDisposable
         // Register services
         Services.AddSingleton(_weightLogService);
         Services.AddSingleton(_localizer);
-        Services.AddSingleton<ILogger<EditWeightDialog>>(NullLogger<EditWeightDialog>.Instance);
+        Services.AddSingleton<ILogger<EditWeightDialog>>(Microsoft.Extensions.Logging.Abstractions.NullLogger<EditWeightDialog>.Instance);
 
         // Create real instances for sealed classes (NotificationService and UserStateService)
         // These can't be mocked with NSubstitute because they're sealed
@@ -49,16 +46,19 @@ public sealed class EditWeightDialogTests : TestContext, IDisposable
         var userPrefsService = Substitute.For<IUserPreferencesService>();
         var userNotificationService = Substitute.For<IUserNotificationService>();
         var authStateProvider = Substitute.For<AuthenticationStateProvider>();
-        var notificationLogger = NullLogger<NotificationService>.Instance;
+        var notificationLogger = Microsoft.Extensions.Logging.Abstractions.NullLogger<NotificationService>.Instance;
         var notificationService = new NotificationService(snackbar, userPrefsService, userNotificationService, authStateProvider, notificationLogger);
 
-        var userStateLogger = NullLogger<UserStateService>.Instance;
+        var userStateLogger = Microsoft.Extensions.Logging.Abstractions.NullLogger<UserStateService>.Instance;
         var userStateService = new UserStateService(userStateLogger);
         userStateService.SetCurrentUnitSystem(UnitSystem.Metric); // Set default for tests
 
         Services.AddSingleton(notificationService);
         Services.AddSingleton(userStateService);
         Services.AddMudServices();
+
+        // Mock PopoverService to avoid needing MudPopoverProvider in tests
+        Services.AddSingleton(Substitute.For<IPopoverService>());
     }
 
     [Fact]
