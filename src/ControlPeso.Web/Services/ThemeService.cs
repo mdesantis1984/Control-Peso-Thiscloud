@@ -1,42 +1,42 @@
-using Microsoft.AspNetCore.Http;
-using ControlPeso.Application.Interfaces;
-using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
+using ControlPeso.Application.Interfaces;
+using ControlPeso.Web.Services.Storage;
+using Microsoft.AspNetCore.Components.Authorization;
 
 namespace ControlPeso.Web.Services;
 
 /// <summary>
-/// Servicio para gestionar la persistencia de la preferencia de tema del usuario
-/// Prioridad: 1) Base de datos (si usuario autenticado), 2) Cookies HTTP (fallback)
+/// Servicio para gestionar la persistencia de la preferencia de tema del usuario.
+/// Prioridad: 1) Base de datos (si usuario autenticado), 2) localStorage (fallback para usuarios no autenticados)
 /// </summary>
 public sealed class ThemeService
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IStorageService _storageService;
     private readonly IUserPreferencesService _userPreferencesService;
     private readonly AuthenticationStateProvider _authStateProvider;
     private readonly ILogger<ThemeService> _logger;
-    private const string CookieName = "IsDarkMode";
+    private const string StorageKey = "IsDarkMode";
 
     public ThemeService(
-        IHttpContextAccessor httpContextAccessor,
+        IStorageService storageService,
         IUserPreferencesService userPreferencesService,
         AuthenticationStateProvider authStateProvider,
         ILogger<ThemeService> logger)
     {
-        ArgumentNullException.ThrowIfNull(httpContextAccessor);
+        ArgumentNullException.ThrowIfNull(storageService);
         ArgumentNullException.ThrowIfNull(userPreferencesService);
         ArgumentNullException.ThrowIfNull(authStateProvider);
         ArgumentNullException.ThrowIfNull(logger);
 
-        _httpContextAccessor = httpContextAccessor;
+        _storageService = storageService;
         _userPreferencesService = userPreferencesService;
         _authStateProvider = authStateProvider;
         _logger = logger;
     }
 
     /// <summary>
-    /// Obtiene la preferencia de tema guardada del usuario
-    /// Prioridad: 1) Base de datos (si autenticado), 2) Cookie HTTP (si no autenticado)
+    /// Obtiene la preferencia de tema guardada del usuario.
+    /// Prioridad: 1) Base de datos (si autenticado), 2) localStorage (si no autenticado)
     /// </summary>
     /// <returns>True si el usuario prefiere modo oscuro, False para modo claro</returns>
     public async Task<bool> GetUserThemePreferenceAsync()
@@ -52,29 +52,26 @@ public sealed class ThemeService
 
                 if (!string.IsNullOrWhiteSpace(userIdClaim) && Guid.TryParse(userIdClaim, out var userId))
                 {
-                    var isDarkMode = await _userPreferencesService.GetDarkModePreferenceAsync(userId);
+                    var themeFromDb = await _userPreferencesService.GetDarkModePreferenceAsync(userId);
 
                     _logger.LogDebug(
                         "ThemeService: Theme preference loaded from database - UserId: {UserId}, IsDarkMode: {IsDarkMode}",
-                        userId, isDarkMode);
+                        userId, themeFromDb);
 
-                    return isDarkMode;
+                    return themeFromDb;
                 }
             }
 
-            // 2. Fallback: intentar obtener de cookie si no está autenticado
-            var httpContext = _httpContextAccessor.HttpContext;
+            // 2. Fallback: intentar obtener de localStorage si no está autenticado
+            var value = await _storageService.GetItemAsync(StorageKey);
 
-            if (httpContext != null && httpContext.Request.Cookies.TryGetValue(CookieName, out var value))
+            if (!string.IsNullOrWhiteSpace(value) && bool.TryParse(value, out bool themeFromStorage))
             {
-                if (bool.TryParse(value, out bool isDarkMode))
-                {
-                    _logger.LogDebug(
-                        "ThemeService: Theme preference loaded from cookie (fallback) - IsDarkMode: {IsDarkMode}",
-                        isDarkMode);
+                _logger.LogDebug(
+                    "ThemeService: Theme preference loaded from storage (fallback) - IsDarkMode: {IsDarkMode}",
+                    themeFromStorage);
 
-                    return isDarkMode;
-                }
+                return themeFromStorage;
             }
 
             // Valor por defecto: modo oscuro (según diseño del proyecto)
@@ -89,8 +86,8 @@ public sealed class ThemeService
     }
 
     /// <summary>
-    /// Guarda la preferencia de tema del usuario
-    /// Prioridad: 1) Base de datos (si autenticado), 2) Cookie HTTP (si no autenticado)
+    /// Guarda la preferencia de tema del usuario.
+    /// Prioridad: 1) Base de datos (si autenticado), 2) localStorage (si no autenticado)
     /// </summary>
     /// <param name="isDarkMode">True para modo oscuro, False para modo claro</param>
     public async Task SetUserThemePreferenceAsync(bool isDarkMode)
@@ -112,34 +109,16 @@ public sealed class ThemeService
                         "ThemeService: Theme preference saved to database - UserId: {UserId}, IsDarkMode: {IsDarkMode}",
                         userId, isDarkMode);
 
-                    return; // Guardado exitoso en DB, no necesitamos cookie
+                    return; // Guardado exitoso en DB, no necesitamos localStorage
                 }
             }
 
-            // 2. Fallback: guardar en cookie si no está autenticado
-            var httpContext = _httpContextAccessor.HttpContext;
+            // 2. Fallback: guardar en localStorage si no está autenticado
+            await _storageService.SetItemAsync(StorageKey, isDarkMode.ToString());
 
-            if (httpContext != null)
-            {
-                var cookieOptions = new CookieOptions
-                {
-                    Expires = DateTimeOffset.MaxValue, // Cookie persistente (no expira)
-                    HttpOnly = false, // Debe ser accesible desde JavaScript/Blazor
-                    Secure = true, // Solo HTTPS
-                    SameSite = SameSiteMode.Strict, // Protección CSRF
-                    IsEssential = true // Esencial para funcionalidad
-                };
-
-                httpContext.Response.Cookies.Append(CookieName, isDarkMode.ToString(), cookieOptions);
-
-                _logger.LogInformation(
-                    "ThemeService: Theme preference saved to cookie (fallback) - IsDarkMode: {IsDarkMode}",
-                    isDarkMode);
-            }
-            else
-            {
-                _logger.LogWarning("ThemeService: HttpContext is null, cannot save theme preference");
-            }
+            _logger.LogInformation(
+                "ThemeService: Theme preference saved to storage (fallback) - IsDarkMode: {IsDarkMode}",
+                isDarkMode);
         }
         catch (Exception ex)
         {

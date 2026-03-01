@@ -1,25 +1,20 @@
-using System;
-using System.Collections.Generic;
-
 namespace ControlPeso.Domain.Entities;
 
 public partial class UserNotifications
 {
-    public string Id { get; set; } = null!;
+    public Guid Id { get; set; }
 
-    public string UserId { get; set; } = null!;
+    public Guid UserId { get; set; }
 
-    public int Type { get; set; }
+    public string Type { get; set; } = null!;
 
-    public string? Title { get; set; }
+    public string Title { get; set; } = null!;
 
     public string Message { get; set; } = null!;
 
-    public int IsRead { get; set; }
+    public bool IsRead { get; set; }
 
-    public string CreatedAt { get; set; } = null!;
-
-    public string? ReadAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 
     public virtual Users User { get; set; } = null!;
 }

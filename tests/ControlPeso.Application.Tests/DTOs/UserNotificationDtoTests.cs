@@ -55,8 +55,7 @@ public sealed class UserNotificationDtoTests
             Title = null, // Nullable
             Message = "Warning message",
             IsRead = false,
-            CreatedAt = DateTime.UtcNow,
-            ReadAt = null // Nullable
+            CreatedAt = DateTime.UtcNow // Nullable
         };
 
         // Assert

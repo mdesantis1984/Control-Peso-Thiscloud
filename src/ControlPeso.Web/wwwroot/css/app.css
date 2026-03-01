@@ -198,6 +198,14 @@
     gap: 0.5rem;
 }
 
+/* === FAB Floating Button Position === */
+.fixed-bottom-right {
+    position: fixed !important;
+    bottom: 24px !important;
+    right: 24px !important;
+    z-index: 1000 !important;
+}
+
 /* ============================================
    Add Weight Dialog - Mobile Responsive
    ============================================ */
@@ -279,16 +287,26 @@ body, html, * {
     border-radius: 12px !important;
 }
 
-.mud-button-root {
-    border-radius: 8px !important; /* Buttons usan 8px (menos que cards) */
+
+
+/* === FAB - Circular shape (Material Design standard) === */
+.mud-fab,
+button.mud-fab,
+.mud-fab.mud-button-root {
+    border-radius: 50% !important;
+    min-width: 56px !important;
+    min-height: 56px !important;
+    width: 56px !important;
+    height: 56px !important;
+    padding: 0 !important;
 }
 
-.mud-input-outlined .mud-input-outlined-border {
-    border-radius: 8px !important;
-}
-
-.mud-progress-linear {
-    border-radius: 8px !important;
+.mud-fab.mud-fab-size-large,
+button.mud-fab.mud-fab-size-large {
+    min-width: 56px !important;
+    min-height: 56px !important;
+    width: 56px !important;
+    height: 56px !important;
 }
 
 .mud-table-container {
@@ -354,42 +372,43 @@ body, html, * {
     border-width: 2px !important;
 }
 
-/* === Buttons === */
-.mud-button-root {
+/* === Buttons - Styling (EXCLUDING buttons inside ButtonGroup and FAB) === */
+.mud-button-root:not(.mud-button-group .mud-button-root):not(.mud-fab) {
     border-radius: 4px !important;
     text-transform: uppercase;
     font-weight: 500;
     letter-spacing: 0.02857em;
 }
 
+/* ButtonGroup styling is now handled by MudToggleGroup natively */
+
 /* === Progress bars === */
 .mud-progress-linear {
-    border-radius: 4px !important;
+    border-radius: 4px;
 }
 
 /* === Shadows - Más sutiles para dark mode (WeightTracker style) === */
 .mud-elevation-1 {
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.20), 0 1px 2px 0 rgba(0, 0, 0, 0.12) !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.20), 0 1px 2px 0 rgba(0, 0, 0, 0.12);
 }
 
 .mud-elevation-2 {
-    box-shadow: 0 3px 6px 0 rgba(0, 0, 0, 0.25), 0 2px 4px 0 rgba(0, 0, 0, 0.15) !important;
+    box-shadow: 0 3px 6px 0 rgba(0, 0, 0, 0.25), 0 2px 4px 0 rgba(0, 0, 0, 0.15);
 }
 
 .mud-elevation-4 {
-    box-shadow: 0 6px 12px 0 rgba(0, 0, 0, 0.30), 0 4px 8px 0 rgba(0, 0, 0, 0.18) !important;
+    box-shadow: 0 6px 12px 0 rgba(0, 0, 0, 0.30), 0 4px 8px 0 rgba(0, 0, 0, 0.18);
 }
 
 .mud-elevation-8 {
-    box-shadow: 0 12px 24px 0 rgba(0, 0, 0, 0.35), 0 8px 16px 0 rgba(0, 0, 0, 0.20) !important;
+    box-shadow: 0 12px 24px 0 rgba(0, 0, 0, 0.35), 0 8px 16px 0 rgba(0, 0, 0, 0.20);
 }
 
 /* === Stats Cards - Proporción y altura consistentes (WeightTracker exact match) === */
 .stats-card {
-    min-height: 160px !important; /* Altura fija para todos los cards */
+    min-height: 160px;
     display: flex;
     flex-direction: column;
-    /* Background se define por theme (ver secciones dark/light más abajo) */
 }
 
 .stats-card .mud-card-content {
@@ -397,31 +416,30 @@ body, html, * {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 16px !important; /* Padding uniforme */
 }
 
 /* Stats cards icons - tamaño consistente con referencia */
 .stats-card .mud-icon-root {
-    font-size: 2.5rem !important; /* Reducido de 3rem a 2.5rem */
+    font-size: 2.5rem;
 }
 
 /* Stats cards números - tamaño consistente */
 .stats-card .mud-typography-h4 {
-    font-size: 2rem !important; /* 32px - consistente entre cards */
-    line-height: 1.2 !important;
-    font-weight: 700 !important;
+    font-size: 2rem;
+    line-height: 1.2;
+    font-weight: 700;
 }
 
 /* Progress bars - delgados como referencia WeightTracker */
 .stats-card .mud-progress-linear {
-    height: 3px !important; /* Reducido de 4px a 3px */
-    border-radius: 2px !important;
+    height: 3px;
+    border-radius: 2px;
 }
 
 /* Progress bar labels - tamaño reducido */
 .stats-card .mud-typography-caption {
-    font-size: 0.75rem !important; /* 12px */
-    font-weight: 500 !important;
+    font-size: 0.75rem;
+    font-weight: 500;
 }
 
 /* Dashboard específico === */
@@ -450,19 +468,19 @@ body, html, * {
 
 /* Stats cards background - Light mode usa superficie clara */
 .mud-theme-light .stats-card {
-    background-color: #FFFFFF !important; /* Blanco puro para light mode */
+    background-color: #FFFFFF;
 }
 
 .mud-theme-light .mud-table-bordered {
-    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+    border: 1px solid rgba(0, 0, 0, 0.12);
 }
 
 .mud-theme-light .mud-table-bordered thead tr th {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
 
 .mud-theme-light .mud-table-bordered tbody tr:not(:last-child) td {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
 
 .mud-theme-light .mud-table-container {
@@ -471,26 +489,26 @@ body, html, * {
 
 .mud-theme-light .mud-table th,
 .mud-theme-light .mud-table td {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
 
 .mud-theme-light .mud-divider {
-    border-color: rgba(0, 0, 0, 0.12) !important;
+    border-color: rgba(0, 0, 0, 0.12);
 }
 
 .mud-theme-light .mud-input-outlined .mud-input-outlined-border {
-    border-color: rgba(0, 0, 0, 0.23) !important;
+    border-color: rgba(0, 0, 0, 0.23);
 }
 
 .mud-theme-light .mud-input-outlined:hover .mud-input-outlined-border {
-    border-color: rgba(0, 0, 0, 0.5) !important;
+    border-color: rgba(0, 0, 0, 0.5);
 }
 
 /* === Dark Mode Adjustments === */
 
 /* Stats cards background - Dark mode usa WeightTracker color scheme */
 .mud-theme-dark .stats-card {
-    background-color: #1B2838 !important; /* WeightTracker card background (gris azulado oscuro) */
+    background-color: #1B2838;
 }
 
 /* ========================================
@@ -499,184 +517,36 @@ body, html, * {
 
 /* === XS Breakpoint (0-599px) - Mobile Phones === */
 @media (max-width: 599px) {
-    /* Reduce general spacing for mobile */
+    /* CUSTOM CLASSES ONLY - NO MudBlazor overrides */
     .dashboard-header {
-        margin-bottom: 12px !important;
-        padding: 12px !important;
+        margin-bottom: 12px;
+        padding: 12px;
     }
 
     .dashboard-stats-grid {
-        margin-bottom: 12px !important;
-        gap: 8px !important;
+        margin-bottom: 12px;
+        gap: 8px;
     }
 
     .dashboard-chart-card {
-        margin-bottom: 12px !important;
-    }
-
-    /* Reduce font sizes para nombres largos */
-    .mud-typography-h4 {
-        font-size: 1.5rem !important; /* 24px en vez de 34px */
-        line-height: 1.3 !important;
-    }
-
-    .mud-typography-h5 {
-        font-size: 1.25rem !important; /* 20px en vez de 24px */
-    }
-
-    .mud-typography-h6 {
-        font-size: 1.1rem !important; /* 18px en vez de 20px */
-    }
-
-    /* Cards con padding reducido */
-    .mud-card .mud-card-content {
-        padding: 12px !important;
-    }
-
-    .mud-card .mud-card-header {
-        padding: 12px !important;
-    }
-
-    /* Stats cards más compactos */
-    .stats-card {
-        padding: 12px !important;
-    }
-
-    .stats-card .mud-typography-h3 {
-        font-size: 2rem !important; /* 32px en vez de 48px */
-    }
-
-    .stats-card .mud-typography-subtitle1 {
-        font-size: 0.875rem !important; /* 14px */
-    }
-
-    /* Botones más pequeños en mobile */
-    .mud-button-root {
-        padding: 6px 12px !important;
-        font-size: 0.875rem !important;
-    }
-
-    /* Export button más compacto */
-    .mud-button-root.mud-icon-button + .mud-button-root {
-        padding: 4px 8px !important;
-        font-size: 0.8125rem !important;
-    }
-
-    /* Period selector buttons más pequeños */
-    .mud-button-group .mud-button-root {
-        padding: 4px 8px !important;
-        font-size: 0.75rem !important; /* 12px */
-        min-width: 50px !important;
-    }
-
-    /* FAB position ajustado para no tapar contenido */
-    .mud-fab {
-        bottom: 12px !important;
-        right: 12px !important;
-        width: 48px !important;
-        height: 48px !important;
-    }
-
-    /* Table más compacto */
-    .mud-table-container {
-        font-size: 0.8125rem !important; /* 13px */
-    }
-
-    .mud-table-cell {
-        padding: 8px 4px !important;
-    }
-
-    .mud-table-cell-content {
-        font-size: 0.8125rem !important;
-    }
-
-    /* DataGrid header más pequeño */
-    .mud-table-head .mud-table-cell {
-        padding: 8px 4px !important;
-        font-size: 0.75rem !important;
-        font-weight: 600 !important;
-    }
-
-    /* Progress bars height reducido */
-    .mud-progress-linear {
-        height: 4px !important;
-    }
-
-    /* Input fields más compactos */
-    .mud-input {
-        font-size: 0.875rem !important;
-    }
-
-    .mud-input-outlined .mud-input-slot {
-        padding: 8px 12px !important;
-    }
-
-    /* Container padding reducido */
-    .mud-container {
-        padding-left: 12px !important;
-        padding-right: 12px !important;
-    }
-
-    /* AppBar más compacto */
-    .mud-appbar {
-        padding: 8px 12px !important;
-    }
-
-    .mud-appbar .mud-typography-h5 {
-        font-size: 1.1rem !important;
-    }
-
-    /* Avatar más pequeño en mobile */
-    .mud-avatar {
-        width: 32px !important;
-        height: 32px !important;
-    }
-
-    /* Notification bell más pequeño */
-    .mud-icon-button {
-        padding: 6px !important;
-    }
-
-    .mud-icon-button .mud-icon-root {
-        font-size: 1.25rem !important;
+        margin-bottom: 12px;
     }
 }
 
 /* === SM Breakpoint (600-959px) - Tablets Portrait === */
 @media (min-width: 600px) and (max-width: 959px) {
-    /* Medium spacing adjustments */
+    /* CUSTOM CLASSES ONLY - NO MudBlazor overrides */
     .dashboard-header {
-        margin-bottom: 16px !important;
-        padding: 16px !important;
+        margin-bottom: 16px;
+        padding: 16px;
     }
 
     .dashboard-stats-grid {
-        margin-bottom: 16px !important;
+        margin-bottom: 16px;
     }
 
     .dashboard-chart-card {
-        margin-bottom: 16px !important;
-    }
-
-    /* Font sizes moderadamente reducidos */
-    .mud-typography-h4 {
-        font-size: 1.75rem !important; /* 28px */
-    }
-
-    /* Cards con padding medio */
-    .mud-card .mud-card-content {
-        padding: 16px !important;
-    }
-
-    /* FAB position */
-    .mud-fab {
-        bottom: 16px !important;
-        right: 16px !important;
-    }
-
-    /* Container padding medio */
-    .mud-container {
-        padding-left: 16px !important;
-        padding-right: 16px !important;
+        margin-bottom: 16px;
     }
 }
+

@@ -1118,4 +1118,4 @@ A: ✅ **TODOS** los componentes disponibles en https://mudblazor.com/api#compon
 
 ---
 
-**Última actualización**: 2026-02-17 (Pre-Fase 2)
+**Última actualización**: 2026-02-28 (Post CSS Cleanup - ButtonGroup Fixed)

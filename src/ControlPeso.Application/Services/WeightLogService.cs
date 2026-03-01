@@ -39,7 +39,7 @@ public sealed class WeightLogService : IWeightLogService
         {
             var entity = await _context.Set<WeightLogs>()
                 .AsNoTracking()
-                .FirstOrDefaultAsync(w => w.Id == id.ToString(), ct);
+                .FirstOrDefaultAsync(w => w.Id == id, ct);
 
             if (entity is null)
             {
@@ -71,18 +71,22 @@ public sealed class WeightLogService : IWeightLogService
         {
             var query = _context.Set<WeightLogs>()
                 .AsNoTracking()
-                .Where(w => w.UserId == userId.ToString());
+                .Where(w => w.UserId == userId);
 
             // Apply date range filter if provided
             if (filter.DateRange is not null)
             {
-                var startDateStr = filter.DateRange.StartDate.ToString("yyyy-MM-dd");
-                var endDateStr = filter.DateRange.EndDate.ToString("yyyy-MM-dd");
-
-                // Direct string comparison works correctly with ISO 8601 format (YYYY-MM-DD) in SQLite
+                // DateOnly comparison in SQL Server
                 query = query.Where(w =>
-                    w.Date.CompareTo(startDateStr) >= 0
-                    && w.Date.CompareTo(endDateStr) <= 0);
+                    w.Date >= filter.DateRange.StartDate
+                    && w.Date <= filter.DateRange.EndDate);
+            }
+
+            // Apply search term filter if provided (searches in Note field)
+            if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+            {
+                var searchLower = filter.SearchTerm.Trim().ToLower();
+                query = query.Where(w => w.Note != null && w.Note.ToLower().Contains(searchLower));
             }
 
             // Apply sorting
@@ -170,7 +174,7 @@ public sealed class WeightLogService : IWeightLogService
         try
         {
             var entity = await _context.Set<WeightLogs>()
-                .FirstOrDefaultAsync(w => w.Id == id.ToString(), ct);
+                .FirstOrDefaultAsync(w => w.Id == id, ct);
 
             if (entity is null)
             {
@@ -178,7 +182,7 @@ public sealed class WeightLogService : IWeightLogService
                 throw new InvalidOperationException($"Weight log with ID {id} not found.");
             }
 
-            var userId = Guid.Parse(entity.UserId);
+            var userId = entity.UserId;
 
             WeightLogMapper.UpdateEntity(entity, dto);
 
@@ -213,7 +217,7 @@ public sealed class WeightLogService : IWeightLogService
         try
         {
             var entity = await _context.Set<WeightLogs>()
-                .FirstOrDefaultAsync(w => w.Id == id.ToString(), ct);
+                .FirstOrDefaultAsync(w => w.Id == id, ct);
 
             if (entity is null)
             {
@@ -246,15 +250,12 @@ public sealed class WeightLogService : IWeightLogService
 
         try
         {
-            var startDateStr = range.StartDate.ToString("yyyy-MM-dd");
-            var endDateStr = range.EndDate.ToString("yyyy-MM-dd");
-
-            // Direct string comparison works correctly with ISO 8601 format (YYYY-MM-DD) in SQLite
+            // DateOnly comparison in SQL Server
             var weights = await _context.Set<WeightLogs>()
                 .AsNoTracking()
-                .Where(w => w.UserId == userId.ToString()
-                    && w.Date.CompareTo(startDateStr) >= 0
-                    && w.Date.CompareTo(endDateStr) <= 0)
+                .Where(w => w.UserId == userId
+                    && w.Date >= range.StartDate
+                    && w.Date <= range.EndDate)
                 .Select(w => w.Weight)
                 .ToListAsync(ct);
 
@@ -312,42 +313,40 @@ public sealed class WeightLogService : IWeightLogService
 
     // Private helper methods
 
-    private async Task<double?> GetLastWeightAsync(Guid userId, DateOnly beforeDate, CancellationToken ct)
+    private async Task<decimal?> GetLastWeightAsync(Guid userId, DateOnly beforeDate, CancellationToken ct)
     {
-        var beforeDateStr = beforeDate.ToString("yyyy-MM-dd");
-
-        // Direct string comparison works correctly with ISO 8601 format (YYYY-MM-DD) in SQLite
+        // DateOnly comparison in SQL Server
         var lastWeight = await _context.Set<WeightLogs>()
             .AsNoTracking()
-            .Where(w => w.UserId == userId.ToString()
-                && w.Date.CompareTo(beforeDateStr) < 0)
+            .Where(w => w.UserId == userId
+                && w.Date < beforeDate)
             .OrderByDescending(w => w.Date)
             .ThenByDescending(w => w.Time)
-            .Select(w => (double?)w.Weight)
+            .Select(w => (decimal?)w.Weight)
             .FirstOrDefaultAsync(ct);
 
         return lastWeight;
     }
 
-    private static WeightTrend CalculateTrend(decimal currentWeight, double? previousWeight)
+    private static WeightTrend CalculateTrend(decimal currentWeight, decimal? previousWeight)
     {
         if (!previousWeight.HasValue)
             return WeightTrend.Neutral;
 
-        var diff = (double)currentWeight - previousWeight.Value;
+        var diff = currentWeight - previousWeight.Value;
 
         return diff switch
         {
-            > 0.1 => WeightTrend.Up,
-            < -0.1 => WeightTrend.Down,
+            > 0.1m => WeightTrend.Up,
+            < -0.1m => WeightTrend.Down,
             _ => WeightTrend.Neutral
         };
     }
 
-    private async Task UpdateUserStartingWeightIfNeededAsync(Guid userId, double weight, CancellationToken ct)
+    private async Task UpdateUserStartingWeightIfNeededAsync(Guid userId, decimal weight, CancellationToken ct)
     {
         var user = await _context.Set<Users>()
-            .FirstOrDefaultAsync(u => u.Id == userId.ToString(), ct);
+            .FirstOrDefaultAsync(u => u.Id == userId, ct);
 
         if (user is not null && !user.StartingWeight.HasValue)
         {

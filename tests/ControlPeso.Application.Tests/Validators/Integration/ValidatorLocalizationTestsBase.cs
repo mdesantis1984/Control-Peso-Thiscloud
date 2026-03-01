@@ -1,8 +1,7 @@
+using System.Globalization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using System.Globalization;
 
 namespace ControlPeso.Application.Tests.Validators.Integration;
 
@@ -63,10 +62,10 @@ public abstract class ValidatorLocalizationTestsBase
     protected void AssertTranslationExists(IStringLocalizer localizer, string key, string culture)
     {
         var localizedString = localizer[key];
-        
+
         // Verificar que no devuelve la clave misma (ResourceNotFound)
         Assert.NotEqual(key, localizedString.Value);
-        
+
         // Verificar que no está vacío
         Assert.False(string.IsNullOrWhiteSpace(localizedString.Value),
             $"Translation key '{key}' for culture '{culture}' returned empty value");
@@ -114,6 +113,6 @@ internal sealed class TypedStringLocalizerWrapper<T> : IStringLocalizer<T>
 
     public LocalizedString this[string name, params object[] arguments] => _inner[name, arguments];
 
-    public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures) => 
+    public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures) =>
         _inner.GetAllStrings(includeParentCultures);
 }

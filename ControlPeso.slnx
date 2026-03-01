@@ -34,6 +34,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/ControlPeso.Shared.Resources.Tests/ControlPeso.Shared.Resources.Tests.csproj" />
+    <Project Path="tests/ControlPeso.Web.Tests/ControlPeso.Web.Tests.csproj" />
   </Folder>
   <Folder Name="/tests/ControlPeso.Application.Tests/">
     <Project Path="tests/ControlPeso.Application.Tests/ControlPeso.Application.Tests.csproj" />

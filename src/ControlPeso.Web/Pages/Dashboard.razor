@@ -32,10 +32,9 @@ else if (_weightLogs.Count == 0)
 {
     <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
         <MudPaper Elevation="0" Class="pa-8 text-center">
-            <MudIcon Icon="@Icons.Material.Filled.MonitorWeight" 
-                     Color="Color.Primary" 
-                     Style="font-size: 96px;" 
-                     Class="mb-4" />
+            <img src="/images/og-image.png" 
+                 alt="Control Peso Thiscloud Logo" 
+                 style="width: 120px; height: 120px; border-radius: 20px; box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25); margin-bottom: 24px;" />
             <MudText Typo="Typo.h4" Class="mb-2">
                 @WelcomeTitle
             </MudText>
@@ -88,18 +87,27 @@ else
         <MudItem xs="12" sm="4">
             <MudCard Elevation="2" Class="stats-card">
                 <MudCardContent Class="pa-4">
-                    <div class="d-flex justify-space-between align-center">
-                        <div style="flex: 1;">
+                    <div class="d-flex justify-space-between align-start" style="min-height: 120px;">
+                        <div class="d-flex flex-column" style="flex: 1; height: 100%;">
                             <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">
                                 @CurrentWeightLabel
                             </MudText>
                             <MudText Typo="Typo.h4" Class="font-weight-bold">
-                                @_currentWeight.ToString("F1") <span style="font-size: 1rem; font-weight: normal;">lbs</span>
+                                @ConvertedWeight(_currentWeight).ToString("F1") <span style="font-size: 1rem; font-weight: normal;">@WeightUnit</span>
                             </MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2">
-                                <MudIcon Icon="@Icons.Material.Filled.AccessTime" Size="Size.Small" Style="vertical-align: middle;" />
-                                @LastMeasured
-                            </MudText>
+                            <div class="mt-auto pt-3">
+                                <div class="d-flex align-center gap-2 mb-1">
+                                    <MudIcon Icon="@Icons.Material.Filled.AccessTime" 
+                                             Color="Color.Info"
+                                             Size="Size.Small" />
+                                    <MudText Typo="Typo.caption" Color="Color.Info" Class="font-weight-bold">
+                                        @LastMeasured
+                                    </MudText>
+                                </div>
+                                <MudProgressLinear Color="Color.Info"
+                                                   Value="100"
+                                                   Size="Size.Small" />
+                            </div>
                         </div>
                         <div>
                             <MudIcon Icon="@Icons.Material.Filled.MonitorWeight"
@@ -115,15 +123,15 @@ else
         <MudItem xs="12" sm="4">
             <MudCard Elevation="2" Class="stats-card">
                 <MudCardContent Class="pa-4">
-                    <div class="d-flex justify-space-between align-center">
-                        <div style="flex: 1;">
+                    <div class="d-flex justify-space-between align-start" style="min-height: 120px;">
+                        <div class="d-flex flex-column" style="flex: 1; height: 100%;">
                             <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">
                                 @WeeklyChangeLabel
                             </MudText>
                             <MudText Typo="Typo.h4" Class="font-weight-bold" Color="@(_weeklyChange < 0 ? Color.Success : _weeklyChange > 0 ? Color.Error : Color.Default)">
-                                @(_weeklyChange < 0 ? "-" : "+")@Math.Abs(_weeklyChange).ToString("F1") <span style="font-size: 1rem; font-weight: normal;">lbs</span>
+                                @(_weeklyChange < 0 ? "-" : "+")@ConvertedWeight(Math.Abs(_weeklyChange)).ToString("F1") <span style="font-size: 1rem; font-weight: normal;">@WeightUnit</span>
                             </MudText>
-                            <div class="mt-3">
+                            <div class="mt-auto pt-3">
                                 <div class="d-flex align-center gap-2 mb-1">
                                     <MudIcon Icon="@(_weeklyChange <= 0 ? Icons.Material.Filled.TrendingDown : Icons.Material.Filled.TrendingUp)"
                                              Color="@(_weeklyChange <= 0 ? Color.Success : Color.Warning)"
@@ -151,18 +159,23 @@ else
         <MudItem xs="12" sm="4">
             <MudCard Elevation="2" Class="stats-card">
                 <MudCardContent Class="pa-4">
-                    <div class="d-flex justify-space-between align-center">
-                        <div style="flex: 1;">
+                    <div class="d-flex justify-space-between align-start" style="min-height: 120px;">
+                        <div class="d-flex flex-column" style="flex: 1; height: 100%;">
                             <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">
                                 @GoalProgressLabel
                             </MudText>
                             <MudText Typo="Typo.h4" Class="font-weight-bold">
                                 @_progress.ToString("F0")<span style="font-size: 1rem; font-weight: normal;">%</span>
                             </MudText>
-                            <div class="mt-3">
-                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-1">
-                                    @ToTarget
-                                </MudText>
+                            <div class="mt-auto pt-3">
+                                <div class="d-flex align-center gap-2 mb-1">
+                                    <MudIcon Icon="@Icons.Material.Filled.Flag"
+                                             Color="Color.Primary"
+                                             Size="Size.Small" />
+                                    <MudText Typo="Typo.caption" Color="Color.Primary" Class="font-weight-bold">
+                                        @ToTarget
+                                    </MudText>
+                                </div>
                                 <MudProgressLinear Color="Color.Primary"
                                                    Value="@((double)_progress)"
                                                    Size="Size.Small" />
@@ -189,24 +202,17 @@ else
                 </MudText>
             </CardHeaderContent>
             <CardHeaderActions>
-                <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
-                    <MudButton OnClick="@(() => ChangePeriod(7))" 
-                               Variant="@(_selectedPeriod == 7 ? Variant.Filled : Variant.Text)">
-                        @Period1W
-                    </MudButton>
-                    <MudButton OnClick="@(() => ChangePeriod(30))"
-                               Variant="@(_selectedPeriod == 30 ? Variant.Filled : Variant.Text)">
-                        @Period1M
-                    </MudButton>
-                    <MudButton OnClick="@(() => ChangePeriod(90))"
-                               Variant="@(_selectedPeriod == 90 ? Variant.Filled : Variant.Text)">
-                        @Period3M
-                    </MudButton>
-                    <MudButton OnClick="@(() => ChangePeriod(365))"
-                               Variant="@(_selectedPeriod == 365 ? Variant.Filled : Variant.Text)">
-                        @PeriodAll
-                    </MudButton>
-                </MudButtonGroup>
+                <MudToggleGroup T="int" Value="@_selectedPeriod" ValueChanged="@ChangePeriod"
+                                Color="Color.Primary" 
+                                Size="Size.Small"
+                                SelectionMode="SelectionMode.SingleSelection"
+                                Rounded="true"
+                                CheckMark="false">
+                    <MudToggleItem Value="7" Text="@Period1W" />
+                    <MudToggleItem Value="30" Text="@Period1M" />
+                    <MudToggleItem Value="90" Text="@Period3M" />
+                    <MudToggleItem Value="365" Text="@PeriodAll" />
+                </MudToggleGroup>
             </CardHeaderActions>
         </MudCardHeader>
         <MudCardContent Class="pa-4">
@@ -256,7 +262,7 @@ else
                                     Sortable="true">
                         <CellTemplate>
                             <MudText Typo="Typo.body2" Class="font-weight-bold">
-                                @context.Item.Weight.ToString("F1")
+                                @ConvertedWeight(context.Item.Weight).ToString("F1") @WeightUnit
                             </MudText>
                         </CellTemplate>
                     </PropertyColumn>
@@ -321,11 +327,12 @@ else
         </MudCardContent>
     </MudCard>
 
-    @* FAB - Pixel Perfect *@
-    <MudFab Color="Color.Primary"
+    @* FAB - Add Weight (Green, Floating, Circular) *@
+    <MudFab Color="Color.Success"
             StartIcon="@Icons.Material.Filled.Add"
             Size="Size.Large"
             OnClick="@OpenAddWeightDialog"
-            Style="position: fixed; bottom: 24px; right: 24px; z-index: 1000;"
+            Class="fixed-bottom-right"
+            Style="border-radius: 50%;"
             aria-label="@FabAriaLabel" />
 }

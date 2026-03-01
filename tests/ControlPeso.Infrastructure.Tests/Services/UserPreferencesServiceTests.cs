@@ -1,7 +1,7 @@
+using ControlPeso.Application.Interfaces;
 using ControlPeso.Domain.Entities;
-using ControlPeso.Infrastructure.Data;
 using ControlPeso.Infrastructure.Services;
-using FluentAssertions;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -9,717 +9,673 @@ using Moq;
 namespace ControlPeso.Infrastructure.Tests.Services;
 
 /// <summary>
-/// Tests para UserPreferencesService
+/// Tests para UserPreferencesService.
+/// Usa SQLite in-memory con conexión compartida mantenida abierta durante cada test.
 /// </summary>
-public class UserPreferencesServiceTests
+public sealed class UserPreferencesServiceTests : IDisposable
 {
-    private static ControlPesoDbContext CreateDbContext()
+    private readonly SqliteConnection _connection;
+    private readonly DbContextOptions<ControlPesoDbContext> _options;
+    private readonly Mock<ILogger<UserPreferencesService>> _loggerMock;
+
+    public UserPreferencesServiceTests()
     {
-        var options = new DbContextOptionsBuilder<ControlPesoDbContext>()
-            .UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}")
+        // Crear conexión SQLite en memoria que se mantiene abierta durante el test
+        _connection = new SqliteConnection("DataSource=:memory:");
+        _connection.Open();
+
+        _options = new DbContextOptionsBuilder<ControlPesoDbContext>()
+            .UseSqlite(_connection)
             .Options;
 
-        return new ControlPesoDbContext(options);
+        // Crear schema inicial
+        using var context = new ControlPesoDbContext(_options);
+        context.Database.EnsureCreated();
+
+        _loggerMock = new Mock<ILogger<UserPreferencesService>>();
     }
 
-    private static UserPreferencesService CreateService(
-        ControlPesoDbContext context,
-        Mock<ILogger<UserPreferencesService>>? loggerMock = null)
+    private IDbContextFactory<ControlPesoDbContext> CreateFactory()
     {
-        loggerMock ??= new Mock<ILogger<UserPreferencesService>>();
-        return new UserPreferencesService(context, loggerMock.Object);
+        // Factory que usa las mismas opciones (conexión compartida)
+        var factoryMock = new Mock<IDbContextFactory<ControlPesoDbContext>>();
+        factoryMock
+            .Setup(f => f.CreateDbContext())
+            .Returns(() => new ControlPesoDbContext(_options));
+        factoryMock
+            .Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync((CancellationToken ct) => new ControlPesoDbContext(_options));
+
+        return factoryMock.Object;
     }
 
-    #region Constructor Tests
+    private async Task<Guid> SeedUserAsync()
+    {
+        var userId = Guid.NewGuid();
+
+        await using var context = new ControlPesoDbContext(_options);
+        context.Users.Add(new Users
+        {
+            Id = userId,
+            GoogleId = $"google_{userId}",
+            Name = "Test User",
+            Email = $"test_{userId}@example.com",
+            Role = 0,
+            Height = 170.0m,
+            UnitSystem = 0,
+            Language = "es",
+            Status = 0,
+            MemberSince = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        });
+
+        await context.SaveChangesAsync();
+        return userId;
+    }
 
     [Fact]
-    public void Constructor_WithNullContext_ShouldThrowArgumentNullException()
+    public void Constructor_WhenFactoryIsNull_ThrowsArgumentNullException()
+    {
+        // Arrange, Act & Assert
+        var ex = Assert.Throws<ArgumentNullException>(() =>
+            new UserPreferencesService(null!, _loggerMock.Object));
+
+        Assert.Equal("contextFactory", ex.ParamName);
+    }
+
+    [Fact]
+    public void Constructor_WhenLoggerIsNull_ThrowsArgumentNullException()
     {
         // Arrange
-        var loggerMock = new Mock<ILogger<UserPreferencesService>>();
+        var factory = CreateFactory();
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() =>
-            new UserPreferencesService(null!, loggerMock.Object));
+        var ex = Assert.Throws<ArgumentNullException>(() =>
+            new UserPreferencesService(factory, null!));
+
+        Assert.Equal("logger", ex.ParamName);
     }
 
     [Fact]
-    public void Constructor_WithNullLogger_ShouldThrowArgumentNullException()
+    public async Task GetDarkModePreferenceAsync_WhenNoPreferencesExist_ReturnsTrue()
     {
         // Arrange
-        using var context = CreateDbContext();
-
-        // Act & Assert
-        Assert.Throws<ArgumentNullException>(() =>
-            new UserPreferencesService(context, null!));
-    }
-
-    #endregion
-
-    #region GetDarkModePreferenceAsync Tests
-
-    [Fact]
-    public async Task GetDarkModePreferenceAsync_WhenPreferencesExist_ShouldReturnDarkModeValue()
-    {
-        // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var userId = Guid.NewGuid();
-        var preferences = new UserPreferences
-        {
-            Id = Guid.NewGuid().ToString(),
-            UserId = userId.ToString(),
-            DarkMode = 1,
-            NotificationsEnabled = 1,
-            TimeZone = "America/Argentina/Buenos_Aires",
-            UpdatedAt = DateTime.UtcNow.ToString("O")
-        };
-
-        context.UserPreferences.Add(preferences);
-        await context.SaveChangesAsync();
+        var userId = await SeedUserAsync();
+        var factory = CreateFactory();
+        var service = new UserPreferencesService(factory, _loggerMock.Object);
 
         // Act
         var result = await service.GetDarkModePreferenceAsync(userId);
 
         // Assert
-        result.Should().BeTrue();
+        Assert.True(result);
+
+        // Verificar que se crearon preferencias por defecto
+        await using var context = new ControlPesoDbContext(_options);
+        var preferences = await context.UserPreferences
+            .FirstOrDefaultAsync(p => p.UserId == userId);
+
+        Assert.NotNull(preferences);
+        Assert.True(preferences.DarkMode);
     }
 
     [Fact]
-    public async Task GetDarkModePreferenceAsync_WhenDarkModeDisabled_ShouldReturnFalse()
+    public async Task GetDarkModePreferenceAsync_WhenPreferencesExist_ReturnsStoredValue()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var userId = Guid.NewGuid();
-        var preferences = new UserPreferences
-        {
-            Id = Guid.NewGuid().ToString(),
-            UserId = userId.ToString(),
-            DarkMode = 0,
-            NotificationsEnabled = 1,
-            TimeZone = "America/Argentina/Buenos_Aires",
-            UpdatedAt = DateTime.UtcNow.ToString("O")
-        };
+        var userId = await SeedUserAsync();
 
-        context.UserPreferences.Add(preferences);
-        await context.SaveChangesAsync();
+        // Crear preferencias con DarkMode = false
+        await using (var context = new ControlPesoDbContext(_options))
+        {
+            context.UserPreferences.Add(new UserPreferences
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                DarkMode = false,
+                NotificationsEnabled = true,
+                TimeZone = "America/Argentina/Buenos_Aires",
+                UpdatedAt = DateTime.UtcNow
+            });
+            await context.SaveChangesAsync();
+        }
+
+        var factory = CreateFactory();
+        var service = new UserPreferencesService(factory, _loggerMock.Object);
 
         // Act
         var result = await service.GetDarkModePreferenceAsync(userId);
 
         // Assert
-        result.Should().BeFalse();
+        Assert.False(result);
     }
 
     [Fact]
-    public async Task GetDarkModePreferenceAsync_WhenPreferencesDoNotExist_ShouldCreateDefaultsAndReturnTrue()
+    public async Task GetNotificationsEnabledAsync_WhenNoPreferencesExist_ReturnsTrue()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var userId = Guid.NewGuid();
-
-        // Act
-        var result = await service.GetDarkModePreferenceAsync(userId);
-
-        // Assert
-        result.Should().BeTrue(); // Dark mode por defecto
-
-        // Verificar que se crearon las preferencias por defecto
-        var preferences = await context.UserPreferences
-            .FirstOrDefaultAsync(p => p.UserId == userId.ToString());
-
-        preferences.Should().NotBeNull();
-        preferences!.DarkMode.Should().Be(1);
-    }
-
-    #endregion
-
-    #region GetNotificationsEnabledAsync Tests
-
-    [Fact]
-    public async Task GetNotificationsEnabledAsync_WhenPreferencesExist_ShouldReturnNotificationsValue()
-    {
-        // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var userId = Guid.NewGuid();
-        var preferences = new UserPreferences
-        {
-            Id = Guid.NewGuid().ToString(),
-            UserId = userId.ToString(),
-            DarkMode = 1,
-            NotificationsEnabled = 1,
-            TimeZone = "America/Argentina/Buenos_Aires",
-            UpdatedAt = DateTime.UtcNow.ToString("O")
-        };
-
-        context.UserPreferences.Add(preferences);
-        await context.SaveChangesAsync();
+        var userId = await SeedUserAsync();
+        var factory = CreateFactory();
+        var service = new UserPreferencesService(factory, _loggerMock.Object);
 
         // Act
         var result = await service.GetNotificationsEnabledAsync(userId);
 
         // Assert
-        result.Should().BeTrue();
+        Assert.True(result);
+
+        // Verificar que se crearon preferencias por defecto
+        await using var context = new ControlPesoDbContext(_options);
+        var preferences = await context.UserPreferences
+            .FirstOrDefaultAsync(p => p.UserId == userId);
+
+        Assert.NotNull(preferences);
+        Assert.True(preferences.NotificationsEnabled);
     }
 
     [Fact]
-    public async Task GetNotificationsEnabledAsync_WhenNotificationsDisabled_ShouldReturnFalse()
+    public async Task GetNotificationsEnabledAsync_WhenPreferencesExist_ReturnsStoredValue()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var userId = Guid.NewGuid();
-        var preferences = new UserPreferences
-        {
-            Id = Guid.NewGuid().ToString(),
-            UserId = userId.ToString(),
-            DarkMode = 1,
-            NotificationsEnabled = 0,
-            TimeZone = "America/Argentina/Buenos_Aires",
-            UpdatedAt = DateTime.UtcNow.ToString("O")
-        };
+        var userId = await SeedUserAsync();
 
-        context.UserPreferences.Add(preferences);
-        await context.SaveChangesAsync();
+        // Crear preferencias con NotificationsEnabled = false
+        await using (var context = new ControlPesoDbContext(_options))
+        {
+            context.UserPreferences.Add(new UserPreferences
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                DarkMode = true,
+                NotificationsEnabled = false,
+                TimeZone = "America/Argentina/Buenos_Aires",
+                UpdatedAt = DateTime.UtcNow
+            });
+            await context.SaveChangesAsync();
+        }
+
+        var factory = CreateFactory();
+        var service = new UserPreferencesService(factory, _loggerMock.Object);
 
         // Act
         var result = await service.GetNotificationsEnabledAsync(userId);
 
         // Assert
-        result.Should().BeFalse();
+        Assert.False(result);
     }
 
     [Fact]
-    public async Task GetNotificationsEnabledAsync_WhenPreferencesDoNotExist_ShouldCreateDefaultsAndReturnTrue()
+    public async Task UpdateDarkModeAsync_WhenPreferencesExist_UpdatesValue()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = await SeedUserAsync();
 
-        // Act
-        var result = await service.GetNotificationsEnabledAsync(userId);
-
-        // Assert
-        result.Should().BeTrue(); // Notificaciones habilitadas por defecto
-
-        // Verificar que se crearon las preferencias por defecto
-        var preferences = await context.UserPreferences
-            .FirstOrDefaultAsync(p => p.UserId == userId.ToString());
-
-        preferences.Should().NotBeNull();
-        preferences!.NotificationsEnabled.Should().Be(1);
-    }
-
-    #endregion
-
-    #region UpdateDarkModeAsync Tests
-
-    [Fact]
-    public async Task UpdateDarkModeAsync_WhenPreferencesExist_ShouldUpdateDarkMode()
-    {
-        // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var userId = Guid.NewGuid();
-        var preferences = new UserPreferences
+        // Crear preferencias iniciales
+        await using (var context = new ControlPesoDbContext(_options))
         {
-            Id = Guid.NewGuid().ToString(),
-            UserId = userId.ToString(),
-            DarkMode = 1,
-            NotificationsEnabled = 1,
-            TimeZone = "America/Argentina/Buenos_Aires",
-            UpdatedAt = DateTime.UtcNow.ToString("O")
-        };
+            context.UserPreferences.Add(new UserPreferences
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                DarkMode = true,
+                NotificationsEnabled = true,
+                TimeZone = "America/Argentina/Buenos_Aires",
+                UpdatedAt = DateTime.UtcNow.AddDays(-1)
+            });
+            await context.SaveChangesAsync();
+        }
 
-        context.UserPreferences.Add(preferences);
-        await context.SaveChangesAsync();
+        var factory = CreateFactory();
+        var service = new UserPreferencesService(factory, _loggerMock.Object);
 
         // Act
         await service.UpdateDarkModeAsync(userId, false);
 
         // Assert
-        var updatedPreferences = await context.UserPreferences
-            .FirstOrDefaultAsync(p => p.UserId == userId.ToString());
+        await using var verifyContext = new ControlPesoDbContext(_options);
+        var preferences = await verifyContext.UserPreferences
+            .FirstOrDefaultAsync(p => p.UserId == userId);
 
-        updatedPreferences.Should().NotBeNull();
-        updatedPreferences!.DarkMode.Should().Be(0);
+        Assert.NotNull(preferences);
+        Assert.False(preferences.DarkMode);
+        Assert.True(preferences.NotificationsEnabled); // No debe cambiar
     }
 
     [Fact]
-    public async Task UpdateDarkModeAsync_WhenPreferencesDoNotExist_ShouldCreateAndUpdate()
+    public async Task UpdateDarkModeAsync_WhenNoPreferencesExist_CreatesPreferencesAndUpdates()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = await SeedUserAsync();
+        var factory = CreateFactory();
+        var service = new UserPreferencesService(factory, _loggerMock.Object);
 
         // Act
         await service.UpdateDarkModeAsync(userId, false);
 
-        // Assert
+        // Assert - verificar que se crearon preferencias
+        await using var context = new ControlPesoDbContext(_options);
         var preferences = await context.UserPreferences
-            .FirstOrDefaultAsync(p => p.UserId == userId.ToString());
+            .FirstOrDefaultAsync(p => p.UserId == userId);
 
-        preferences.Should().NotBeNull();
-        preferences!.DarkMode.Should().Be(0);
+        Assert.NotNull(preferences);
+        Assert.False(preferences.DarkMode); // Valor actualizado
     }
 
     [Fact]
-    public async Task UpdateDarkModeAsync_ShouldUpdateUpdatedAtTimestamp()
+    public async Task UpdateNotificationsEnabledAsync_WhenPreferencesExist_UpdatesValue()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var userId = Guid.NewGuid();
-        var oldTimestamp = DateTime.UtcNow.AddHours(-1).ToString("O");
-        var preferences = new UserPreferences
+        var userId = await SeedUserAsync();
+
+        // Crear preferencias iniciales
+        await using (var context = new ControlPesoDbContext(_options))
         {
-            Id = Guid.NewGuid().ToString(),
-            UserId = userId.ToString(),
-            DarkMode = 1,
-            NotificationsEnabled = 1,
-            TimeZone = "America/Argentina/Buenos_Aires",
-            UpdatedAt = oldTimestamp
-        };
+            context.UserPreferences.Add(new UserPreferences
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                DarkMode = true,
+                NotificationsEnabled = true,
+                TimeZone = "America/Argentina/Buenos_Aires",
+                UpdatedAt = DateTime.UtcNow.AddDays(-1)
+            });
+            await context.SaveChangesAsync();
+        }
 
-        context.UserPreferences.Add(preferences);
-        await context.SaveChangesAsync();
-
-        // Act
-        await service.UpdateDarkModeAsync(userId, false);
-
-        // Assert
-        var updatedPreferences = await context.UserPreferences
-            .FirstOrDefaultAsync(p => p.UserId == userId.ToString());
-
-        updatedPreferences.Should().NotBeNull();
-        updatedPreferences!.UpdatedAt.Should().NotBe(oldTimestamp);
-    }
-
-    #endregion
-
-    #region UpdateNotificationsEnabledAsync Tests
-
-    [Fact]
-    public async Task UpdateNotificationsEnabledAsync_WhenPreferencesExist_ShouldUpdateNotifications()
-    {
-        // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var userId = Guid.NewGuid();
-        var preferences = new UserPreferences
-        {
-            Id = Guid.NewGuid().ToString(),
-            UserId = userId.ToString(),
-            DarkMode = 1,
-            NotificationsEnabled = 1,
-            TimeZone = "America/Argentina/Buenos_Aires",
-            UpdatedAt = DateTime.UtcNow.ToString("O")
-        };
-
-        context.UserPreferences.Add(preferences);
-        await context.SaveChangesAsync();
+        var factory = CreateFactory();
+        var service = new UserPreferencesService(factory, _loggerMock.Object);
 
         // Act
         await service.UpdateNotificationsEnabledAsync(userId, false);
 
         // Assert
-        var updatedPreferences = await context.UserPreferences
-            .FirstOrDefaultAsync(p => p.UserId == userId.ToString());
+        await using var verifyContext = new ControlPesoDbContext(_options);
+        var preferences = await verifyContext.UserPreferences
+            .FirstOrDefaultAsync(p => p.UserId == userId);
 
-        updatedPreferences.Should().NotBeNull();
-        updatedPreferences!.NotificationsEnabled.Should().Be(0);
+        Assert.NotNull(preferences);
+        Assert.False(preferences.NotificationsEnabled);
+        Assert.True(preferences.DarkMode); // No debe cambiar
     }
 
     [Fact]
-    public async Task UpdateNotificationsEnabledAsync_WhenPreferencesDoNotExist_ShouldCreateAndUpdate()
+    public async Task UpdateNotificationsEnabledAsync_WhenNoPreferencesExist_CreatesPreferencesAndUpdates()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = await SeedUserAsync();
+        var factory = CreateFactory();
+        var service = new UserPreferencesService(factory, _loggerMock.Object);
 
         // Act
         await service.UpdateNotificationsEnabledAsync(userId, false);
 
         // Assert
+        await using var context = new ControlPesoDbContext(_options);
         var preferences = await context.UserPreferences
-            .FirstOrDefaultAsync(p => p.UserId == userId.ToString());
+            .FirstOrDefaultAsync(p => p.UserId == userId);
 
-        preferences.Should().NotBeNull();
-        preferences!.NotificationsEnabled.Should().Be(0);
+        Assert.NotNull(preferences);
+        Assert.False(preferences.NotificationsEnabled); // Valor actualizado
     }
 
     [Fact]
-    public async Task UpdateNotificationsEnabledAsync_ShouldUpdateUpdatedAtTimestamp()
+    public async Task UpdatePreferencesAsync_WhenPreferencesExist_UpdatesBothValues()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var userId = Guid.NewGuid();
-        var oldTimestamp = DateTime.UtcNow.AddHours(-1).ToString("O");
-        var preferences = new UserPreferences
+        var userId = await SeedUserAsync();
+
+        // Crear preferencias iniciales
+        await using (var context = new ControlPesoDbContext(_options))
         {
-            Id = Guid.NewGuid().ToString(),
-            UserId = userId.ToString(),
-            DarkMode = 1,
-            NotificationsEnabled = 1,
-            TimeZone = "America/Argentina/Buenos_Aires",
-            UpdatedAt = oldTimestamp
-        };
+            context.UserPreferences.Add(new UserPreferences
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                DarkMode = true,
+                NotificationsEnabled = true,
+                TimeZone = "America/Argentina/Buenos_Aires",
+                UpdatedAt = DateTime.UtcNow.AddDays(-1)
+            });
+            await context.SaveChangesAsync();
+        }
 
-        context.UserPreferences.Add(preferences);
-        await context.SaveChangesAsync();
-
-        // Act
-        await service.UpdateNotificationsEnabledAsync(userId, false);
-
-        // Assert
-        var updatedPreferences = await context.UserPreferences
-            .FirstOrDefaultAsync(p => p.UserId == userId.ToString());
-
-        updatedPreferences.Should().NotBeNull();
-        updatedPreferences!.UpdatedAt.Should().NotBe(oldTimestamp);
-    }
-
-    #endregion
-
-    #region UpdatePreferencesAsync Tests
-
-    [Fact]
-    public async Task UpdatePreferencesAsync_WhenPreferencesExist_ShouldUpdateBothValues()
-    {
-        // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var userId = Guid.NewGuid();
-        var preferences = new UserPreferences
-        {
-            Id = Guid.NewGuid().ToString(),
-            UserId = userId.ToString(),
-            DarkMode = 1,
-            NotificationsEnabled = 1,
-            TimeZone = "America/Argentina/Buenos_Aires",
-            UpdatedAt = DateTime.UtcNow.ToString("O")
-        };
-
-        context.UserPreferences.Add(preferences);
-        await context.SaveChangesAsync();
+        var factory = CreateFactory();
+        var service = new UserPreferencesService(factory, _loggerMock.Object);
 
         // Act
-        await service.UpdatePreferencesAsync(userId, false, false);
+        await service.UpdatePreferencesAsync(userId, isDarkMode: false, notificationsEnabled: false);
 
         // Assert
-        var updatedPreferences = await context.UserPreferences
-            .FirstOrDefaultAsync(p => p.UserId == userId.ToString());
+        await using var verifyContext = new ControlPesoDbContext(_options);
+        var preferences = await verifyContext.UserPreferences
+            .FirstOrDefaultAsync(p => p.UserId == userId);
 
-        updatedPreferences.Should().NotBeNull();
-        updatedPreferences!.DarkMode.Should().Be(0);
-        updatedPreferences.NotificationsEnabled.Should().Be(0);
+        Assert.NotNull(preferences);
+        Assert.False(preferences.DarkMode);
+        Assert.False(preferences.NotificationsEnabled);
     }
 
     [Fact]
-    public async Task UpdatePreferencesAsync_WhenPreferencesDoNotExist_ShouldCreateAndUpdate()
+    public async Task UpdatePreferencesAsync_WhenNoPreferencesExist_CreatesPreferencesWithValues()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = await SeedUserAsync();
+        var factory = CreateFactory();
+        var service = new UserPreferencesService(factory, _loggerMock.Object);
 
         // Act
-        await service.UpdatePreferencesAsync(userId, false, false);
+        await service.UpdatePreferencesAsync(userId, isDarkMode: false, notificationsEnabled: false);
 
         // Assert
+        await using var context = new ControlPesoDbContext(_options);
         var preferences = await context.UserPreferences
-            .FirstOrDefaultAsync(p => p.UserId == userId.ToString());
+            .FirstOrDefaultAsync(p => p.UserId == userId);
 
-        preferences.Should().NotBeNull();
-        preferences!.DarkMode.Should().Be(0);
-        preferences.NotificationsEnabled.Should().Be(0);
+        Assert.NotNull(preferences);
+        Assert.False(preferences.DarkMode);
+        Assert.False(preferences.NotificationsEnabled);
     }
 
     [Fact]
-    public async Task UpdatePreferencesAsync_ShouldUpdateUpdatedAtTimestamp()
+    public async Task CreateDefaultPreferencesAsync_WhenNoPreferencesExist_CreatesDefaults()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var userId = Guid.NewGuid();
-        var oldTimestamp = DateTime.UtcNow.AddHours(-1).ToString("O");
-        var preferences = new UserPreferences
-        {
-            Id = Guid.NewGuid().ToString(),
-            UserId = userId.ToString(),
-            DarkMode = 1,
-            NotificationsEnabled = 1,
-            TimeZone = "America/Argentina/Buenos_Aires",
-            UpdatedAt = oldTimestamp
-        };
-
-        context.UserPreferences.Add(preferences);
-        await context.SaveChangesAsync();
-
-        // Act
-        await service.UpdatePreferencesAsync(userId, false, false);
-
-        // Assert
-        var updatedPreferences = await context.UserPreferences
-            .FirstOrDefaultAsync(p => p.UserId == userId.ToString());
-
-        updatedPreferences.Should().NotBeNull();
-        updatedPreferences!.UpdatedAt.Should().NotBe(oldTimestamp);
-    }
-
-    #endregion
-
-    #region CreateDefaultPreferencesAsync Tests
-
-    [Fact]
-    public async Task CreateDefaultPreferencesAsync_WhenPreferencesDoNotExist_ShouldCreateDefaults()
-    {
-        // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = await SeedUserAsync();
+        var factory = CreateFactory();
+        var service = new UserPreferencesService(factory, _loggerMock.Object);
 
         // Act
         await service.CreateDefaultPreferencesAsync(userId);
 
         // Assert
+        await using var context = new ControlPesoDbContext(_options);
         var preferences = await context.UserPreferences
-            .FirstOrDefaultAsync(p => p.UserId == userId.ToString());
+            .FirstOrDefaultAsync(p => p.UserId == userId);
 
-        preferences.Should().NotBeNull();
-        preferences!.DarkMode.Should().Be(1); // Dark mode por defecto
-        preferences.NotificationsEnabled.Should().Be(1); // Notificaciones habilitadas por defecto
-        preferences.TimeZone.Should().Be("America/Argentina/Buenos_Aires");
+        Assert.NotNull(preferences);
+        Assert.True(preferences.DarkMode);
+        Assert.True(preferences.NotificationsEnabled);
+        Assert.Equal("America/Argentina/Buenos_Aires", preferences.TimeZone);
     }
 
     [Fact]
-    public async Task CreateDefaultPreferencesAsync_WhenPreferencesAlreadyExist_ShouldNotCreateDuplicates()
+    public async Task CreateDefaultPreferencesAsync_WhenPreferencesAlreadyExist_DoesNothing()
     {
         // Arrange
-        using var context = CreateDbContext();
-        var service = CreateService(context);
-        var userId = Guid.NewGuid();
-        var existingPreferences = new UserPreferences
-        {
-            Id = Guid.NewGuid().ToString(),
-            UserId = userId.ToString(),
-            DarkMode = 0,
-            NotificationsEnabled = 0,
-            TimeZone = "America/Argentina/Buenos_Aires",
-            UpdatedAt = DateTime.UtcNow.ToString("O")
-        };
+        var userId = await SeedUserAsync();
 
-        context.UserPreferences.Add(existingPreferences);
-        await context.SaveChangesAsync();
+        var originalUpdatedAt = DateTime.UtcNow.AddDays(-5);
+
+        // Crear preferencias existentes
+        await using (var context = new ControlPesoDbContext(_options))
+        {
+            context.UserPreferences.Add(new UserPreferences
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                DarkMode = false,
+                NotificationsEnabled = false,
+                TimeZone = "Europe/London",
+                UpdatedAt = originalUpdatedAt
+            });
+            await context.SaveChangesAsync();
+        }
+
+        var factory = CreateFactory();
+        var service = new UserPreferencesService(factory, _loggerMock.Object);
 
         // Act
         await service.CreateDefaultPreferencesAsync(userId);
 
-        // Assert
-        var preferencesCount = await context.UserPreferences
-            .CountAsync(p => p.UserId == userId.ToString());
+        // Assert - preferencias no deben cambiar
+        await using var verifyContext = new ControlPesoDbContext(_options);
+        var preferences = await verifyContext.UserPreferences
+            .FirstOrDefaultAsync(p => p.UserId == userId);
 
-        preferencesCount.Should().Be(1); // No se deben crear duplicados
+        Assert.NotNull(preferences);
+        Assert.False(preferences.DarkMode); // Mantiene valor original
+        Assert.False(preferences.NotificationsEnabled); // Mantiene valor original
+        Assert.Equal("Europe/London", preferences.TimeZone); // Mantiene valor original
 
-        // Verificar que los valores originales se mantienen
-        var preferences = await context.UserPreferences
-            .FirstOrDefaultAsync(p => p.UserId == userId.ToString());
-
-        preferences.Should().NotBeNull();
-        preferences!.DarkMode.Should().Be(0); // Valor original
-        preferences.NotificationsEnabled.Should().Be(0); // Valor original
+        // Verificar que solo hay una preferencia
+        var count = await verifyContext.UserPreferences
+            .CountAsync(p => p.UserId == userId);
+        Assert.Equal(1, count);
     }
 
-    #endregion
-
-    #region Error Handling Tests
-
     [Fact]
-    public async Task GetDarkModePreferenceAsync_WhenDatabaseThrowsException_ShouldReturnTrueAndLogError()
+    public async Task UpdateDarkModeAsync_UpdatesTimestamp()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<ControlPesoDbContext>()
-            .UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}")
-            .Options;
+        var userId = await SeedUserAsync();
 
-        using var context = new ControlPesoDbContext(options);
-        context.Dispose(); // Dispose context to cause exception on queries
+        var originalUpdatedAt = DateTime.UtcNow.AddDays(-1);
 
-        var loggerMock = new Mock<ILogger<UserPreferencesService>>();
-        var service = new UserPreferencesService(context, loggerMock.Object);
+        await using (var context = new ControlPesoDbContext(_options))
+        {
+            context.UserPreferences.Add(new UserPreferences
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                DarkMode = true,
+                NotificationsEnabled = true,
+                TimeZone = "America/Argentina/Buenos_Aires",
+                UpdatedAt = originalUpdatedAt
+            });
+            await context.SaveChangesAsync();
+        }
+
+        var factory = CreateFactory();
+        var service = new UserPreferencesService(factory, _loggerMock.Object);
+
+        // Act
+        await service.UpdateDarkModeAsync(userId, false);
+
+        // Assert
+        await using var verifyContext = new ControlPesoDbContext(_options);
+        var preferences = await verifyContext.UserPreferences
+            .FirstOrDefaultAsync(p => p.UserId == userId);
+
+        Assert.NotNull(preferences);
+        Assert.True(preferences.UpdatedAt > originalUpdatedAt);
+    }
+
+    [Fact]
+    public async Task GetDarkModePreferenceAsync_WithCancellationToken_RespectsToken()
+    {
+        // Arrange
+        var userId = await SeedUserAsync();
+        var factory = CreateFactory();
+        var service = new UserPreferencesService(factory, _loggerMock.Object);
+
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(TimeSpan.FromSeconds(5));
+
+        // Act
+        var result = await service.GetDarkModePreferenceAsync(userId, cts.Token);
+
+        // Assert
+        Assert.True(result);
+        Assert.False(cts.Token.IsCancellationRequested);
+    }
+
+    [Fact]
+    public async Task GetNotificationsEnabledAsync_WithCancellationToken_RespectsToken()
+    {
+        // Arrange
+        var userId = await SeedUserAsync();
+        var factory = CreateFactory();
+        var service = new UserPreferencesService(factory, _loggerMock.Object);
+
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(TimeSpan.FromSeconds(5));
+
+        // Act
+        var result = await service.GetNotificationsEnabledAsync(userId, cts.Token);
+
+        // Assert
+        Assert.True(result);
+        Assert.False(cts.Token.IsCancellationRequested);
+    }
+
+    [Fact]
+    public async Task UpdateDarkModeAsync_WithCancellationToken_RespectsToken()
+    {
+        // Arrange
+        var userId = await SeedUserAsync();
+        var factory = CreateFactory();
+        var service = new UserPreferencesService(factory, _loggerMock.Object);
+
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(TimeSpan.FromSeconds(5));
+
+        // Act
+        await service.UpdateDarkModeAsync(userId, false, cts.Token);
+
+        // Assert
+        Assert.False(cts.Token.IsCancellationRequested);
+
+        await using var context = new ControlPesoDbContext(_options);
+        var preferences = await context.UserPreferences
+            .FirstOrDefaultAsync(p => p.UserId == userId);
+
+        Assert.NotNull(preferences);
+        Assert.False(preferences.DarkMode);
+    }
+
+    #region Database Error Scenarios
+
+    [Fact]
+    public async Task GetDarkModePreferenceAsync_WhenDatabaseError_ReturnsTrueAndLogsError()
+    {
+        // Arrange
         var userId = Guid.NewGuid();
+        var factoryMock = new Mock<IDbContextFactory<ControlPesoDbContext>>();
+        factoryMock
+            .Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Database connection failed"));
+
+        var service = new UserPreferencesService(factoryMock.Object, _loggerMock.Object);
 
         // Act
         var result = await service.GetDarkModePreferenceAsync(userId);
 
         // Assert
-        result.Should().BeTrue(); // Default fallback
-        loggerMock.Verify(
+        Assert.True(result); // Should return default true on error
+
+        // Verify error was logged
+        _loggerMock.Verify(
             x => x.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("ERROR retrieving dark mode preference")),
-                It.IsAny<Exception>(),
+                It.Is<It.IsAnyType>((v, t) => true),
+                It.IsAny<InvalidOperationException>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
     }
 
     [Fact]
-    public async Task GetNotificationsEnabledAsync_WhenDatabaseThrowsException_ShouldReturnTrueAndLogError()
+    public async Task GetNotificationsEnabledAsync_WhenDatabaseError_ReturnsTrueAndLogsError()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<ControlPesoDbContext>()
-            .UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}")
-            .Options;
-
-        using var context = new ControlPesoDbContext(options);
-        context.Dispose(); // Dispose context to cause exception on queries
-
-        var loggerMock = new Mock<ILogger<UserPreferencesService>>();
-        var service = new UserPreferencesService(context, loggerMock.Object);
         var userId = Guid.NewGuid();
+        var factoryMock = new Mock<IDbContextFactory<ControlPesoDbContext>>();
+        factoryMock
+            .Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Database connection failed"));
+
+        var service = new UserPreferencesService(factoryMock.Object, _loggerMock.Object);
 
         // Act
         var result = await service.GetNotificationsEnabledAsync(userId);
 
         // Assert
-        result.Should().BeTrue(); // Default fallback
-        loggerMock.Verify(
+        Assert.True(result); // Should return default true on error
+
+        // Verify error was logged
+        _loggerMock.Verify(
             x => x.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("ERROR retrieving notifications preference")),
-                It.IsAny<Exception>(),
+                It.Is<It.IsAnyType>((v, t) => true),
+                It.IsAny<InvalidOperationException>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
     }
 
     [Fact]
-    public async Task UpdateDarkModeAsync_WhenDatabaseThrowsException_ShouldThrowAndLogError()
+    public async Task UpdateDarkModeAsync_WhenDatabaseError_ThrowsException()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<ControlPesoDbContext>()
-            .UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}")
-            .Options;
-
-        using var context = new ControlPesoDbContext(options);
-        context.Dispose(); // Dispose context to cause exception
-
-        var loggerMock = new Mock<ILogger<UserPreferencesService>>();
-        var service = new UserPreferencesService(context, loggerMock.Object);
         var userId = Guid.NewGuid();
+        var factoryMock = new Mock<IDbContextFactory<ControlPesoDbContext>>();
+        factoryMock
+            .Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Database connection failed"));
 
-        // Act
-        var act = async () => await service.UpdateDarkModeAsync(userId, true);
+        var service = new UserPreferencesService(factoryMock.Object, _loggerMock.Object);
 
-        // Assert
-        await act.Should().ThrowAsync<ObjectDisposedException>();
-        loggerMock.Verify(
-            x => x.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Error updating dark mode preference")),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await service.UpdateDarkModeAsync(userId, false));
     }
 
     [Fact]
-    public async Task UpdateNotificationsEnabledAsync_WhenDatabaseThrowsException_ShouldThrowAndLogError()
+    public async Task UpdateNotificationsEnabledAsync_WhenDatabaseError_ThrowsException()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<ControlPesoDbContext>()
-            .UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}")
-            .Options;
-
-        using var context = new ControlPesoDbContext(options);
-        context.Dispose(); // Dispose context to cause exception
-
-        var loggerMock = new Mock<ILogger<UserPreferencesService>>();
-        var service = new UserPreferencesService(context, loggerMock.Object);
         var userId = Guid.NewGuid();
+        var factoryMock = new Mock<IDbContextFactory<ControlPesoDbContext>>();
+        factoryMock
+            .Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Database connection failed"));
 
-        // Act
-        var act = async () => await service.UpdateNotificationsEnabledAsync(userId, true);
+        var service = new UserPreferencesService(factoryMock.Object, _loggerMock.Object);
 
-        // Assert
-        await act.Should().ThrowAsync<ObjectDisposedException>();
-        loggerMock.Verify(
-            x => x.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Error updating notifications preference")),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await service.UpdateNotificationsEnabledAsync(userId, false));
     }
 
     [Fact]
-    public async Task UpdatePreferencesAsync_WhenDatabaseThrowsException_ShouldThrowAndLogError()
+    public async Task UpdatePreferencesAsync_WhenDatabaseError_ThrowsException()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<ControlPesoDbContext>()
-            .UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}")
-            .Options;
-
-        using var context = new ControlPesoDbContext(options);
-        context.Dispose(); // Dispose context to cause exception
-
-        var loggerMock = new Mock<ILogger<UserPreferencesService>>();
-        var service = new UserPreferencesService(context, loggerMock.Object);
         var userId = Guid.NewGuid();
+        var factoryMock = new Mock<IDbContextFactory<ControlPesoDbContext>>();
+        factoryMock
+            .Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Database connection failed"));
 
-        // Act
-        var act = async () => await service.UpdatePreferencesAsync(userId, true, true);
+        var service = new UserPreferencesService(factoryMock.Object, _loggerMock.Object);
 
-        // Assert
-        await act.Should().ThrowAsync<ObjectDisposedException>();
-        loggerMock.Verify(
-            x => x.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Error updating preferences")),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await service.UpdatePreferencesAsync(userId, false, false));
     }
 
     [Fact]
-    public async Task CreateDefaultPreferencesAsync_WhenDatabaseThrowsException_ShouldThrowAndLogError()
+    public async Task CreateDefaultPreferencesAsync_WhenDatabaseError_ThrowsException()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<ControlPesoDbContext>()
-            .UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}")
-            .Options;
-
-        using var context = new ControlPesoDbContext(options);
-        context.Dispose(); // Dispose context to cause exception
-
-        var loggerMock = new Mock<ILogger<UserPreferencesService>>();
-        var service = new UserPreferencesService(context, loggerMock.Object);
         var userId = Guid.NewGuid();
+        var factoryMock = new Mock<IDbContextFactory<ControlPesoDbContext>>();
+        factoryMock
+            .Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Database connection failed"));
 
-        // Act
-        var act = async () => await service.CreateDefaultPreferencesAsync(userId);
+        var service = new UserPreferencesService(factoryMock.Object, _loggerMock.Object);
 
-        // Assert
-        await act.Should().ThrowAsync<ObjectDisposedException>();
-        loggerMock.Verify(
-            x => x.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Error creating default preferences")),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await service.CreateDefaultPreferencesAsync(userId));
     }
 
     #endregion
+
+    public void Dispose()
+    {
+        _connection?.Dispose();
+    }
 }

@@ -91,18 +91,18 @@ public sealed class DbSeederTests
         // Add existing user
         var existingUser = new Users
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid(),
             GoogleId = "existing_google_id",
             Name = "Existing User",
             Email = "existing@example.com",
             Role = 0,
-            MemberSince = DateTime.UtcNow.ToString("O"),
-            Height = 170.0,
+            MemberSince = DateTime.UtcNow,
+            Height = 170.0m,
             UnitSystem = 0,
             Language = "es",
             Status = 0,
-            CreatedAt = DateTime.UtcNow.ToString("O"),
-            UpdatedAt = DateTime.UtcNow.ToString("O")
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
 
         context.Users.Add(existingUser);
@@ -211,14 +211,12 @@ public sealed class DbSeederTests
 
         foreach (var log in weightLogs)
         {
-            // Date should be valid YYYY-MM-DD format
-            var date = DateOnly.Parse(log.Date);
-            date.Should().BeBefore(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)));
+            // Date should be valid
+            log.Date.Should().BeBefore(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)));
 
             // Time should be valid HH:MM format
-            var time = TimeOnly.Parse(log.Time);
-            time.Hour.Should().BeInRange(0, 23);
-            time.Minute.Should().BeInRange(0, 59);
+            log.Time.Hour.Should().BeInRange(0, 23);
+            log.Time.Minute.Should().BeInRange(0, 59);
         }
     }
 
@@ -238,7 +236,7 @@ public sealed class DbSeederTests
         foreach (var log in weightLogs)
         {
             // Weight should be in reasonable range (20-500 kg)
-            log.Weight.Should().BeInRange(20.0, 500.0);
+            log.Weight.Should().BeInRange(20.0m, 500.0m);
         }
     }
 
@@ -355,18 +353,18 @@ public sealed class DbSeederTests
         // Add existing user
         var existingUser = new Users
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid(),
             GoogleId = "existing",
             Name = "Test",
             Email = "test@test.com",
             Role = 0,
-            MemberSince = DateTime.UtcNow.ToString("O"),
+            MemberSince = DateTime.UtcNow,
             Height = 170,
             UnitSystem = 0,
             Language = "es",
             Status = 0,
-            CreatedAt = DateTime.UtcNow.ToString("O"),
-            UpdatedAt = DateTime.UtcNow.ToString("O")
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
         context.Users.Add(existingUser);
         await context.SaveChangesAsync();

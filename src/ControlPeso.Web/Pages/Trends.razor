@@ -66,23 +66,23 @@
                             <tbody>
                                 <tr>
                                     <td><MudText Typo="Typo.body2">@CurrentWeightLabel</MudText></td>
-                                    <td><MudText Typo="Typo.body2"><strong>@_currentWeight.ToString("F1") @KgUnit</strong></MudText></td>
+                                    <td><MudText Typo="Typo.body2"><strong>@ConvertedWeight(_currentWeight).ToString("F1") @WeightUnit</strong></MudText></td>
                                 </tr>
                                 @if (_logs.Count > 1)
                                 {
                                     <tr>
                                         <td><MudText Typo="Typo.body2">@FirstWeightLabel</MudText></td>
-                                        <td><MudText Typo="Typo.body2">@_logs.First().Weight.ToString("F1") @KgUnit</MudText></td>
+                                        <td><MudText Typo="Typo.body2">@ConvertedWeight(_logs.First().Weight).ToString("F1") @WeightUnit</MudText></td>
                                     </tr>
                                     <tr>
                                         <td><MudText Typo="Typo.body2">@ChangeLabel</MudText></td>
                                         <td><MudText Typo="Typo.body2" Color="@(_totalChange < 0 ? Color.Success : Color.Warning)">
-                                            @(_totalChange > 0 ? "+" : "")@_totalChange.ToString("F1") @KgUnit
+                                            @(_totalChange > 0 ? "+" : "")@ConvertedWeight(_totalChange).ToString("F1") @WeightUnit
                                         </MudText></td>
                                     </tr>
                                     <tr>
                                         <td><MudText Typo="Typo.body2">@AverageLabel</MudText></td>
-                                        <td><MudText Typo="Typo.body2">@_overallAverage.ToString("F1") @KgUnit</MudText></td>
+                                        <td><MudText Typo="Typo.body2">@ConvertedWeight(_overallAverage).ToString("F1") @WeightUnit</MudText></td>
                                     </tr>
                                 }
                                 <tr>
@@ -128,9 +128,9 @@
             <!-- Tarjetas de tendencias -->
             <MudItem xs="12" sm="6" md="3">
                 <TrendCard Title="@Last7Days"
-                           CurrentValue="@_last7DaysAvg"
-                           PreviousValue="@_previous7DaysAvg"
-                           Unit="@KgUnit"
+                           CurrentValue="@ConvertedWeight(_last7DaysAvg)"
+                           PreviousValue="@ConvertedWeight(_previous7DaysAvg)"
+                           Unit="@WeightUnit"
                            Icon="@Icons.Material.Filled.CalendarToday"
                            IconColor="Color.Primary"
                            LowerIsBetter="true" />
@@ -138,9 +138,9 @@
 
             <MudItem xs="12" sm="6" md="3">
                 <TrendCard Title="@Last30Days"
-                           CurrentValue="@_last30DaysAvg"
-                           PreviousValue="@_previous30DaysAvg"
-                           Unit="@KgUnit"
+                           CurrentValue="@ConvertedWeight(_last30DaysAvg)"
+                           PreviousValue="@ConvertedWeight(_previous30DaysAvg)"
+                           Unit="@WeightUnit"
                            Icon="@Icons.Material.Filled.CalendarMonth"
                            IconColor="Color.Secondary"
                            LowerIsBetter="true" />
@@ -148,9 +148,9 @@
 
             <MudItem xs="12" sm="6" md="3">
                 <TrendCard Title="@TotalChange"
-                           CurrentValue="@_totalChange"
+                           CurrentValue="@ConvertedWeight(_totalChange)"
                            PreviousValue="0"
-                           Unit="@KgUnit"
+                           Unit="@WeightUnit"
                            Icon="@Icons.Material.Filled.ShowChart"
                            IconColor="Color.Tertiary"
                            ShowChange="false" />
@@ -158,9 +158,9 @@
 
             <MudItem xs="12" sm="6" md="3">
                 <TrendCard Title="@OverallAverage"
-                           CurrentValue="@_overallAverage"
-                           PreviousValue="@_startingWeight"
-                           Unit="@KgUnit"
+                           CurrentValue="@ConvertedWeight(_overallAverage)"
+                           PreviousValue="@(_startingWeight.HasValue ? ConvertedWeight(_startingWeight.Value) : 0)"
+                           Unit="@WeightUnit"
                            Icon="@Icons.Material.Filled.Analytics"
                            IconColor="Color.Info"
                            LowerIsBetter="true" />
@@ -193,23 +193,23 @@
                             <tbody>
                                 <tr>
                                     <td><MudText Typo="Typo.body2">@CurrentWeightLabel</MudText></td>
-                                    <td><MudText Typo="Typo.body2"><strong>@_currentWeight.ToString("F1") @KgUnit</strong></MudText></td>
+                                    <td><MudText Typo="Typo.body2"><strong>@ConvertedWeight(_currentWeight).ToString("F1") @WeightUnit</strong></MudText></td>
                                 </tr>
                                 <tr>
                                     <td><MudText Typo="Typo.body2">@StartingWeightLabel</MudText></td>
-                                    <td><MudText Typo="Typo.body2">@_startingWeight?.ToString("F1") @KgUnit</MudText></td>
+                                    <td><MudText Typo="Typo.body2">@(_startingWeight.HasValue ? $"{ConvertedWeight(_startingWeight.Value):F1}" : "-") @WeightUnit</MudText></td>
                                 </tr>
                                 <tr>
                                     <td><MudText Typo="Typo.body2">@MinWeightLabel</MudText></td>
-                                    <td><MudText Typo="Typo.body2" Color="Color.Success">@_minWeight.ToString("F1") @KgUnit</MudText></td>
+                                    <td><MudText Typo="Typo.body2" Color="Color.Success">@ConvertedWeight(_minWeight).ToString("F1") @WeightUnit</MudText></td>
                                 </tr>
                                 <tr>
                                     <td><MudText Typo="Typo.body2">@MaxWeightLabel</MudText></td>
-                                    <td><MudText Typo="Typo.body2" Color="Color.Warning">@_maxWeight.ToString("F1") @KgUnit</MudText></td>
+                                    <td><MudText Typo="Typo.body2" Color="Color.Warning">@ConvertedWeight(_maxWeight).ToString("F1") @WeightUnit</MudText></td>
                                 </tr>
                                 <tr>
                                     <td><MudText Typo="Typo.body2">@OverallAverageLabel</MudText></td>
-                                    <td><MudText Typo="Typo.body2">@_overallAverage.ToString("F1") @KgUnit</MudText></td>
+                                    <td><MudText Typo="Typo.body2">@ConvertedWeight(_overallAverage).ToString("F1") @WeightUnit</MudText></td>
                                 </tr>
                                 <tr>
                                     <td><MudText Typo="Typo.body2">@TotalRecordsLabel</MudText></td>
@@ -236,10 +236,10 @@
                                 @ProjectionDescription
                             </MudText>
                             <MudText Typo="Typo.h4" Color="@GetProjectionColor()">
-                                @_projectedWeight.Value.ToString("F1") @KgUnit
+                                @ConvertedWeight(_projectedWeight.Value).ToString("F1") @WeightUnit
                             </MudText>
                             <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
-                                @GetEstimatedChange(_projectedChange)
+                                @GetEstimatedChange(ConvertedWeight(_projectedChange))
                             </MudText>
                         }
                         else

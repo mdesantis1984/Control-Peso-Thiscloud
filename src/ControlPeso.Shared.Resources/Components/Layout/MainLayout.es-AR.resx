@@ -18,4 +18,7 @@
   <data name="ErrorTitle" xml:space="preserve"><value>Ha ocurrido un error no controlado</value><comment>Error UI title</comment></data>
   <data name="ReloadButton" xml:space="preserve"><value>Recargar</value><comment>Reload button in error UI</comment></data>
   <data name="DismissButton" xml:space="preserve"><value>Cerrar</value><comment>Dismiss button in error UI</comment></data>
+  <data name="ErrorOccurred" xml:space="preserve"><value>Ha ocurrido un error</value><comment>ErrorBoundary title when page crashes</comment></data>
+  <data name="ErrorInstructions" xml:space="preserve"><value>Algo salió mal al cargar esta página. Puedes intentar de nuevo o recargar la página completa.</value><comment>ErrorBoundary instructions</comment></data>
+  <data name="RetryButton" xml:space="preserve"><value>Reintentar</value><comment>Retry button in ErrorBoundary</comment></data>
 </root>

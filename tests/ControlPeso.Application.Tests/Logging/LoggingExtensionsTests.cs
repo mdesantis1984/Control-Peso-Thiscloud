@@ -91,7 +91,7 @@ public sealed class LoggingExtensionsTests
 
         // Act & Assert - no debe lanzar excepción
         var scope = nullLogger.BeginBusinessScope("TestOperation");
-        
+
         // NullLogger puede retornar null en BeginScope
         Assert.True(scope == null || scope is IDisposable);
     }
@@ -104,7 +104,7 @@ public sealed class LoggingExtensionsTests
 
         // Act & Assert - no debe lanzar excepción
         var scope = nullLogger.BeginInfrastructureScope("TestOperation");
-        
+
         Assert.True(scope == null || scope is IDisposable);
     }
 
@@ -116,7 +116,7 @@ public sealed class LoggingExtensionsTests
 
         // Act & Assert - no debe lanzar excepción
         var scope = nullLogger.BeginSecurityScope("TestOperation");
-        
+
         Assert.True(scope == null || scope is IDisposable);
     }
 

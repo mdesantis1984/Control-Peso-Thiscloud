@@ -53,7 +53,6 @@ public partial class ImageCropperDialog : IAsyncDisposable
     private string? _errorMessage;
     private string _imageDataUrl = string.Empty;
     private readonly string _imageElementId = $"cropper-image-{Guid.NewGuid():N}";
-    private IJSObjectReference? _cropperModule;
     private bool _cropperInitialized;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -131,7 +130,7 @@ public partial class ImageCropperDialog : IAsyncDisposable
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error initializing ImageCropperDialog - Type: {ExceptionType}, Message: {Message}", 
+            Logger.LogError(ex, "Error initializing ImageCropperDialog - Type: {ExceptionType}, Message: {Message}",
                 ex.GetType().Name, ex.Message);
             _errorMessage = $"Error al cargar la imagen: {ex.Message}";
             _isLoading = false;
@@ -174,7 +173,7 @@ public partial class ImageCropperDialog : IAsyncDisposable
             {
                 try
                 {
-                    Logger.LogDebug("Initializing Cropper.js for element: {ElementId} (Attempt {Attempt}/{MaxRetries})", 
+                    Logger.LogDebug("Initializing Cropper.js for element: {ElementId} (Attempt {Attempt}/{MaxRetries})",
                         _imageElementId, attempt, maxRetries);
 
                     var success = await JSRuntime.InvokeAsync<bool>(
@@ -207,7 +206,7 @@ public partial class ImageCropperDialog : IAsyncDisposable
                     }
                     else
                     {
-                        Logger.LogWarning("Cropper.js initialization returned false on attempt {Attempt}/{MaxRetries}", 
+                        Logger.LogWarning("Cropper.js initialization returned false on attempt {Attempt}/{MaxRetries}",
                             attempt, maxRetries);
 
                         // If not last attempt, wait and retry
@@ -220,8 +219,8 @@ public partial class ImageCropperDialog : IAsyncDisposable
                 }
                 catch (JSException jsEx)
                 {
-                    Logger.LogError(jsEx, 
-                        "JavaScript error initializing Cropper.js on attempt {Attempt}/{MaxRetries} - Message: {JsMessage}", 
+                    Logger.LogError(jsEx,
+                        "JavaScript error initializing Cropper.js on attempt {Attempt}/{MaxRetries} - Message: {JsMessage}",
                         attempt, maxRetries, jsEx.Message);
 
                     // If not last attempt, wait and retry
@@ -233,7 +232,7 @@ public partial class ImageCropperDialog : IAsyncDisposable
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogError(ex, "Error initializing Cropper.js on attempt {Attempt}/{MaxRetries} - Type: {ExceptionType}", 
+                    Logger.LogError(ex, "Error initializing Cropper.js on attempt {Attempt}/{MaxRetries} - Type: {ExceptionType}",
                         attempt, maxRetries, ex.GetType().Name);
 
                     // If not last attempt, wait and retry
@@ -264,7 +263,8 @@ public partial class ImageCropperDialog : IAsyncDisposable
     {
         try
         {
-            if (!_cropperInitialized) return;
+            if (!_cropperInitialized)
+                return;
             await JSRuntime.InvokeVoidAsync("ImageCropper.zoom", 0.1);
         }
         catch (Exception ex)
@@ -277,7 +277,8 @@ public partial class ImageCropperDialog : IAsyncDisposable
     {
         try
         {
-            if (!_cropperInitialized) return;
+            if (!_cropperInitialized)
+                return;
             await JSRuntime.InvokeVoidAsync("ImageCropper.zoom", -0.1);
         }
         catch (Exception ex)
@@ -290,7 +291,8 @@ public partial class ImageCropperDialog : IAsyncDisposable
     {
         try
         {
-            if (!_cropperInitialized) return;
+            if (!_cropperInitialized)
+                return;
             await JSRuntime.InvokeVoidAsync("ImageCropper.rotate", -90);
         }
         catch (Exception ex)
@@ -303,7 +305,8 @@ public partial class ImageCropperDialog : IAsyncDisposable
     {
         try
         {
-            if (!_cropperInitialized) return;
+            if (!_cropperInitialized)
+                return;
             await JSRuntime.InvokeVoidAsync("ImageCropper.rotate", 90);
         }
         catch (Exception ex)
@@ -316,7 +319,8 @@ public partial class ImageCropperDialog : IAsyncDisposable
     {
         try
         {
-            if (!_cropperInitialized) return;
+            if (!_cropperInitialized)
+                return;
             await JSRuntime.InvokeVoidAsync("ImageCropper.reset");
         }
         catch (Exception ex)
@@ -436,11 +440,6 @@ public partial class ImageCropperDialog : IAsyncDisposable
             if (_cropperInitialized)
             {
                 await JSRuntime.InvokeVoidAsync("ImageCropper.destroy");
-            }
-
-            if (_cropperModule != null)
-            {
-                await _cropperModule.DisposeAsync();
             }
 
             Logger.LogDebug("ImageCropperDialog disposed");

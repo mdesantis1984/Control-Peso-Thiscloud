@@ -1,3 +1,4 @@
+using System.Threading.RateLimiting;
 using ControlPeso.Application.Extensions;
 using ControlPeso.Infrastructure.Extensions;
 using ControlPeso.Shared.Resources.Extensions;
@@ -8,9 +9,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Components.Server.Circuits;
 using MudBlazor.Services;
-using System.Threading.RateLimiting;
 using Serilog;
-using Serilog.Events;
 using ThisCloud.Framework.Loggings.Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -73,10 +72,28 @@ builder.Services.Configure<Microsoft.AspNetCore.Builder.RequestLocalizationOptio
 
 // ============================================================================
 
-// 3. Register Infrastructure services (DbContext, repositories)
+// 3. Configure Forwarded Headers for production (NPM Plus reverse proxy)
+builder.Services.AddForwardedHeadersConfiguration(builder.Environment);
+
+// 3.5. Configure Production Security Policies (HSTS, HTTPS redirection)
+builder.Services.AddProductionHsts(builder.Environment);
+builder.Services.AddProductionHttpsRedirection(builder.Environment);
+
+// 3.7. Add Memory Cache (required by UserService caching layer - FASE 11)
+// CRÍTICO: Must be registered BEFORE Infrastructure/Application services that depend on it
+// UserService uses IMemoryCache to prevent N+1 query problem (40+ queries causing crash)
+builder.Services.AddMemoryCache(options =>
+{
+    // Optional: Configure memory limits (commented out = unlimited)
+    // options.SizeLimit = 1024; // Max number of cache entries
+    // options.CompactionPercentage = 0.25; // Evict 25% when limit reached
+    options.ExpirationScanFrequency = TimeSpan.FromMinutes(1); // Scan for expired entries every 1 minute
+});
+
+// 4. Register Infrastructure services (DbContext, repositories)
 builder.Services.AddInfrastructureServices(builder.Configuration, builder.Environment);
 
-// 4. Register Application services (business logic, DTOs, validators)
+// 5. Register Application services (business logic, DTOs, validators)
 builder.Services.AddApplicationServices();
 
 // 5. Add Blazor services with SignalR configuration for debugging
@@ -117,7 +134,15 @@ builder.Services.AddHttpContextAccessor();
 // 6. Add MudBlazor services
 builder.Services.AddMudServices();
 
-// 6.5. Add Theme Service (gestión de tema con persistencia en cookies)
+// 6.3. Add Storage Services (unified interface for localStorage, sessionStorage, cookies)
+// IMPORTANTE: LocalStorageService es el predeterminado (IStorageService → LocalStorageService)
+// Para usar otro storage, inyectar explícitamente (ej: IEnumerable<IStorageService> y resolver por tipo)
+builder.Services.AddScoped<ControlPeso.Web.Services.Storage.IStorageService, ControlPeso.Web.Services.Storage.LocalStorageService>();
+builder.Services.AddScoped<ControlPeso.Web.Services.Storage.LocalStorageService>();
+builder.Services.AddScoped<ControlPeso.Web.Services.Storage.SessionStorageService>();
+builder.Services.AddScoped<ControlPeso.Web.Services.Storage.CookieStorageService>();
+
+// 6.5. Add Theme Service (gestión de tema con persistencia en localStorage/DB)
 builder.Services.AddScoped<ControlPeso.Web.Services.ThemeService>();
 
 // 6.5.5. Add User Notification Service (wrapper para Snackbar con verificación de preferencias)
@@ -172,32 +197,9 @@ var app = builder.Build();
 app.UseGlobalExceptionHandler();
 app.Logger.LogInformation("=== APP BUILT SUCCESSFULLY ===");
 
-// Seed database in Development environment
-if (app.Environment.IsDevelopment())
-{
-    try
-    {
-        using var scope = app.Services.CreateScope();
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-
-        logger.LogInformation("=== DATABASE SEEDING START ===");
-
-        var seeder = scope.ServiceProvider.GetRequiredService<ControlPeso.Infrastructure.Data.IDbSeeder>();
-
-        logger.LogInformation("DbSeeder instance created successfully");
-
-        await seeder.SeedAsync();
-
-        logger.LogInformation("=== DATABASE SEEDING COMPLETED ===");
-    }
-    catch (Exception ex)
-    {
-        // Log the error but DON'T crash the app
-        var logger = app.Services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "=== DATABASE SEEDING FAILED - App will continue without seed data ===");
-        // Continue execution - the app should work even if seeding fails
-    }
-}
+// ⚠️ DATABASE SEEDING PERMANENTLY REMOVED
+// The app works ONLY with real data from Google OAuth users
+// No fake/demo data will ever be inserted
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -205,9 +207,21 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
+
+    // Use forwarded headers from NPM Plus reverse proxy
+    app.UseForwardedHeaders();
 }
 
-app.UseHttpsRedirection();
+// HTTPS Redirection - puede deshabilitarse con variable de ambiente (útil para Docker local sin SSL)
+var disableHttpsRedirection = app.Configuration.GetValue<bool>("DISABLE_HTTPS_REDIRECTION");
+if (!disableHttpsRedirection)
+{
+    app.UseHttpsRedirection();
+}
+else
+{
+    app.Logger.LogWarning("HTTPS Redirection DISABLED (DISABLE_HTTPS_REDIRECTION=true) - Only for Docker local testing!");
+}
 
 // 2. Static files - serve BEFORE security headers to avoid CSP blocking local uploads
 app.UseStaticFiles();
@@ -233,12 +247,6 @@ app.UseRequestLocalization(
 );
 
 app.UseAuthentication();
-
-// DEVELOPMENT ONLY: Fake authentication middleware para bypass Google OAuth durante debugging con Chrome MCP
-// Google detecta Chrome automatizado (MCP) como bot y bloquea login
-// Este middleware simula usuario autenticado para permitir testing de páginas [Authorize]
-app.UseDevelopmentAuth(app.Environment);
-
 app.UseAuthorization();
 
 app.UseAntiforgery();
