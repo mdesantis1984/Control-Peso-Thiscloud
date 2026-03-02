@@ -76,6 +76,9 @@ services:
       # Persist Data Protection keys (antiforgery tokens, authentication cookies)
       - controlpeso-keys:/root/.aspnet/DataProtection-Keys
 
+      # Persist user avatars (uploaded profile pictures)
+      - controlpeso-avatars:/app/wwwroot/uploads/avatars
+
     depends_on:
       sqlserver:
         condition: service_healthy
@@ -122,3 +125,8 @@ volumes:
   controlpeso-keys:
     driver: local
     name: controlpeso-keys
+
+  # User avatars persistence (uploaded profile pictures)
+  controlpeso-avatars:
+    driver: local
+    name: controlpeso-avatars

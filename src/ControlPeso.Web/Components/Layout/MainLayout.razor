@@ -39,7 +39,8 @@
             <Authorized>
                 @{
                     var firstName = MainLayout.GetFirstName(context.User.Identity?.Name);
-                    var hasAvatar = _currentUser != null && !string.IsNullOrWhiteSpace(_currentUser.AvatarUrl);
+                    var avatarUrl = GetAvatarUrl();
+                    var hasAvatar = !string.IsNullOrWhiteSpace(avatarUrl);
                 }
 
                 <MudMenu @bind-Open="_userMenuOpen" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
@@ -47,7 +48,7 @@
                         @if (hasAvatar)
                         {
                             <MudAvatar Size="Size.Medium" Style="cursor: pointer;" @onclick="@(() => _userMenuOpen = !_userMenuOpen)">
-                                <MudImage Src="@_currentUser!.AvatarUrl" Alt="@firstName" />
+                                <MudImage Src="@avatarUrl" Alt="@firstName" />
                             </MudAvatar>
                         }
                         else
