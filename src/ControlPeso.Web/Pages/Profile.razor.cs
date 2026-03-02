@@ -838,20 +838,25 @@ public partial class Profile : IDisposable
         if (_user is null || string.IsNullOrWhiteSpace(_user.AvatarUrl))
             return string.Empty;
 
-        // Verify local file exists
+        // Verify local file exists using ABSOLUTE path (WebHostEnvironment.WebRootPath)
         if (_user.AvatarUrl.StartsWith("/uploads/avatars/"))
         {
-            var filePath = Path.Combine("wwwroot", _user.AvatarUrl.TrimStart('/'));
+            var filePath = Path.Combine(WebHostEnvironment.WebRootPath, _user.AvatarUrl.TrimStart('/'));
             if (!File.Exists(filePath))
             {
-                Logger.LogWarning("Profile: Avatar file not found - Path: {Path}", filePath);
+                Logger.LogWarning("Profile: Avatar file not found - Path: {Path}, AvatarUrl: {AvatarUrl}", 
+                    filePath, _user.AvatarUrl);
                 return string.Empty;
             }
+
+            Logger.LogDebug("Profile: Avatar file verified - Path: {Path}", filePath);
         }
 
         // Add cache busting
         var separator = _user.AvatarUrl.Contains('?') ? '&' : '?';
-        return $"{_user.AvatarUrl}{separator}v={_avatarVersion}";
+        var avatarUrlWithCache = $"{_user.AvatarUrl}{separator}v={_avatarVersion}";
+        Logger.LogDebug("Profile: GetAvatarUrl returning - URL: {Url}", avatarUrlWithCache);
+        return avatarUrlWithCache;
     }
     
     /// <summary>

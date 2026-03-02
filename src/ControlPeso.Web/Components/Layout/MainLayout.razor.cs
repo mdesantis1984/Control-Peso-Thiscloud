@@ -22,6 +22,7 @@ public partial class MainLayout : IDisposable
     [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
     [Inject] private ThemeService ThemeService { get; set; } = null!;
     [Inject] private UserStateService UserStateService { get; set; } = null!;
+    [Inject] private IWebHostEnvironment WebHostEnvironment { get; set; } = null!;
 
     private bool _drawerOpen = true;
     private bool _isDarkMode = true; // Estado del tema - default dark mode
@@ -30,6 +31,7 @@ public partial class MainLayout : IDisposable
     private UserDto? _currentUser;
     private bool _userMenuOpen = false; // Estado del menú de usuario
     private ErrorBoundary? _errorBoundary; // ErrorBoundary para capturar excepciones de renderizado
+    private long _avatarVersion = DateTime.UtcNow.Ticks; // Cache busting version for avatar
 
     // Localized Properties
     private string AppTitle => Localizer[nameof(AppTitle)];
@@ -92,14 +94,18 @@ public partial class MainLayout : IDisposable
             // FORCE cargar usuario actual desde DB si está autenticado (fresh on every call)
             await LoadCurrentUserAsync();
 
+            // Update cache busting version to FORCE browser reload avatar
+            _avatarVersion = DateTime.UtcNow.Ticks;
+
             // Cerrar drawer por defecto si el usuario NO está autenticado (seguridad)
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
             _drawerOpen = authState.User.Identity?.IsAuthenticated ?? false;
-            Logger.LogInformation("MainLayout: ✅ User data loaded - IsOpen: {IsOpen}, IsAuth: {IsAuth}, HasUser: {HasUser}, AvatarUrl: {AvatarUrl}",
+            Logger.LogInformation("MainLayout: ✅ User data loaded - IsOpen: {IsOpen}, IsAuth: {IsAuth}, HasUser: {HasUser}, AvatarUrl: {AvatarUrl}, CacheBuster: v={Version}",
                 _drawerOpen, 
                 authState.User.Identity?.IsAuthenticated ?? false, 
                 _currentUser != null,
-                _currentUser?.AvatarUrl ?? "(null)");
+                _currentUser?.AvatarUrl ?? "(null)",
+                _avatarVersion);
         }
         catch (Exception ex)
         {
@@ -377,5 +383,35 @@ public partial class MainLayout : IDisposable
         AuthStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
         UserStateService.UserProfileUpdated -= OnUserProfileUpdated;
         UserStateService.UserThemeUpdated -= OnUserThemeUpdated;
+    }
+
+    /// <summary>
+    /// Gets avatar URL with cache busting and file verification.
+    /// Returns empty string if user has no avatar or file doesn't exist.
+    /// </summary>
+    private string GetAvatarUrl()
+    {
+        if (_currentUser is null || string.IsNullOrWhiteSpace(_currentUser.AvatarUrl))
+            return string.Empty;
+
+        // Verify local file exists using ABSOLUTE path (WebHostEnvironment.WebRootPath)
+        if (_currentUser.AvatarUrl.StartsWith("/uploads/avatars/"))
+        {
+            var filePath = Path.Combine(WebHostEnvironment.WebRootPath, _currentUser.AvatarUrl.TrimStart('/'));
+            if (!File.Exists(filePath))
+            {
+                Logger.LogWarning("MainLayout: Avatar file not found - Path: {Path}, AvatarUrl: {AvatarUrl}", 
+                    filePath, _currentUser.AvatarUrl);
+                return string.Empty;
+            }
+
+            Logger.LogDebug("MainLayout: Avatar file verified - Path: {Path}", filePath);
+        }
+
+        // Add cache busting
+        var separator = _currentUser.AvatarUrl.Contains('?') ? '&' : '?';
+        var avatarUrlWithCache = $"{_currentUser.AvatarUrl}{separator}v={_avatarVersion}";
+        Logger.LogDebug("MainLayout: GetAvatarUrl returning - URL: {Url}", avatarUrlWithCache);
+        return avatarUrlWithCache;
     }
 }
