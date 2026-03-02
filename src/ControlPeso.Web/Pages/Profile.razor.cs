@@ -21,7 +21,7 @@ public partial class Profile : IDisposable
     // ========================================================================
     // DEPENDENCY INJECTION
     // ========================================================================
-    
+
     [Inject] private IStringLocalizer<Profile> Localizer { get; set; } = null!;
     [Inject] private IUserService UserService { get; set; } = null!;
     [Inject] private IWeightLogService WeightLogService { get; set; } = null!;
@@ -34,6 +34,7 @@ public partial class Profile : IDisposable
     [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
     [Inject] private Services.UserStateService UserStateService { get; set; } = null!;
     [Inject] private Services.ThemeService ThemeService { get; set; } = null!;
+    [Inject] private IWebHostEnvironment WebHostEnvironment { get; set; } = null!;
 
     // ========================================================================
     // STATE
@@ -713,7 +714,7 @@ public partial class Profile : IDisposable
 
             // Generate unique filename
             var fileName = $"{Guid.NewGuid()}.webp";
-            var uploadsFolder = Path.Combine("wwwroot", "uploads", "avatars");
+            var uploadsFolder = Path.Combine(WebHostEnvironment.WebRootPath, "uploads", "avatars");
             var filePath = Path.Combine(uploadsFolder, fileName);
 
             // Ensure directory exists
@@ -730,7 +731,7 @@ public partial class Profile : IDisposable
             // Delete old avatar file if exists
             if (!string.IsNullOrWhiteSpace(_user.AvatarUrl) && _user.AvatarUrl.StartsWith("/uploads/avatars/"))
             {
-                var oldFilePath = Path.Combine("wwwroot", _user.AvatarUrl.TrimStart('/'));
+                var oldFilePath = Path.Combine(WebHostEnvironment.WebRootPath, _user.AvatarUrl.TrimStart('/'));
                 if (File.Exists(oldFilePath))
                 {
                     try
