@@ -75,11 +75,16 @@ public partial class Profile : IDisposable
     /// Loading state for initial data fetch.
     /// </summary>
     private bool _isLoading = true;
-    
+
     /// <summary>
     /// Saving state for save button.
     /// </summary>
     private bool _isSaving;
+
+    /// <summary>
+    /// Flag to prevent concurrent LoadUserDataAsync calls.
+    /// </summary>
+    private bool _isLoadingData;
 
     // ========================================================================
     // PUBLIC PROPERTIES FOR MUDBLAZOR BINDING
@@ -196,10 +201,19 @@ public partial class Profile : IDisposable
     /// <summary>
     /// FORCE loads user data from database on EVERY call (F5, navigation, etc).
     /// Ensures avatar URL is ALWAYS fresh from SQL Server.
+    /// RACE CONDITION FIX: Prevents concurrent executions from OnInitializedAsync + OnParametersSetAsync.
     /// </summary>
     private async Task LoadUserDataAsync()
     {
-        Logger.LogInformation("Profile: LoadUserDataAsync - FORCE reload from DB started");
+        // CRITICAL: Prevent concurrent calls (race condition when F5 triggers both lifecycle methods)
+        if (_isLoadingData)
+        {
+            Logger.LogDebug("Profile: LoadUserDataAsync already in progress - skipping duplicate call to prevent race condition");
+            return;
+        }
+
+        _isLoadingData = true;
+        Logger.LogInformation("Profile: LoadUserDataAsync - FORCE reload from DB started (lock acquired)");
 
         _isLoading = true;
 
@@ -246,6 +260,8 @@ public partial class Profile : IDisposable
         finally
         {
             _isLoading = false;
+            _isLoadingData = false; // CRITICAL: Release lock for next call
+            Logger.LogDebug("Profile: LoadUserDataAsync - lock released");
             await InvokeAsync(StateHasChanged); // FORCE re-render with fresh data
         }
     }

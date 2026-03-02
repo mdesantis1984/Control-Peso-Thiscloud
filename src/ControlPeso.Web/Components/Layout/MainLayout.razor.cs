@@ -32,6 +32,7 @@ public partial class MainLayout : IDisposable
     private bool _userMenuOpen = false; // Estado del menú de usuario
     private ErrorBoundary? _errorBoundary; // ErrorBoundary para capturar excepciones de renderizado
     private long _avatarVersion = DateTime.UtcNow.Ticks; // Cache busting version for avatar
+    private bool _isLoadingData; // Race condition prevention flag
 
     // Localized Properties
     private string AppTitle => Localizer[nameof(AppTitle)];
@@ -81,10 +82,19 @@ public partial class MainLayout : IDisposable
     /// <summary>
     /// FORCE loads user data from database on EVERY call (F5, navigation, etc).
     /// Ensures header avatar is ALWAYS fresh from SQL Server.
+    /// RACE CONDITION FIX: Prevents concurrent executions from OnInitializedAsync + OnParametersSetAsync.
     /// </summary>
     private async Task LoadUserDataAsync()
     {
-        Logger.LogInformation("MainLayout: LoadUserDataAsync - FORCE reload from DB started");
+        // CRITICAL: Prevent concurrent calls (race condition when F5 triggers both lifecycle methods)
+        if (_isLoadingData)
+        {
+            Logger.LogDebug("MainLayout: LoadUserDataAsync already in progress - skipping duplicate call to prevent race condition");
+            return;
+        }
+
+        _isLoadingData = true;
+        Logger.LogInformation("MainLayout: LoadUserDataAsync - FORCE reload from DB started (lock acquired)");
 
         try
         {
@@ -110,6 +120,11 @@ public partial class MainLayout : IDisposable
         catch (Exception ex)
         {
             Logger.LogError(ex, "MainLayout: ❌ Error loading user data");
+        }
+        finally
+        {
+            _isLoadingData = false; // CRITICAL: Release lock for next call
+            Logger.LogDebug("MainLayout: LoadUserDataAsync - lock released");
         }
     }
 
