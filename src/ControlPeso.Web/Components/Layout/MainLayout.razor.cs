@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.Localization;
+using Microsoft.JSInterop;
 using MudBlazor;
 
 namespace ControlPeso.Web.Components.Layout;
@@ -23,6 +24,7 @@ public partial class MainLayout : IDisposable
     [Inject] private ThemeService ThemeService { get; set; } = null!;
     [Inject] private UserStateService UserStateService { get; set; } = null!;
     [Inject] private IWebHostEnvironment WebHostEnvironment { get; set; } = null!;
+    [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
 
     private bool _drawerOpen = true;
     private bool _isDarkMode = true; // Estado del tema - default dark mode
@@ -33,6 +35,8 @@ public partial class MainLayout : IDisposable
     private ErrorBoundary? _errorBoundary; // ErrorBoundary para capturar excepciones de renderizado
     private long _avatarVersion = DateTime.UtcNow.Ticks; // Cache busting version for avatar
     private bool _isLoadingData; // Race condition prevention flag
+    private bool _jsReady; // Indicates if JavaScript interop is available
+    private bool _isLoadingUser = true; // NEW: Indicates if user data is being loaded - prevents rendering avatar until loaded
 
     // Localized Properties
     private string AppTitle => Localizer[nameof(AppTitle)];
@@ -80,8 +84,8 @@ public partial class MainLayout : IDisposable
     }
 
     /// <summary>
-    /// FORCE loads user data from database on EVERY call (F5, navigation, etc).
-    /// Ensures header avatar is ALWAYS fresh from SQL Server.
+    /// FORCE loads user data from DB.
+    /// SIMPLIFIED: Cache invalidation in UserService ensures GetByIdAsync returns fresh data.
     /// RACE CONDITION FIX: Prevents concurrent executions from OnInitializedAsync + OnParametersSetAsync.
     /// </summary>
     private async Task LoadUserDataAsync()
@@ -94,28 +98,32 @@ public partial class MainLayout : IDisposable
         }
 
         _isLoadingData = true;
-        Logger.LogInformation("MainLayout: LoadUserDataAsync - FORCE reload from DB started (lock acquired)");
+        Logger.LogInformation("MainLayout: LoadUserDataAsync - loading user from DB");
 
         try
         {
-            // NO cargar tema aquí - se hará en OnAfterRenderAsync cuando JS interop esté disponible
-            // Durante prerendering (Blazor Server), JavaScript interop NO está disponible
+            // 1. Get authenticated user status
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            var isAuthenticated = user.Identity?.IsAuthenticated ?? false;
 
-            // FORCE cargar usuario actual desde DB si está autenticado (fresh on every call)
+            // 2. Load current user from DB (cache invalidated after UpdateProfileAsync - always fresh data)
             await LoadCurrentUserAsync();
 
-            // Update cache busting version to FORCE browser reload avatar
+            // 3. Update cache busting version for avatar
             _avatarVersion = DateTime.UtcNow.Ticks;
 
-            // Cerrar drawer por defecto si el usuario NO está autenticado (seguridad)
-            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-            _drawerOpen = authState.User.Identity?.IsAuthenticated ?? false;
-            Logger.LogInformation("MainLayout: ✅ User data loaded - IsOpen: {IsOpen}, IsAuth: {IsAuth}, HasUser: {HasUser}, AvatarUrl: {AvatarUrl}, CacheBuster: v={Version}",
+            // 4. Cerrar drawer por defecto si el usuario NO está autenticado (seguridad)
+            _drawerOpen = isAuthenticated;
+
+            Logger.LogInformation("MainLayout: ✅ User data loaded - IsOpen: {IsOpen}, IsAuth: {IsAuth}, HasUser: {HasUser}, AvatarUrl: {AvatarUrl}",
                 _drawerOpen, 
-                authState.User.Identity?.IsAuthenticated ?? false, 
+                isAuthenticated, 
                 _currentUser != null,
-                _currentUser?.AvatarUrl ?? "(null)",
-                _avatarVersion);
+                _currentUser?.AvatarUrl ?? "(null)");
+
+            // Mark user loading as complete
+            _isLoadingUser = false;
         }
         catch (Exception ex)
         {
@@ -124,7 +132,6 @@ public partial class MainLayout : IDisposable
         finally
         {
             // CRITICAL: Force re-render BEFORE releasing loading flag
-            // This ensures header avatar renders with fresh data from DB
             await InvokeAsync(StateHasChanged);
 
             _isLoadingData = false; // Release lock for next call
@@ -145,9 +152,10 @@ public partial class MainLayout : IDisposable
         {
             Logger.LogInformation("MainLayout: Authentication state changed - reloading user");
             var authState = await task;
+            var isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
 
             // Cerrar drawer si el usuario hizo logout, abrirlo si hizo login
-            _drawerOpen = authState.User.Identity?.IsAuthenticated ?? false;
+            _drawerOpen = isAuthenticated;
             Logger.LogInformation("MainLayout: Drawer updated after auth change - IsOpen: {IsOpen}", _drawerOpen);
 
             await LoadCurrentUserAsync();
@@ -182,7 +190,9 @@ public partial class MainLayout : IDisposable
                 updatedUser.Id, updatedUser.AvatarUrl ?? "(null)");
 
             _currentUser = updatedUser;
-            // No need for cache buster - avatar filename contains unique Guid
+
+            // Update cache buster for avatar refresh
+            _avatarVersion = DateTime.UtcNow.Ticks;
 
             if (!_isDisposed)
             {
@@ -325,6 +335,9 @@ public partial class MainLayout : IDisposable
     {
         if (firstRender)
         {
+            // CRÍTICO: Marcar JS como disponible ANTES de cualquier JS interop
+            _jsReady = true;
+
             // CRÍTICO: Cargar tema SOLO en firstRender cuando JS interop está disponible
             // Durante prerendering (Blazor Server), JavaScript interop NO está disponible
             // Esta es la fase correcta del ciclo de vida para operaciones JS interop
@@ -338,7 +351,7 @@ public partial class MainLayout : IDisposable
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "MainLayout: Error loading theme preference in OnAfterRenderAsync");
+                Logger.LogError(ex, "MainLayout: Error loading theme in OnAfterRenderAsync");
                 // Mantener default (dark mode) en caso de error
             }
         }
@@ -410,15 +423,24 @@ public partial class MainLayout : IDisposable
     /// </summary>
     private string GetAvatarUrl()
     {
-        if (_currentUser is null || string.IsNullOrWhiteSpace(_currentUser.AvatarUrl))
+        if (_currentUser is null)
+        {
+            Logger.LogDebug("MainLayout: GetAvatarUrl - _currentUser is NULL, returning empty");
             return string.Empty;
+        }
+
+        if (string.IsNullOrWhiteSpace(_currentUser.AvatarUrl))
+        {
+            Logger.LogDebug("MainLayout: GetAvatarUrl - _currentUser.AvatarUrl is null/empty, returning empty");
+            return string.Empty;
+        }
 
         // Add cache busting to force browser reload
         var separator = _currentUser.AvatarUrl.Contains('?') ? '&' : '?';
         var avatarUrlWithCache = $"{_currentUser.AvatarUrl}{separator}v={_avatarVersion}";
 
-        Logger.LogDebug("MainLayout: GetAvatarUrl returning - URL: {Url}, AvatarVersion: {Version}", 
-            avatarUrlWithCache, _avatarVersion);
+        Logger.LogInformation("MainLayout: GetAvatarUrl ✅ returning - URL: {Url}, AvatarVersion: {Version}, UserId: {UserId}", 
+            avatarUrlWithCache, _avatarVersion, _currentUser.Id);
 
         return avatarUrlWithCache;
     }
