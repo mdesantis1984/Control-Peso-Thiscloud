@@ -172,17 +172,34 @@ public partial class Profile : IDisposable
 
     protected override async Task OnInitializedAsync()
     {
-        Logger.LogInformation("Profile: Initializing component");
+        Logger.LogInformation("Profile: OnInitializedAsync - New circuit/F5 detected");
 
-        // Subscribe to UserStateService events (only once)
+        // Subscribe to UserStateService events (only once per circuit)
         UserStateService.UserThemeUpdated += OnUserThemeUpdatedExternal;
+
+        // FORCE load user data on F5/new circuit
+        await LoadUserDataAsync();
 
         await base.OnInitializedAsync();
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        Logger.LogInformation("Profile: OnParametersSetAsync - FORCE reload user from DB on every navigation/F5");
+        Logger.LogInformation("Profile: OnParametersSetAsync - Navigation detected (SPA routing)");
+
+        // FORCE load user data on every SPA navigation
+        await LoadUserDataAsync();
+
+        await base.OnParametersSetAsync();
+    }
+
+    /// <summary>
+    /// FORCE loads user data from database on EVERY call (F5, navigation, etc).
+    /// Ensures avatar URL is ALWAYS fresh from SQL Server.
+    /// </summary>
+    private async Task LoadUserDataAsync()
+    {
+        Logger.LogInformation("Profile: LoadUserDataAsync - FORCE reload from DB started");
 
         _isLoading = true;
 
@@ -196,7 +213,7 @@ public partial class Profile : IDisposable
                 return;
             }
 
-            // 2. FORCE load user profile from database (fresh from DB on every F5)
+            // 2. FORCE load user profile from database (ALWAYS fetch fresh)
             _user = await LoadUserProfileAsync(userId.Value);
             if (_user is null)
             {
@@ -204,9 +221,9 @@ public partial class Profile : IDisposable
                 return;
             }
 
-            // 3. Update cache busting version to force browser reload avatar
+            // 3. Update cache busting version to FORCE browser reload avatar
             _avatarVersion = DateTime.UtcNow.Ticks;
-            Logger.LogInformation("Profile: Avatar URL from DB: {AvatarUrl}, Cache version: {Version}", 
+            Logger.LogInformation("Profile: Avatar URL from DB: {AvatarUrl}, Cache buster: v={Version}", 
                 _user.AvatarUrl ?? "(null)", _avatarVersion);
 
             // 4. Map UserDto → ProfileFormModel (DTO mapping)
@@ -218,21 +235,19 @@ public partial class Profile : IDisposable
             // 6. Load weight statistics
             await LoadWeightStatisticsAsync(userId.Value);
 
-            Logger.LogInformation("Profile: User reloaded from DB - UserId: {UserId}, AvatarUrl: {AvatarUrl}", 
+            Logger.LogInformation("Profile: ✅ User data loaded from DB - UserId: {UserId}, AvatarUrl: {AvatarUrl}", 
                 userId, _user.AvatarUrl ?? "(null)");
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Profile: Error loading component data");
+            Logger.LogError(ex, "Profile: ❌ Error loading user data");
             Snackbar.Add(ErrorLoadingProfileGeneral, Severity.Error);
         }
         finally
         {
             _isLoading = false;
-            await InvokeAsync(StateHasChanged);
+            await InvokeAsync(StateHasChanged); // FORCE re-render with fresh data
         }
-
-        await base.OnParametersSetAsync();
     }
 
     public void Dispose()

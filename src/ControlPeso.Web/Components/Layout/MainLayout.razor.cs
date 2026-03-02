@@ -49,7 +49,7 @@ public partial class MainLayout : IDisposable
 
     protected override async Task OnInitializedAsync()
     {
-        Logger.LogInformation("MainLayout: Initializing");
+        Logger.LogInformation("MainLayout: OnInitializedAsync - New circuit/F5 detected");
 
         // Suscribirse a cambios de autenticación
         AuthStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
@@ -60,33 +60,51 @@ public partial class MainLayout : IDisposable
         // Suscribirse a cambios de tema (para sincronizar switches de Profile con botón de AppBar)
         UserStateService.UserThemeUpdated += OnUserThemeUpdated;
 
+        // FORCE load user data on F5/new circuit
+        await LoadUserDataAsync();
+
         await base.OnInitializedAsync();
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        Logger.LogInformation("MainLayout: OnParametersSetAsync - FORCE reload user from DB on every navigation/F5");
+        Logger.LogInformation("MainLayout: OnParametersSetAsync - Navigation detected (SPA routing)");
+
+        // FORCE load user data on every SPA navigation
+        await LoadUserDataAsync();
+
+        await base.OnParametersSetAsync();
+    }
+
+    /// <summary>
+    /// FORCE loads user data from database on EVERY call (F5, navigation, etc).
+    /// Ensures header avatar is ALWAYS fresh from SQL Server.
+    /// </summary>
+    private async Task LoadUserDataAsync()
+    {
+        Logger.LogInformation("MainLayout: LoadUserDataAsync - FORCE reload from DB started");
 
         try
         {
             // NO cargar tema aquí - se hará en OnAfterRenderAsync cuando JS interop esté disponible
             // Durante prerendering (Blazor Server), JavaScript interop NO está disponible
 
-            // FORCE cargar usuario actual desde DB si está autenticado (fresh on every F5)
+            // FORCE cargar usuario actual desde DB si está autenticado (fresh on every call)
             await LoadCurrentUserAsync();
 
             // Cerrar drawer por defecto si el usuario NO está autenticado (seguridad)
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
             _drawerOpen = authState.User.Identity?.IsAuthenticated ?? false;
-            Logger.LogInformation("MainLayout: Drawer state - IsOpen: {IsOpen}, IsAuthenticated: {IsAuth}, CurrentUser: {HasUser}",
-                _drawerOpen, authState.User.Identity?.IsAuthenticated ?? false, _currentUser != null);
+            Logger.LogInformation("MainLayout: ✅ User data loaded - IsOpen: {IsOpen}, IsAuth: {IsAuth}, HasUser: {HasUser}, AvatarUrl: {AvatarUrl}",
+                _drawerOpen, 
+                authState.User.Identity?.IsAuthenticated ?? false, 
+                _currentUser != null,
+                _currentUser?.AvatarUrl ?? "(null)");
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "MainLayout: Error during parameters set");
+            Logger.LogError(ex, "MainLayout: ❌ Error loading user data");
         }
-
-        await base.OnParametersSetAsync();
     }
 
     /// <summary>
