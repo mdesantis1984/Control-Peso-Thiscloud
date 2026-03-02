@@ -21,7 +21,7 @@ public partial class Profile : IDisposable
     // ========================================================================
     // DEPENDENCY INJECTION
     // ========================================================================
-    
+
     [Inject] private IStringLocalizer<Profile> Localizer { get; set; } = null!;
     [Inject] private IUserService UserService { get; set; } = null!;
     [Inject] private IWeightLogService WeightLogService { get; set; } = null!;
@@ -34,6 +34,7 @@ public partial class Profile : IDisposable
     [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
     [Inject] private Services.UserStateService UserStateService { get; set; } = null!;
     [Inject] private Services.ThemeService ThemeService { get; set; } = null!;
+    [Inject] private IWebHostEnvironment WebHostEnvironment { get; set; } = null!;
 
     // ========================================================================
     // STATE
@@ -74,11 +75,16 @@ public partial class Profile : IDisposable
     /// Loading state for initial data fetch.
     /// </summary>
     private bool _isLoading = true;
-    
+
     /// <summary>
     /// Saving state for save button.
     /// </summary>
     private bool _isSaving;
+
+    /// <summary>
+    /// Flag to prevent concurrent LoadUserDataAsync calls.
+    /// </summary>
+    private bool _isLoadingData;
 
     // ========================================================================
     // PUBLIC PROPERTIES FOR MUDBLAZOR BINDING
@@ -168,11 +174,49 @@ public partial class Profile : IDisposable
     // ========================================================================
     // LIFECYCLE METHODS
     // ========================================================================
-    
+
     protected override async Task OnInitializedAsync()
     {
-        Logger.LogInformation("Profile: Initializing component");
-        
+        Logger.LogInformation("Profile: OnInitializedAsync - New circuit/F5 detected");
+
+        // Subscribe to UserStateService events (only once per circuit)
+        UserStateService.UserThemeUpdated += OnUserThemeUpdatedExternal;
+
+        // FORCE load user data on F5/new circuit
+        await LoadUserDataAsync();
+
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        Logger.LogInformation("Profile: OnParametersSetAsync - Navigation detected (SPA routing)");
+
+        // FORCE load user data on every SPA navigation
+        await LoadUserDataAsync();
+
+        await base.OnParametersSetAsync();
+    }
+
+    /// <summary>
+    /// FORCE loads user data from database on EVERY call (F5, navigation, etc).
+    /// Ensures avatar URL is ALWAYS fresh from SQL Server.
+    /// RACE CONDITION FIX: Prevents concurrent executions from OnInitializedAsync + OnParametersSetAsync.
+    /// </summary>
+    private async Task LoadUserDataAsync()
+    {
+        // CRITICAL: Prevent concurrent calls (race condition when F5 triggers both lifecycle methods)
+        if (_isLoadingData)
+        {
+            Logger.LogDebug("Profile: LoadUserDataAsync already in progress - skipping duplicate call to prevent race condition");
+            return;
+        }
+
+        _isLoadingData = true;
+        Logger.LogInformation("Profile: LoadUserDataAsync - FORCE reload from DB started (lock acquired)");
+
+        _isLoading = true;
+
         try
         {
             // 1. Get authenticated user ID
@@ -183,7 +227,7 @@ public partial class Profile : IDisposable
                 return;
             }
 
-            // 2. Load user profile from database
+            // 2. FORCE load user profile from database (ALWAYS fetch fresh)
             _user = await LoadUserProfileAsync(userId.Value);
             if (_user is null)
             {
@@ -191,26 +235,37 @@ public partial class Profile : IDisposable
                 return;
             }
 
-            // 3. Map UserDto → ProfileFormModel (DTO mapping)
+            // 3. Update cache busting version to FORCE browser reload avatar
+            _avatarVersion = DateTime.UtcNow.Ticks;
+            Logger.LogInformation("Profile: Avatar URL from DB: {AvatarUrl}, Cache buster: v={Version}", 
+                _user.AvatarUrl ?? "(null)", _avatarVersion);
+
+            // 4. Map UserDto → ProfileFormModel (DTO mapping)
             MapUserDtoToFormModel(_user);
 
-            // 4. Load user preferences (Dark Mode, Notifications)
+            // 5. Load user preferences (Dark Mode, Notifications)
             await LoadUserPreferencesAsync(userId.Value);
 
-            // 5. Load weight statistics
+            // 6. Load weight statistics
             await LoadWeightStatisticsAsync(userId.Value);
 
-            Logger.LogInformation("Profile: Component initialized successfully - UserId: {UserId}", userId);
+            Logger.LogInformation("Profile: ✅ User data loaded from DB - UserId: {UserId}, AvatarUrl: {AvatarUrl}", 
+                userId, _user.AvatarUrl ?? "(null)");
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Profile: Error initializing component");
+            Logger.LogError(ex, "Profile: ❌ Error loading user data");
             Snackbar.Add(ErrorLoadingProfileGeneral, Severity.Error);
         }
         finally
         {
-            _isLoading = false;
+            // CRITICAL: Force re-render BEFORE releasing loading flags
+            // This ensures component renders with fresh data, not stale cached values
             await InvokeAsync(StateHasChanged);
+
+            _isLoading = false;
+            _isLoadingData = false; // Release lock for next call
+            Logger.LogDebug("Profile: LoadUserDataAsync - lock released");
         }
     }
 
@@ -713,7 +768,7 @@ public partial class Profile : IDisposable
 
             // Generate unique filename
             var fileName = $"{Guid.NewGuid()}.webp";
-            var uploadsFolder = Path.Combine("wwwroot", "uploads", "avatars");
+            var uploadsFolder = Path.Combine(WebHostEnvironment.WebRootPath, "uploads", "avatars");
             var filePath = Path.Combine(uploadsFolder, fileName);
 
             // Ensure directory exists
@@ -730,7 +785,7 @@ public partial class Profile : IDisposable
             // Delete old avatar file if exists
             if (!string.IsNullOrWhiteSpace(_user.AvatarUrl) && _user.AvatarUrl.StartsWith("/uploads/avatars/"))
             {
-                var oldFilePath = Path.Combine("wwwroot", _user.AvatarUrl.TrimStart('/'));
+                var oldFilePath = Path.Combine(WebHostEnvironment.WebRootPath, _user.AvatarUrl.TrimStart('/'));
                 if (File.Exists(oldFilePath))
                 {
                     try
@@ -765,7 +820,7 @@ public partial class Profile : IDisposable
             // Update avatar version for cache busting
             _avatarVersion = DateTime.UtcNow.Ticks;
 
-            // Notify other components
+            // Notify other components (MainLayout will handle localStorage sync)
             UserStateService.NotifyUserProfileUpdated(_user);
 
             Logger.LogInformation("Profile: Avatar updated successfully - UserId: {UserId}, URL: {AvatarUrl}", 
@@ -796,26 +851,21 @@ public partial class Profile : IDisposable
     
     /// <summary>
     /// Gets avatar URL with cache busting.
+    /// Browser will handle 404 if file doesn't exist - no need for File.Exists() check.
     /// </summary>
     private string GetAvatarUrl()
     {
         if (_user is null || string.IsNullOrWhiteSpace(_user.AvatarUrl))
             return string.Empty;
 
-        // Verify local file exists
-        if (_user.AvatarUrl.StartsWith("/uploads/avatars/"))
-        {
-            var filePath = Path.Combine("wwwroot", _user.AvatarUrl.TrimStart('/'));
-            if (!File.Exists(filePath))
-            {
-                Logger.LogWarning("Profile: Avatar file not found - Path: {Path}", filePath);
-                return string.Empty;
-            }
-        }
-
-        // Add cache busting
+        // Add cache busting to force browser reload
         var separator = _user.AvatarUrl.Contains('?') ? '&' : '?';
-        return $"{_user.AvatarUrl}{separator}v={_avatarVersion}";
+        var avatarUrlWithCache = $"{_user.AvatarUrl}{separator}v={_avatarVersion}";
+
+        Logger.LogDebug("Profile: GetAvatarUrl returning - URL: {Url}, AvatarVersion: {Version}", 
+            avatarUrlWithCache, _avatarVersion);
+
+        return avatarUrlWithCache;
     }
     
     /// <summary>

@@ -406,14 +406,15 @@ public sealed class UserService : IUserService
     /// <summary>
     /// Actualiza el perfil de un usuario.
     /// Solo actualiza campos no relacionados con autenticación (Name, Height, DateOfBirth, Language, GoalWeight, etc.).
+    /// CRITICAL: Invalida cache después del UPDATE para que próximas lecturas obtengan datos frescos.
     /// </summary>
     public async Task<UserDto> UpdateProfileAsync(Guid id, UpdateUserProfileDto dto, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(dto);
 
         _logger.LogInformation(
-            "Updating user profile: {UserId} - Name: {Name}, Height: {Height}, Language: {Language}",
-            id, dto.Name, dto.Height, dto.Language);
+            "Updating user profile: {UserId} - Name: {Name}, Height: {Height}, Language: {Language}, AvatarUrl: {AvatarUrl}",
+            id, dto.Name, dto.Height, dto.Language, dto.AvatarUrl ?? "(null)");
 
         try
         {
@@ -430,12 +431,29 @@ public sealed class UserService : IUserService
 
             UserMapper.UpdateEntity(user, dto);
 
-            await context.SaveChangesAsync(ct);
+            var affectedRows = await context.SaveChangesAsync(ct);
+
+            if (affectedRows == 0)
+            {
+                _logger.LogWarning("UpdateProfileAsync - No rows affected for UserId: {UserId} (possible concurrency issue)", id);
+            }
+            else
+            {
+                _logger.LogInformation("UpdateProfileAsync - DB UPDATE successful - Affected rows: {AffectedRows}", affectedRows);
+            }
 
             var updatedDto = UserMapper.ToDto(user);
+
+            // CRITICAL FIX: Invalidate cache after update to force fresh DB reads
+            var cacheKeyById = $"{CacheKeyPrefixById}{id}";
+            var cacheKeyByEmail = $"{CacheKeyPrefixByEmail}{updatedDto.Email.ToLowerInvariant()}";
+
+            _cache.Remove(cacheKeyById);
+            _cache.Remove(cacheKeyByEmail);
+
             _logger.LogInformation(
-                "User profile updated successfully: {UserId}, Name: {Name}, Height: {Height}cm, GoalWeight: {GoalWeight}kg",
-                id, updatedDto.Name, updatedDto.Height, updatedDto.GoalWeight);
+                "User profile updated successfully: {UserId}, Name: {Name}, Height: {Height}cm, GoalWeight: {GoalWeight}kg, AvatarUrl: {AvatarUrl} - Cache invalidated ✅",
+                id, updatedDto.Name, updatedDto.Height, updatedDto.GoalWeight, updatedDto.AvatarUrl ?? "(null)");
 
             return updatedDto;
         }
