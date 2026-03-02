@@ -386,32 +386,21 @@ public partial class MainLayout : IDisposable
     }
 
     /// <summary>
-    /// Gets avatar URL with cache busting and file verification.
-    /// Returns empty string if user has no avatar or file doesn't exist.
+    /// Gets avatar URL with cache busting.
+    /// Browser will handle 404 if file doesn't exist - no need for File.Exists() check.
     /// </summary>
     private string GetAvatarUrl()
     {
         if (_currentUser is null || string.IsNullOrWhiteSpace(_currentUser.AvatarUrl))
             return string.Empty;
 
-        // Verify local file exists using ABSOLUTE path (WebHostEnvironment.WebRootPath)
-        if (_currentUser.AvatarUrl.StartsWith("/uploads/avatars/"))
-        {
-            var filePath = Path.Combine(WebHostEnvironment.WebRootPath, _currentUser.AvatarUrl.TrimStart('/'));
-            if (!File.Exists(filePath))
-            {
-                Logger.LogWarning("MainLayout: Avatar file not found - Path: {Path}, AvatarUrl: {AvatarUrl}", 
-                    filePath, _currentUser.AvatarUrl);
-                return string.Empty;
-            }
-
-            Logger.LogDebug("MainLayout: Avatar file verified - Path: {Path}", filePath);
-        }
-
-        // Add cache busting
+        // Add cache busting to force browser reload
         var separator = _currentUser.AvatarUrl.Contains('?') ? '&' : '?';
         var avatarUrlWithCache = $"{_currentUser.AvatarUrl}{separator}v={_avatarVersion}";
-        Logger.LogDebug("MainLayout: GetAvatarUrl returning - URL: {Url}", avatarUrlWithCache);
+
+        Logger.LogDebug("MainLayout: GetAvatarUrl returning - URL: {Url}, AvatarVersion: {Version}", 
+            avatarUrlWithCache, _avatarVersion);
+
         return avatarUrlWithCache;
     }
 }

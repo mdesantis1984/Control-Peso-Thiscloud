@@ -832,30 +832,20 @@ public partial class Profile : IDisposable
     
     /// <summary>
     /// Gets avatar URL with cache busting.
+    /// Browser will handle 404 if file doesn't exist - no need for File.Exists() check.
     /// </summary>
     private string GetAvatarUrl()
     {
         if (_user is null || string.IsNullOrWhiteSpace(_user.AvatarUrl))
             return string.Empty;
 
-        // Verify local file exists using ABSOLUTE path (WebHostEnvironment.WebRootPath)
-        if (_user.AvatarUrl.StartsWith("/uploads/avatars/"))
-        {
-            var filePath = Path.Combine(WebHostEnvironment.WebRootPath, _user.AvatarUrl.TrimStart('/'));
-            if (!File.Exists(filePath))
-            {
-                Logger.LogWarning("Profile: Avatar file not found - Path: {Path}, AvatarUrl: {AvatarUrl}", 
-                    filePath, _user.AvatarUrl);
-                return string.Empty;
-            }
-
-            Logger.LogDebug("Profile: Avatar file verified - Path: {Path}", filePath);
-        }
-
-        // Add cache busting
+        // Add cache busting to force browser reload
         var separator = _user.AvatarUrl.Contains('?') ? '&' : '?';
         var avatarUrlWithCache = $"{_user.AvatarUrl}{separator}v={_avatarVersion}";
-        Logger.LogDebug("Profile: GetAvatarUrl returning - URL: {Url}", avatarUrlWithCache);
+
+        Logger.LogDebug("Profile: GetAvatarUrl returning - URL: {Url}, AvatarVersion: {Version}", 
+            avatarUrlWithCache, _avatarVersion);
+
         return avatarUrlWithCache;
     }
     
