@@ -344,7 +344,7 @@ http://localhost:8080/signin-google
 ### Telegram 401 Unauthorized
 Verificar token completo en `docker-compose.override.yml`:
 ```yaml
-- Telegram__BotToken=7928521075:AAGhzDZ1L04NWpSs-vB2rTU76Bu7U-T8kak
+- Telegram__BotToken=YOUR_TELEGRAM_BOT_TOKEN_HERE
 ```
 
 ---
