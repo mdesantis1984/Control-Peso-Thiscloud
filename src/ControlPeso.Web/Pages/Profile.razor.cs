@@ -259,10 +259,13 @@ public partial class Profile : IDisposable
         }
         finally
         {
+            // CRITICAL: Force re-render BEFORE releasing loading flags
+            // This ensures component renders with fresh data, not stale cached values
+            await InvokeAsync(StateHasChanged);
+
             _isLoading = false;
-            _isLoadingData = false; // CRITICAL: Release lock for next call
+            _isLoadingData = false; // Release lock for next call
             Logger.LogDebug("Profile: LoadUserDataAsync - lock released");
-            await InvokeAsync(StateHasChanged); // FORCE re-render with fresh data
         }
     }
 

@@ -123,7 +123,11 @@ public partial class MainLayout : IDisposable
         }
         finally
         {
-            _isLoadingData = false; // CRITICAL: Release lock for next call
+            // CRITICAL: Force re-render BEFORE releasing loading flag
+            // This ensures header avatar renders with fresh data from DB
+            await InvokeAsync(StateHasChanged);
+
+            _isLoadingData = false; // Release lock for next call
             Logger.LogDebug("MainLayout: LoadUserDataAsync - lock released");
         }
     }
