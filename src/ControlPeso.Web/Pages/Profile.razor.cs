@@ -169,11 +169,23 @@ public partial class Profile : IDisposable
     // ========================================================================
     // LIFECYCLE METHODS
     // ========================================================================
-    
+
     protected override async Task OnInitializedAsync()
     {
         Logger.LogInformation("Profile: Initializing component");
-        
+
+        // Subscribe to UserStateService events (only once)
+        UserStateService.UserThemeUpdated += OnUserThemeUpdatedExternal;
+
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        Logger.LogInformation("Profile: OnParametersSetAsync - FORCE reload user from DB on every navigation/F5");
+
+        _isLoading = true;
+
         try
         {
             // 1. Get authenticated user ID
@@ -184,7 +196,7 @@ public partial class Profile : IDisposable
                 return;
             }
 
-            // 2. Load user profile from database
+            // 2. FORCE load user profile from database (fresh from DB on every F5)
             _user = await LoadUserProfileAsync(userId.Value);
             if (_user is null)
             {
@@ -192,20 +204,26 @@ public partial class Profile : IDisposable
                 return;
             }
 
-            // 3. Map UserDto → ProfileFormModel (DTO mapping)
+            // 3. Update cache busting version to force browser reload avatar
+            _avatarVersion = DateTime.UtcNow.Ticks;
+            Logger.LogInformation("Profile: Avatar URL from DB: {AvatarUrl}, Cache version: {Version}", 
+                _user.AvatarUrl ?? "(null)", _avatarVersion);
+
+            // 4. Map UserDto → ProfileFormModel (DTO mapping)
             MapUserDtoToFormModel(_user);
 
-            // 4. Load user preferences (Dark Mode, Notifications)
+            // 5. Load user preferences (Dark Mode, Notifications)
             await LoadUserPreferencesAsync(userId.Value);
 
-            // 5. Load weight statistics
+            // 6. Load weight statistics
             await LoadWeightStatisticsAsync(userId.Value);
 
-            Logger.LogInformation("Profile: Component initialized successfully - UserId: {UserId}", userId);
+            Logger.LogInformation("Profile: User reloaded from DB - UserId: {UserId}, AvatarUrl: {AvatarUrl}", 
+                userId, _user.AvatarUrl ?? "(null)");
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Profile: Error initializing component");
+            Logger.LogError(ex, "Profile: Error loading component data");
             Snackbar.Add(ErrorLoadingProfileGeneral, Severity.Error);
         }
         finally
@@ -213,6 +231,8 @@ public partial class Profile : IDisposable
             _isLoading = false;
             await InvokeAsync(StateHasChanged);
         }
+
+        await base.OnParametersSetAsync();
     }
 
     public void Dispose()

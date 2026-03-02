@@ -60,26 +60,33 @@ public partial class MainLayout : IDisposable
         // Suscribirse a cambios de tema (para sincronizar switches de Profile con botón de AppBar)
         UserStateService.UserThemeUpdated += OnUserThemeUpdated;
 
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        Logger.LogInformation("MainLayout: OnParametersSetAsync - FORCE reload user from DB on every navigation/F5");
+
         try
         {
             // NO cargar tema aquí - se hará en OnAfterRenderAsync cuando JS interop esté disponible
             // Durante prerendering (Blazor Server), JavaScript interop NO está disponible
 
-            // Cargar usuario actual si está autenticado
+            // FORCE cargar usuario actual desde DB si está autenticado (fresh on every F5)
             await LoadCurrentUserAsync();
 
             // Cerrar drawer por defecto si el usuario NO está autenticado (seguridad)
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
             _drawerOpen = authState.User.Identity?.IsAuthenticated ?? false;
-            Logger.LogInformation("MainLayout: Drawer initial state - IsOpen: {IsOpen}, IsAuthenticated: {IsAuth}",
-                _drawerOpen, authState.User.Identity?.IsAuthenticated ?? false);
+            Logger.LogInformation("MainLayout: Drawer state - IsOpen: {IsOpen}, IsAuthenticated: {IsAuth}, CurrentUser: {HasUser}",
+                _drawerOpen, authState.User.Identity?.IsAuthenticated ?? false, _currentUser != null);
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "MainLayout: Error during initialization");
+            Logger.LogError(ex, "MainLayout: Error during parameters set");
         }
 
-        await base.OnInitializedAsync();
+        await base.OnParametersSetAsync();
     }
 
     /// <summary>
