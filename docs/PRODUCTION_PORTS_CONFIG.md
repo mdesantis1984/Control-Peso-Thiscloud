@@ -158,14 +158,14 @@ services:
       # Database
       - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=ControlPeso;User Id=sa;Password=TuPasswordSeguro2026!;TrustServerCertificate=True;MultipleActiveResultSets=True;Encrypt=False
 
-      # Google OAuth
-      - Authentication__Google__ClientId=180510012560-6a1l32rfl33pdk7q7aehbe8o06urbl0h.apps.googleusercontent.com
-      - Authentication__Google__ClientSecret=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
+      # Google OAuth (valores reales configurados en deploy.ps1 - NO versionado)
+      - Authentication__Google__ClientId=YOUR_GOOGLE_CLIENT_ID_HERE
+      - Authentication__Google__ClientSecret=YOUR_GOOGLE_CLIENT_SECRET_HERE
 
-      # Telegram
+      # Telegram (valores reales configurados en deploy.ps1 - NO versionado)
       - Telegram__Enabled=true
-      - Telegram__BotToken=7928521075:AAGhzDZ1L04NWpSs-vB2rTU76Bu7U-T8kak
-      - Telegram__ChatId=8393180247
+      - Telegram__BotToken=YOUR_TELEGRAM_BOT_TOKEN_HERE
+      - Telegram__ChatId=YOUR_TELEGRAM_CHAT_ID_HERE
       - Telegram__Environment=Production
 
       # Production Settings
