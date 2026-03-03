@@ -1,0 +1,19 @@
+{
+  "ConnectionStrings": { 
+    "DefaultConnection": "Server=localhost\\SQLEXPRESS;Database=ControlPeso;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True" 
+  },
+  "App": {
+    "BaseUrl": "https://localhost:7143"
+  },
+  "Authentication": {
+    "Google": {
+      "ClientId": "YOUR_GOOGLE_CLIENT_ID_HERE",
+      "ClientSecret": "YOUR_GOOGLE_CLIENT_SECRET_HERE"
+    }
+  },
+  "Telegram": {
+    "Enabled": true,
+    "BotToken": "YOUR_TELEGRAM_BOT_TOKEN_HERE",
+    "ChatId": "YOUR_TELEGRAM_CHAT_ID_HERE"
+  }
+}
