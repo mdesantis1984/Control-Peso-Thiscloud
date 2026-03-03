@@ -15,7 +15,13 @@ NC='\033[0m' # No Color
 
 # Configuration
 SQLITE_DB_PATH="${SQLITE_DB_PATH:-./controlpeso.db}"
-SQLSERVER_CONNECTION="${SQLSERVER_CONNECTION:-Server=localhost,1433;Database=ControlPeso;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True}"
+SQLSERVER_HOST="${SQLSERVER_HOST:-localhost}"
+SQLSERVER_PORT="${SQLSERVER_PORT:-1433}"
+SQLSERVER_DATABASE="${SQLSERVER_DATABASE:-ControlPeso}"
+SQLSERVER_USER="${SQLSERVER_USER:-sa}"
+SQLSERVER_PASSWORD="${SQLSERVER_PASSWORD:?Error: SQLSERVER_PASSWORD environment variable required}"
+
+SQLSERVER_CONNECTION="Server=${SQLSERVER_HOST},${SQLSERVER_PORT};Database=${SQLSERVER_DATABASE};User Id=${SQLSERVER_USER};Password=${SQLSERVER_PASSWORD};TrustServerCertificate=True"
 
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}Control Peso - SQLite → SQL Server Migration${NC}"
@@ -221,11 +227,11 @@ SQL_SCHEMA
 
 # Ejecutar schema con sqlcmd (instalado en contenedor SQL Server)
 docker exec controlpeso-sqlserver /opt/mssql-tools18/bin/sqlcmd \
-  -S localhost -U sa -P "YourStrong@Passw0rd" -C \
+  -S localhost -U sa -P "${SQLSERVER_PASSWORD}" -C \
   -Q "IF EXISTS (SELECT name FROM sys.databases WHERE name = 'ControlPeso') DROP DATABASE ControlPeso; CREATE DATABASE ControlPeso;"
 
 docker exec controlpeso-sqlserver /opt/mssql-tools18/bin/sqlcmd \
-  -S localhost -U sa -P "YourStrong@Passw0rd" -C \
+  -S localhost -U sa -P "${SQLSERVER_PASSWORD}" -C \
   -d ControlPeso -i /tmp/create-schema.sql
 
 echo -e "${GREEN}✓ Schema creado correctamente${NC}"
@@ -234,7 +240,7 @@ echo ""
 echo -e "${YELLOW}[4/5] Importando datos a SQL Server...${NC}"
 # Importar datos
 docker exec controlpeso-sqlserver /opt/mssql-tools18/bin/sqlcmd \
-  -S localhost -U sa -P "YourStrong@Passw0rd" -C \
+  -S localhost -U sa -P "${SQLSERVER_PASSWORD}" -C \
   -d ControlPeso -i /tmp/sqlite-export.sql
 
 echo -e "${GREEN}✓ Datos importados correctamente${NC}"
@@ -256,7 +262,7 @@ SQL_VERIFY
 
 echo -e "${GREEN}Conteos de registros en SQL Server:${NC}"
 docker exec controlpeso-sqlserver /opt/mssql-tools18/bin/sqlcmd \
-  -S localhost -U sa -P "YourStrong@Passw0rd" -C \
+  -S localhost -U sa -P "${SQLSERVER_PASSWORD}" -C \
   -d ControlPeso -i /tmp/verify-counts.sql
 
 echo ""
@@ -267,7 +273,7 @@ echo ""
 echo -e "${YELLOW}Próximos pasos:${NC}"
 echo "1. Actualizar connection string en appsettings.Production.json"
 echo "2. Re-scaffold DbContext para SQL Server:"
-echo "   dotnet ef dbcontext scaffold \"$SQLSERVER_CONNECTION\" \\"
+echo "   dotnet ef dbcontext scaffold \"${SQLSERVER_CONNECTION}\" \\"
 echo "     Microsoft.EntityFrameworkCore.SqlServer --force"
 echo "3. Actualizar docker-compose.production.yml con SQL Server"
 echo "4. Test de aplicación con nueva BD"
