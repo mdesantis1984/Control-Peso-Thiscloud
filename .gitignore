@@ -417,3 +417,7 @@ backup-*.db
 # Telegram Bot tokens (development)
 telegram-config.json
 telegram-secrets.json
+
+# Docker image tars (deployment artifacts)
+controlpeso-web_latest.tar
+*.tar

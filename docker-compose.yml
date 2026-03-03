@@ -33,9 +33,9 @@ services:
   # ============================================
   controlpeso-web:
     container_name: controlpeso-web
-    build:
-      context: .
-      dockerfile: Dockerfile
+    # IMPORTANTE: NO usar build aquí - imagen debe pre-construirse localmente con docker build
+    # Comando para construir: docker build -t controlpeso-web:latest -f Dockerfile .
+    image: controlpeso-web:latest
     ports:
       - "8080:8080"  # HTTP
     environment:
