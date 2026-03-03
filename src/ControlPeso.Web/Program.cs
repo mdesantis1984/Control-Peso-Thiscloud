@@ -193,6 +193,16 @@ builder.Services.AddRateLimiter(options =>
 
 var app = builder.Build();
 
+// ============================================================================
+// CRÍTICO: UseForwardedHeaders DEBE ser el PRIMER middleware (producción)
+// - ANTES de UseExceptionHandler, UseHsts, UseHttpsRedirection, UseAuthentication
+// - Necesario para que OAuth genere URLs https:// correctamente detrás de NPM Plus
+// ============================================================================
+if (!app.Environment.IsDevelopment())
+{
+    app.UseForwardedHeaders();
+}
+
 // 1. Global exception handler - catches unhandled exceptions and sends to Telegram
 app.UseGlobalExceptionHandler();
 app.Logger.LogInformation("=== APP BUILT SUCCESSFULLY ===");
@@ -207,9 +217,6 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
-
-    // Use forwarded headers from NPM Plus reverse proxy
-    app.UseForwardedHeaders();
 }
 
 // HTTPS Redirection - puede deshabilitarse con variable de ambiente (útil para Docker local sin SSL)
