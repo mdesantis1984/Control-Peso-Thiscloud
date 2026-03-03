@@ -407,7 +407,13 @@ coverage/
 !.env.example
 docker-compose.override.yml
 docker-compose.override.yml.*
+!docker-compose.override.yml.example
 docker-compose.override.yml
+
+# Secrets local system (NEVER commit)
+.secrets.local
+.secrets.local.*
+!.secrets.local.example
 docker-data/
 docker-logs/
 backup-*.db

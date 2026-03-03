@@ -47,6 +47,25 @@ ControlPeso.Thiscloud.sln
 
 ## 🚨 REGLAS NO NEGOCIABLES
 
+### Meta-Reglas (0.1-0.3) — LEER PRIMERO
+
+0.1. ❌ **PROHIBIDO crear archivos .md nuevos** sin pedido explícito del usuario
+   - Usuario NO quiere documentación .md adicional (ya pasó 5+ veces)
+   - ÚNICO .md permitido: este archivo (copilot-instructions.md)
+   - Si necesitas documentar algo → agregar AQUÍ, NO crear nuevo .md
+
+0.2. ✅ **Sistema de secretos**: `.secrets.local` (archivo local, gitignored)
+   - Archivo: `.secrets.local` (gitignored)
+   - Template: `.secrets.local.example` (trackeado)
+   - Uso: `docker compose -f docker-compose.yml -f .secrets.local up -d`
+   - NUNCA commitear `.secrets.local`
+
+0.3. ✅ **Rotación de secretos expuestos** (hacer inmediatamente post-merge)
+   - Google OAuth: console.cloud.google.com → Delete old ClientID → Create new
+   - Telegram Bot: @BotFather → `/revoke` → `/token`
+   - SQL SA: `docker exec` → `ALTER LOGIN sa WITH PASSWORD = 'new'`
+   - Actualizar `.secrets.local` local + producción
+
 ### Arquitectura (1-6)
 
 1. ✅ Respetar Onion: Domain (zero deps) → Application (Domain) → Infrastructure (Domain+App) → Web (App+Infra)
@@ -379,6 +398,67 @@ public static WeightLogDto MapToDto(WeightLog entity) => new()
 14. ❌ Data Annotations en entidades scaffolded
 15. ❌ Migrations code-first
 16. ❌ Modificar entidades scaffolded manualmente
+
+---
+
+## 🔒 Checklist Pre-Commit SEGURIDAD (OBLIGATORIO)
+
+**ANTES de hacer `git add` / `git commit`, verificar**:
+
+### Archivos con Secretos
+- [ ] NO commitear `appsettings.Development.json` (contiene OAuth, Telegram)
+- [ ] NO commitear `appsettings.Production.json` (contiene DB password, OAuth)
+- [ ] NO commitear `docker-compose.override.yml` (contiene passwords)
+- [ ] NO commitear `.env` o `.env.local`
+- [ ] Templates `.template` / `.example` solo con placeholders `YOUR_*_HERE`
+
+### Escaneo Rápido
+```bash
+# Verificar staging NO incluye secretos
+git diff --staged | grep -iE "(ClientSecret|BotToken|Password=|API.*KEY)"
+
+# Si aparece algo → DETENER y remover:
+git reset HEAD archivo_con_secreto
+```
+
+### Logs Inadecuados
+- [ ] NO loguear tokens OAuth, JWT, API keys
+- [ ] NO loguear contraseñas o connection strings
+- [ ] NO loguear request/response bodies completos (solo metadata)
+
+### Connection Strings
+- [ ] ✅ Usar placeholders: `Password=YOUR_SQL_PASSWORD_HERE`
+- [ ] ✅ Usar variables entorno: `${SQLSERVER_SA_PASSWORD:?Error required}`
+- [ ] ❌ NUNCA hardcodear: `Password=CHANGE_ME` ← PROHIBIDO
+
+### Docker Compose
+- [ ] `docker-compose.yml` → Config base, SIN secretos
+- [ ] `docker-compose.production.yml` → Referencias `${VAR:?Error}`, SIN defaults inseguros
+- [ ] `docker-compose.override.yml.example` → Placeholders, trackeado
+- [ ] `docker-compose.override.yml` → Secretos reales, .gitignore
+
+### Scripts
+- [ ] Scripts PowerShell / Bash: NO passwords hardcodeadas
+- [ ] Usar parámetros o variables entorno: `$SQLSERVER_PASSWORD`
+
+### Documentación
+- [ ] README / docs: Ejemplos genéricos (`YOUR_SECRET_HERE`)
+- [ ] NO incluir credentials reales, IPs privadas sensibles, tokens
+
+### Build Local OK
+- [ ] `dotnet build` pasa sin warnings
+- [ ] Tests pasan: `dotnet test`
+- [ ] Aplicación arranca sin errores (si aplica)
+
+### Verificación Final
+```bash
+# Verificar staging limpio
+git status
+git diff --staged
+
+# Si TODO OK → commit
+git commit -m "tipo(scope): descripción"
+```
 
 ---
 
