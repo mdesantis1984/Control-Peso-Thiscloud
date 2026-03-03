@@ -47,6 +47,25 @@ ControlPeso.Thiscloud.sln
 
 ## 🚨 REGLAS NO NEGOCIABLES
 
+### Meta-Reglas (0.1-0.3) — LEER PRIMERO
+
+0.1. ❌ **PROHIBIDO crear archivos .md nuevos** sin pedido explícito del usuario
+   - Usuario NO quiere documentación .md adicional (ya pasó 5+ veces)
+   - ÚNICO .md permitido: este archivo (copilot-instructions.md)
+   - Si necesitas documentar algo → agregar AQUÍ, NO crear nuevo .md
+
+0.2. ✅ **Sistema de secretos**: `.secrets.local` (archivo local, gitignored)
+   - Archivo: `.secrets.local` (gitignored)
+   - Template: `.secrets.local.example` (trackeado)
+   - Uso: `docker compose -f docker-compose.yml -f .secrets.local up -d`
+   - NUNCA commitear `.secrets.local`
+
+0.3. ✅ **Rotación de secretos expuestos** (hacer inmediatamente post-merge)
+   - Google OAuth: console.cloud.google.com → Delete old ClientID → Create new
+   - Telegram Bot: @BotFather → `/revoke` → `/token`
+   - SQL SA: `docker exec` → `ALTER LOGIN sa WITH PASSWORD = 'new'`
+   - Actualizar `.secrets.local` local + producción
+
 ### Arquitectura (1-6)
 
 1. ✅ Respetar Onion: Domain (zero deps) → Application (Domain) → Infrastructure (Domain+App) → Web (App+Infra)
