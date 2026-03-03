@@ -47,6 +47,9 @@ RUN mkdir -p /app/data /app/logs /root/.aspnet/DataProtection-Keys
 # Copy published application
 COPY --from=publish /app/publish .
 
+# Remove static SEO files if they exist (served dynamically by Minimal APIs)
+RUN rm -f /app/wwwroot/robots.txt* /app/wwwroot/sitemap.xml*
+
 # Set environment variables
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production

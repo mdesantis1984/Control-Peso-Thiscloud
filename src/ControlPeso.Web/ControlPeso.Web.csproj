@@ -22,6 +22,10 @@
     <PackageReference Include="ThisCloud.Framework.Loggings.Serilog" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>

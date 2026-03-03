@@ -6,9 +6,9 @@ services:
   # ============================================
   controlpeso-sqlserver:
     container_name: controlpeso-sqlserver
-    build:
-      context: .
-      dockerfile: Dockerfile.sqlserver
+    # IMPORTANTE: NO usar build aquí - imagen debe pre-construirse localmente con docker build
+    # Comando para construir: docker build -t controlpeso-sqlserver:latest -f Dockerfile.sqlserver .
+    image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       - ACCEPT_EULA=Y
       - MSSQL_SA_PASSWORD=${SQLSERVER_SA_PASSWORD:-Cp2025!Th1sC10udS3cur3Pwd#}
@@ -43,9 +43,9 @@ services:
   # ============================================
   controlpeso-web:
     container_name: controlpeso-web
-    build:
-      context: .
-      dockerfile: Dockerfile
+    # IMPORTANTE: NO usar build aquí - imagen debe pre-construirse localmente con docker build
+    # Comando para construir: docker build -t controlpeso-web:latest -f Dockerfile .
+    image: controlpeso-web:latest
     ports:
       - "${APP_PORT:-8080}:8080"  # External port configurable via env var (default 8080)
     environment:
