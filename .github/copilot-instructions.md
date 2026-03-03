@@ -287,6 +287,19 @@ internal sealed class WeightLogService : IWeightLogService
 109. ✅ Orden deploy: Local test OK → Commit/Push → PR merge → Deploy desde main/develop
 110. ✅ Rollback: Revertir imagen Docker anterior + restaurar backup BD si necesario
 
+### CI/CD Automation (111-120)
+
+111. ✅ **GitHub Actions workflows automáticos** en `.github/workflows/`
+112. ✅ **CI Pipeline** (`ci.yml`): Trigger en PR/push a `develop`/`main` → Restore → Build Release → Test → Upload coverage
+113. ✅ **Release Pipeline** (`release.yml`): Trigger SOLO en push a `main` → Auto-genera tag semántico → Crea GitHub Release
+114. ❌ **PROHIBIDO crear tags manualmente** (CI/CD lo hace automáticamente con `mathieudutour/github-tag-action@v6.2`)
+115. ✅ Tags semánticos: `v{major}.{minor}.{patch}` (default bump: `minor`)
+116. ✅ Conventional Commits controla bump: `feat:` = minor, `fix:` = patch, `BREAKING CHANGE:` = major
+117. ✅ GitHub Release incluye: changelog automático, comparison link, annotated tag
+118. ❌ **PROHIBIDO mergear PR si CI falla** (regla 93: PR requiere CI verde)
+119. ✅ Workflow permissions: `ci.yml` (contents: read), `release.yml` (contents: write)
+120. ✅ Artifacts CI: Coverage reports en `coverage.cobertura.xml` (upload-artifact@v4)
+
 ---
 
 ## Modelo de Datos (SQL → EF Scaffold)
@@ -508,11 +521,25 @@ git commit -m "feat(scope): descripción"
 git push origin feature/nombre-descriptivo
 # → PR en GitHub: feature/* → develop
 
-# 4. Merge y limpieza
+# 4. CI/CD Automático
+# ✅ GitHub Actions ejecuta CI (build, test, coverage)
+# ✅ PR requiere CI verde para mergear (branch protection)
+# ❌ NO crear tags manualmente (CI/CD lo hace)
+
+# 5. Merge y limpieza
 git checkout develop
 git pull origin develop
 git branch -d feature/nombre-descriptivo         # Local
 git push origin --delete feature/nombre-descriptivo  # Remoto
+
+# 6. Release Automático (SOLO cuando develop → main)
+# ✅ Push a main trigger release.yml workflow
+# ✅ Genera tag semántico (v{major}.{minor}.{patch})
+# ✅ Crea GitHub Release con changelog automático
+# ✅ Conventional Commits controla versioning:
+#    - feat: → bump minor (v7.0.0 → v7.1.0)
+#    - fix: → bump patch (v7.0.0 → v7.0.1)
+#    - BREAKING CHANGE: → bump major (v7.0.0 → v8.0.0)
 ```
 
 ### Commits
@@ -793,3 +820,9 @@ A: ✅ TODOS (https://mudblazor.com/api#components). Pixel perfect.
 - [ ] Logs sin errores: `docker logs controlpeso-web --tail=50`
 - [ ] Docker cleanup: `docker compose down` post-test
 - [ ] Usar `scripts/deploy-production.ps1` para deployment automatizado
+
+### CI/CD (Automático)
+- [ ] Commit message formato Conventional Commits: `tipo(scope): descripción`
+- [ ] PR esperará CI verde (GitHub Actions ejecuta `.github/workflows/ci.yml`)
+- [ ] ❌ NO crear tags manualmente (workflow `release.yml` lo hace automático en push a `main`)
+- [ ] Release automático usa Conventional Commits para bump version (feat=minor, fix=patch, BREAKING=major)
