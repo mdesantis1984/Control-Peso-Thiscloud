@@ -11,7 +11,7 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=${SQLSERVER_SA_PASSWORD:?Error: SQLSERVER_SA_PASSWORD env variable required}
+      - MSSQL_SA_PASSWORD=${SQLSERVER_SA_PASSWORD}
       - MSSQL_PID=Express
       - MSSQL_TCP_PORT=1433
     ports:
@@ -57,7 +57,7 @@ services:
       - ASPNETCORE_DataProtection__Path=/root/.aspnet/DataProtection-Keys
 
       # Database Connection (SQL Server)
-      - ConnectionStrings__DefaultConnection=Server=controlpeso-sqlserver,1433;Database=ControlPeso;User Id=sa;Password=${SQLSERVER_SA_PASSWORD:?Error: SQLSERVER_SA_PASSWORD env variable required};TrustServerCertificate=True
+      - ConnectionStrings__DefaultConnection=Server=controlpeso-sqlserver,1433;Database=ControlPeso;User Id=sa;Password=${SQLSERVER_SA_PASSWORD};TrustServerCertificate=True
 
       # Logging Configuration (ThisCloud.Framework)
       - ThisCloud__Loggings__IsEnabled=true
