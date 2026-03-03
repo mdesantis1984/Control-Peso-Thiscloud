@@ -1,0 +1,66 @@
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=controlpeso-sqlserver,1433;Database=ControlPeso;User Id=sa;Password=YOUR_SQL_PASSWORD_HERE;TrustServerCertificate=True;MultipleActiveResultSets=True"
+  },
+  "Authentication": {
+    "Google": {
+      "ClientId": "YOUR_GOOGLE_CLIENT_ID_HERE",
+      "ClientSecret": "YOUR_GOOGLE_CLIENT_SECRET_HERE"
+    },
+    "LinkedIn": {
+      "ClientId": "YOUR_LINKEDIN_CLIENT_ID_HERE",
+      "ClientSecret": "YOUR_LINKEDIN_CLIENT_SECRET_HERE"
+    }
+  },
+  "Telegram": {
+    "Enabled": true,
+    "BotToken": "YOUR_TELEGRAM_BOT_TOKEN_HERE",
+    "ChatId": "YOUR_TELEGRAM_CHAT_ID_HERE",
+    "Environment": "Production"
+  },
+  "GoogleAnalytics": {
+    "MeasurementId": "YOUR_GA_MEASUREMENT_ID_HERE"
+  },
+  "App": {
+    "Name": "Control Peso Thiscloud",
+    "Version": "4.0.0",
+    "DefaultLanguage": "es",
+    "SupportedLanguages": [
+      "es",
+      "en"
+    ],
+    "BaseUrl": "https://controlpeso.thiscloud.com.ar"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning",
+      "Microsoft.EntityFrameworkCore.Database.Command": "Warning"
+    }
+  },
+  "ThisCloud": {
+    "Loggings": {
+      "IsEnabled": true,
+      "MinimumLevel": "Information",
+      "Console": {
+        "Enabled": false
+      },
+      "File": {
+        "Enabled": true,
+        "Path": "logs/app-.log",
+        "RollingInterval": "Day",
+        "RetainedFileCountLimit": 30,
+        "RollingFileSizeLimitBytes": 104857600,
+        "OutputFormat": "NDJSON"
+      },
+      "Redaction": {
+        "Enabled": true
+      },
+      "CorrelationId": {
+        "Enabled": true,
+        "HeaderName": "X-Correlation-ID"
+      }
+    }
+  },
+  "AllowedHosts": "*"
+}

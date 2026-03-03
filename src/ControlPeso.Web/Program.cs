@@ -156,6 +156,9 @@ builder.Services.Configure<ControlPeso.Web.Services.TelegramOptions>(
 // 6.7. Add User State Service (shared state across components)
 builder.Services.AddScoped<ControlPeso.Web.Services.UserStateService>();
 
+// 6.8. Add SEO Services (Sitemap & Robots.txt generation via Minimal APIs)
+builder.Services.AddScoped<ControlPeso.Web.Services.SitemapService>();
+
 // 7. Add Authentication & Authorization (Google OAuth + LinkedIn OAuth)
 builder.Services.AddOAuthAuthentication(builder.Configuration);
 
@@ -255,8 +258,13 @@ app.UseRequestLocalization(
 
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.UseAntiforgery();
+
+// ============================================================================
+// CRÍTICO: SEO Endpoints MUST be FIRST to take precedence over Blazor routing
+// Register /robots.txt and /sitemap.xml BEFORE any other endpoint mapping
+// ============================================================================
+app.MapSeoEndpoints();
 
 // Register authentication endpoints (OAuth Challenge + Logout)
 app.MapAuthenticationEndpoints();
@@ -272,6 +280,7 @@ app.MapGet("/health", () => Results.Ok(new
 .WithTags("Health")
 .ExcludeFromDescription(); // No mostrar en Swagger si se agrega
 
+// Static files AFTER SEO endpoints (MapStaticAssets handles optimization)
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
