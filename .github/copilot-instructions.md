@@ -268,6 +268,25 @@ internal sealed class WeightLogService : IWeightLogService
 93. ✅ PR obligatorio con CI verde
 94. ✅ Feature branches eliminadas post-merge (local + remoto)
 
+### Deployment (95-110)
+
+95. ❌ PROHIBIDO deploy directo desde feature branches
+96. ✅ Deploy SOLO desde `main` (production) o `develop` (pre-production)
+97. ✅ Test local ANTES de commit: `docker compose -f docker-compose.yml -f .secrets.local up -d`
+98. ✅ Verificar `/health` retorna 200 local antes de push
+99. ✅ Build + test imagen Docker local antes de transfer
+100. ✅ SQL Server password rotation requiere ALTER LOGIN (conectar con antigua → ALTER LOGIN → actualizar env vars → restart)
+101. ❌ PROHIBIDO `version:` en `.secrets.local` o archivos overlay
+102. ❌ PROHIBIDO `${VAR:?Error}` en `docker-compose.production.yml` (causa merge conflicts, usar `${VAR}`)
+103. ✅ Producción DEBE usar sistema `.secrets.local`, NO `docker-compose.override.yml`
+104. ✅ Checklist pre-deploy: containers HEALTHY local, `/health` 200, logs sin errores
+105. ✅ Checklist post-deploy: containers HEALTHY remoto, `/health` 200, logs sin errores, endpoints (robots.txt, sitemap.xml) funcionando
+106. ✅ Script deployment: `scripts/deploy-production.ps1` (test local → build → transfer → deploy → verify)
+107. ❌ PROHIBIDO commitear `.secrets.local` (gitignored, contiene credenciales reales)
+108. ✅ Template `.secrets.local.example` SÍ commitear (solo placeholders `CHANGE_ME_*`)
+109. ✅ Orden deploy: Local test OK → Commit/Push → PR merge → Deploy desde main/develop
+110. ✅ Rollback: Revertir imagen Docker anterior + restaurar backup BD si necesario
+
 ---
 
 ## Modelo de Datos (SQL → EF Scaffold)
@@ -745,7 +764,8 @@ A: ✅ TODOS (https://mudblazor.com/api#components). Pixel perfect.
 
 ## Checklist Pre-Commit
 
-- [ ] `dotnet build` sin warnings
+### Código y Arquitectura
+- [ ] `dotnet build` sin warnings críticos
 - [ ] Tests pasan (`dotnet test`)
 - [ ] NO `@code { }` en `.razor`
 - [ ] Code-behind `.razor.cs` separado
@@ -756,5 +776,20 @@ A: ✅ TODOS (https://mudblazor.com/api#components). Pixel perfect.
 - [ ] Validación FluentValidation
 - [ ] Excepciones específicas
 - [ ] `CancellationToken` en async
-- [ ] NO secretos hardcodeados
 - [ ] Plan actualizado si tarea completada
+
+### Seguridad (CRÍTICO)
+- [ ] NO secretos hardcodeados en código
+- [ ] `.secrets.local` NO en staging: `git status` no muestra `.secrets.local`
+- [ ] `.secrets.local.example` solo tiene placeholders `CHANGE_ME_*`
+- [ ] Verificar con `git diff --staged` que NO hay passwords, tokens, API keys
+- [ ] `appsettings.*.json` con secretos están en `.gitignore`
+- [ ] Connection strings usan placeholders o variables
+
+### Deployment (si aplica)
+- [ ] Test local con `.secrets.local`: `docker compose -f docker-compose.yml -f .secrets.local up -d`
+- [ ] `/health` retorna 200: `curl http://localhost:8080/health`
+- [ ] Containers HEALTHY: `docker ps` muestra `(healthy)`
+- [ ] Logs sin errores: `docker logs controlpeso-web --tail=50`
+- [ ] Docker cleanup: `docker compose down` post-test
+- [ ] Usar `scripts/deploy-production.ps1` para deployment automatizado
