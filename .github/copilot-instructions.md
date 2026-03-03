@@ -3,7 +3,7 @@
 > **Proyecto**: ControlPeso.Thiscloud
 > **Archivo**: `.github/copilot-instructions.md`
 > **Modelo Copilot**: Claude Sonnet 4.5 (modo agente)
-> **Última actualización**: 2026-02-17
+> **Última actualización**: 2026-03-03
 > **Estado del proyecto**: 🟢 EN DESARROLLO — Fase 3/8 (53.2% completado)
 
 ---
@@ -936,52 +936,74 @@ dotnet ef dbcontext scaffold "Data Source=../../controlpeso.db" \
 
 ## Git Flow ControlPeso.Thiscloud (MANDATORIO)
 
-### Ramas Principales
+### Ramas Permanentes
 
-- **`main`** - Rama principal (producción). PROTEGIDA. Solo recibe merges desde `develop`.
-- **`develop`** - Rama de integración/desarrollo. PROTEGIDA. Recibe merges desde `feature/*`.
-- **`feature/*`** - Ramas de trabajo (ej: `feature/fase-2`, `feature/fase-3`). Se crean desde `develop`.
+- **`main`** - Producción. PROTEGIDA. Solo recibe PRs desde `develop`.
+- **`develop`** - Integración/desarrollo. PROTEGIDA. Recibe PRs desde `feature/*`.
 
-### Flujo Completo
+**CRÍTICO**: Estas son las **ÚNICAS** ramas que permanecen. Todas las `feature/*` se eliminan después del merge.
+
+### Ramas Temporales
+
+- **`feature/*`** - Trabajo temporal (ej: `feature/fase-2`, `feature/deploy-production-v4.0.0`).
+  - Se crean desde `develop`
+  - Se eliminan después del merge (local + remoto)
+
+### Flujo Simplificado (workflow real)
 
 ```
-1. Crear feature desde develop actualizado:
+1. Crear feature desde develop:
    git checkout develop
    git pull origin develop
-   git checkout -b feature/fase-X
+   git checkout -b feature/nombre-descriptivo
 
-2. Trabajar en la fase:
-   - Hacer commits POR TAREA completada (no por archivo)
-   - Ejemplo: "feat(fase-2): complete P2.1 - create service interfaces"
-   - Cada commit debe representar una tarea del plan terminada
+2. Trabajar en la feature:
+   - PROBAR primero (deploy, test, validar)
+   - Commits al FINAL cuando todo funciona
+   - Commit descriptivo por tarea completada
 
-3. Finalizar fase completa:
-   - Verificar que TODAS las tareas de la fase están ✅
-   - git push origin feature/fase-X
-   - Crear PR: feature/fase-X → develop
+3. Push y PR a develop:
+   git add .
+   git commit -m "feat(scope): descripción completa"
+   git push origin feature/nombre-descriptivo
+   → Crear PR en GitHub: feature/* → develop
 
 4. Aprobar PR:
    - Review + CI verde
    - Merge a develop (create merge commit, NO squash)
-   - Eliminar rama feature/fase-X
 
-5. Integrar a main (solo cuando develop está estable):
-   - PR: develop → main
-   - NUNCA directamente desde feature/* a main
-   - Solo cuando múltiples fases están completas y estables
+5. Limpieza de rama feature (local + remoto):
+   git checkout develop
+   git pull origin develop
+   git branch -d feature/nombre-descriptivo        # Local
+   git push origin --delete feature/nombre-descriptivo  # Remoto
 
-6. Siguiente fase:
-   - git checkout develop
-   - git pull origin develop
-   - git checkout -b feature/fase-Y
-   - Repetir desde paso 2
-
-7. Release final (al completar TODO el plan):
-   - Todas las fases P0-P8 completas en develop
-   - PR final: develop → main
+6. PR de develop a main (cuando esté estable):
+   → Crear PR en GitHub: develop → main
+   - Review + CI verde + QA completo
    - Merge a main
-   - Crear tag: git tag v1.0.0
-   - git push origin v1.0.0
+   - Crear tag de release: git tag v1.0.0 && git push origin v1.0.0
+
+7. RESULTADO FINAL:
+   Solo existen 2 ramas remotas: main + develop
+   Todas las features eliminadas después del merge
+```
+
+### Filosofía de Commits
+
+**"Test First, Commit After"** — NO commitear hasta confirmar que funciona.
+
+```
+# ❌ MAL - Commit antes de probar
+git add .
+git commit -m "feat: add robots.txt endpoint"  ← ¿Funciona? ¿Está testeado?
+
+# ✅ BIEN - Probar primero, commit después
+1. Implementar código
+2. Build local: dotnet build (sin errores)
+3. Deploy a producción: docker build + transfer + deploy
+4. Verificar: curl endpoints, logs, containers HEALTHY
+5. SOLO SI TODO OK → git add . && git commit && git push
 ```
 
 ### Reglas Obligatorias
@@ -989,11 +1011,13 @@ dotnet ef dbcontext scaffold "Data Source=../../controlpeso.db" \
 - ❌ **PROHIBIDO** commits directos a `main` o `develop`
 - ❌ **PROHIBIDO** PR directo de `feature/*` a `main` (siempre pasar por `develop`)
 - ❌ **PROHIBIDO** squash commits (usar "Create a merge commit")
+- ❌ **PROHIBIDO** dejar ramas `feature/*` después del merge (limpiar local + remoto)
 - ✅ **OBLIGATORIO** PR con CI verde antes de merge
+- ✅ **OBLIGATORIO** probar ANTES de commit (deploy, test, verificar)
 - ✅ **OBLIGATORIO** commits descriptivos por tarea completada
-- ✅ **OBLIGATORIO** actualizar plan ANTES de marcar tarea "Done"
-- ✅ **OBLIGATORIO** eliminar rama feature/* después de merge
+- ✅ **OBLIGATORIO** eliminar rama feature después de merge (local + remoto)
 - ✅ **OBLIGATORIO** pull de develop antes de crear nueva feature
+- ✅ **OBLIGATORIO** solo 2 ramas permanentes: `main` + `develop`
 
 ### Estructura de Commits
 
@@ -1001,7 +1025,7 @@ dotnet ef dbcontext scaffold "Data Source=../../controlpeso.db" \
 Formato: <tipo>(scope): <descripción>
 
 Tipos:
-- feat: Nueva funcionalidad (ej: feat(fase-2): add IWeightLogService interface)
+- feat: Nueva funcionalidad (ej: feat(seo): add robots.txt with 50+ AI crawlers)
 - fix: Corrección de bug
 - docs: Cambios en documentación
 - style: Formato de código (no afecta lógica)
@@ -1011,42 +1035,60 @@ Tipos:
 - ci: Cambios en CI/CD workflows
 
 Ejemplos:
-✅ feat(fase-2): complete P2.1 - create service interfaces
-✅ feat(fase-2): complete P2.2 - create DTOs with validation
+✅ feat(seo): implement Minimal APIs for robots.txt and sitemap.xml with 50+ AI crawlers
+✅ fix(auth): resolve Google OAuth redirect loop
 ✅ test(application): add unit tests for WeightLogService
-✅ docs: update plan - mark P2.1-P2.4 as completed
-✅ ci: fix build workflow for .NET 10
+✅ docs: update deployment checklist with MCP SSH workflow
+✅ ci: add Docker build validation step
 
 ❌ "update files"
 ❌ "WIP"
 ❌ "fix stuff"
 ```
 
-### Workflow de Desarrollo
+### Workflow Visual
 
 ```
-main (producción - solo releases)
+main (producción)
+  ↑
+  PR (cuando develop está estable)
+  ↑
+develop (integración) ←───────────────┐
+  ↓                                    │
+  git checkout -b feature/X            │
+  ↓                                    │
+feature/X (trabajo)                    │
+  ↓ (probar, validar, testear)        │
+  ↓ git commit (al final)              │
+  ↓ git push origin feature/X          │
+  ↓ PR → develop ──────────────────────┘
+  ↓ Merge exitoso
+  ↓ git branch -d feature/X (local)
+  ↓ git push origin --delete feature/X (remoto)
   ↓
-develop (integración - fases completas)
-  ↓
-feature/fase-2 (trabajo actual)
-  ↓ commits por tarea
-  ↓ P2.1 ✅ → commit
-  ↓ P2.2 ✅ → commit
-  ↓ P2.3 ✅ → commit
-  ↓ ... (todas las tareas de fase 2)
-  ↓ Fase 2 completa
-  PR → develop (CI verde)
-       ↓ merge
-    develop (actualizado)
-       ↓
-    feature/fase-3 (nueva rama)
-       ↓ ... (repetir)
-       ↓ Todas las fases completas
-       PR → main
-            ↓ merge
-         main (v1.0.0)
-            ↓ tag release
+RESULTADO: Solo quedan main + develop
+```
+
+### Comandos de Limpieza
+
+```
+# Ver ramas locales
+git branch
+
+# Ver ramas remotas
+git branch -r
+
+# Eliminar rama local
+git branch -d feature/nombre-rama
+
+# Eliminar rama remota
+git push origin --delete feature/nombre-rama
+
+# Limpiar referencias obsoletas
+git fetch --prune
+
+# Verificar estado final (solo debe mostrar main + develop)
+git branch -a
 ```
 
 ---
@@ -1069,6 +1111,524 @@ feature/fase-2 (trabajo actual)
 
 ---
 
+## Deployment a Producción — Docker + MCP SSH (MANDATORIO)
+
+### Infraestructura
+
+- **Servidor**: 10.0.0.100 (Proxmox VM)
+- **Reverse Proxy**: NPMplus (Nginx Proxy Manager) con Certbot SSL
+- **URL Producción**: https://controlpeso.thiscloud.com.ar
+- **Puerto interno**: 8080 (contenedor) → NPMplus proxy
+- **Path deployment**: `/opt/controlpeso/`
+- **Compose file**: `docker-compose.yml` (web + sqlserver)
+
+### Workflow de Deployment (OBLIGATORIO)
+
+**REGLA CRÍTICA**: NUNCA commitear a Git antes de probar en producción.
+
+```bash
+# Flujo completo: Build → Transfer → Deploy → Test → Commit
+
+# 1. Build local
+dotnet build src/ControlPeso.Web/ControlPeso.Web.csproj -c Release
+
+# 2. Build Docker image
+docker build -t controlpeso-web:latest -f Dockerfile .
+
+# 3. Save image
+docker save controlpeso-web:latest -o controlpeso-web_latest.tar
+
+# 4. Transfer to server
+scp controlpeso-web_latest.tar root@10.0.0.100:/tmp/
+
+# 5. Deploy usando MCP SSH tool
+cd /opt/controlpeso
+docker load -i /tmp/controlpeso-web_latest.tar
+docker compose down
+docker compose up -d
+
+# 6. Verificar (WAIT 20s para startup)
+docker compose ps              # Estado: HEALTHY
+docker logs controlpeso-web --tail=50
+curl https://controlpeso.thiscloud.com.ar/health
+
+# 7. SOLO SI TODO OK → Git commit + push
+git add .
+git commit -m "feat(scope): descripción"
+git push origin feature/nombre
+```
+
+### Herramientas de Deployment
+
+- **Local**: PowerShell con comandos inline (preferencia usuario: `pw inline`)
+- **Remoto**: MCP SSH (`mi_proxmox_ssh_exec`) para operaciones sin password
+- **Containers**: Docker Compose para orquestación
+- **Verificación**: `curl`, `docker logs`, `docker compose ps`
+
+### Checklist Pre-Deployment
+
+- [ ] `dotnet build` exitoso (sin errores, warnings de formato OK)
+- [ ] Secrets verificados: `appsettings.*.json` en .gitignore
+- [ ] Dockerfile actualizado (comentarios coherentes)
+- [ ] `.gitignore` incluye `*.tar` (no subir Docker images)
+- [ ] Static files eliminados si se sirven dinámicamente
+- [ ] Logs con emojis para identificación visual (🚀🤖🗺️✅❌)
+
+### Checklist Post-Deployment
+
+- [ ] Containers status: `HEALTHY` (no `starting` infinito)
+- [ ] Health endpoint: `/health` retorna 200
+- [ ] Logs sin errores críticos (check últimas 50 líneas)
+- [ ] Endpoints críticos funcionando (robots.txt, sitemap.xml, etc.)
+- [ ] NPMplus proxy serving correctamente (test desde navegador)
+- [ ] SSL válido (Certbot renewal OK)
+
+### Comandos de Troubleshooting
+
+```bash
+# Ver logs en tiempo real
+docker logs -f controlpeso-web
+
+# Ver últimas 100 líneas con filtro
+docker logs controlpeso-web --tail=100 | grep -E "ERROR|WARN|🚀"
+
+# Restart sin rebuild
+docker compose restart web
+
+# Rebuild completo
+docker compose down
+docker compose build --no-cache web
+docker compose up -d
+
+# Verificar salud de containers
+docker compose ps
+docker inspect controlpeso-web | grep -A 10 Health
+
+# Limpiar images viejas
+docker image prune -a --filter "until=24h"
+```
+
+### Seguridad en Producción
+
+- ❌ **PROHIBIDO** tocar recursos que NO sean Control Peso
+- ❌ **PROHIBIDO** ejecutar comandos destructivos sin confirmación
+- ❌ **PROHIBIDO** exponer secretos en logs o comandos
+- ✅ Usar User Secrets (dev) o env vars (prod) para configuración sensible
+- ✅ Verificar `.gitignore` ANTES de `git add .`
+- ✅ Templates (`.template` files) para configs con placeholders
+
+---
+
+## Blazor Server — Routing Precedence Issues (LECCIONES CRÍTICAS)
+
+### Problema: Controllers NO capturan rutas root-level
+
+**Contexto**: En Blazor Server, `MapRazorComponents()` captura rutas root-level (`/robots.txt`, `/sitemap.xml`) ANTES que `MapControllers()`, incluso si se llama primero en el pipeline.
+
+**Síntoma**: Controller definido con `[HttpGet("/robots.txt")]` nunca se ejecuta. Blazor intenta resolver la ruta, falla con 404.
+
+**Causa raíz**: Blazor routing tiene MAYOR precedencia que API Controllers para rutas root-level.
+
+### ❌ Solución INCORRECTA: Controllers
+
+```csharp
+// ❌ NO FUNCIONA - Blazor lo captura primero
+[ApiController]
+public class SeoController : ControllerBase
+{
+    [HttpGet("/robots.txt")]  // ← Blazor intercepta esta ruta
+    public IActionResult GetRobots() { ... }
+}
+
+// En Program.cs (NO FUNCIONA):
+app.MapControllers();           // ← Registrado primero
+app.MapRazorComponents<App>();  // ← Pero captura /robots.txt igual
+```
+
+### ❌ Solución TEMPORAL: Usar `/api/` prefix
+
+```csharp
+[HttpGet("/api/robots.txt")]  // ← Funciona pero motores de búsqueda NO lo encuentran
+```
+
+**Problema**: Search engines (Google, Bing) esperan `/robots.txt`, NO `/api/robots.txt`.
+
+### ✅ Solución CORRECTA: Minimal APIs en Extension
+
+**Estrategia**: Registrar Minimal APIs con `MapGet()` ANTES de `MapRazorComponents()` en un extension method separado.
+
+```csharp
+// Extensions/SeoEndpointsExtensions.cs
+public static class SeoEndpointsExtensions
+{
+    public static IEndpointRouteBuilder MapSeoEndpoints(this IEndpointRouteBuilder endpoints)
+    {
+        endpoints.MapGet("/robots.txt", async (SitemapService service) => 
+        {
+            var content = service.GenerateRobotsTxt();
+            return Results.Text(content, "text/plain; charset=utf-8");
+        })
+        .WithName("GetRobotsTxt")
+        .WithTags("SEO");
+
+        return endpoints;
+    }
+}
+
+// Program.cs (ORDEN CRÍTICO)
+app.MapSeoEndpoints();          // ← PRIMERO: Reclama /robots.txt
+app.MapRazorComponents<App>();  // ← SEGUNDO: Ya no puede capturar /robots.txt
+```
+
+**Por qué funciona**: Minimal APIs registradas temprano tienen precedencia de routing sobre Blazor components.
+
+### Reglas de Routing en Blazor Server
+
+1. ✅ Minimal APIs (`MapGet`, `MapPost`) → Mayor precedencia si se registran PRIMERO
+2. ❌ Controllers (`MapControllers`) → Menor precedencia que Blazor en rutas root-level
+3. ✅ Extension methods para endpoints críticos → Limpia separación de concerns
+4. ✅ Registrar en este orden:
+
+```csharp
+app.MapSeoEndpoints();         // 1. Minimal APIs (SEO)
+app.MapAuthenticationEndpoints(); // 2. Minimal APIs (Auth)
+app.MapHealthChecks("/health");   // 3. Health checks
+app.MapStaticAssets();            // 4. Static files
+app.MapRazorComponents<App>();    // 5. Blazor (ÚLTIMO)
+```
+
+### Debugging Routing Issues
+
+```csharp
+// Agregar logging con emojis para identificación visual
+logger.LogInformation("🤖 /robots.txt requested from {UserAgent}", userAgent);
+logger.LogInformation("🗺️ /sitemap.xml requested from {UserAgent}", userAgent);
+logger.LogInformation("🚀 Controller method executed");  // Si ves esto, es Controller
+```
+
+**Verificación**: Si ves emojis de Minimal API (🤖🗺️) en logs → Funcionando correctamente.
+
+### Cuándo usar Minimal APIs vs Controllers
+
+- ✅ **Minimal APIs**: Endpoints root-level (`/robots.txt`, `/sitemap.xml`, `/health`)
+- ✅ **Controllers**: APIs REST complejas bajo prefijo (`/api/v1/...`)
+- ❌ **NUNCA**: Controllers para rutas root-level en Blazor Server
+
+### Referencia
+
+- **Archivo**: `src/ControlPeso.Web/Extensions/SeoEndpointsExtensions.cs`
+- **Docs**: `docs/SEO_INFRASTRUCTURE.md` (sección Blazor Routing)
+- **Issue resuelto**: 2026-03-03 (commit: `b5bcd90`)
+
+---
+
+## Logging Patterns — Identificación Visual con Emojis
+
+### Estrategia de Logging
+
+Usar **emojis como marcadores visuales** en logs para identificar rápidamente el origen de ejecución.
+
+### Emojis por Categoría
+
+```
+// SEO Endpoints
+🤖 - /robots.txt requests (Minimal API)
+🗺️ - /sitemap.xml requests (Minimal API)
+🚀 - Controller methods (legacy, si existen)
+🔧 - Service initialization
+
+// Estados
+✅ - Success, operación completada
+❌ - Error, operación fallida
+⚠️ - Warning, situación anómala
+ℹ️ - Information, evento normal
+
+// Operaciones
+💾 - Database operations
+🔐 - Authentication/Authorization
+📤 - Upload/Send
+📥 - Download/Receive
+🔄 - Sync/Refresh
+```
+
+### Ejemplo de Implementación
+
+```csharp
+public class WeightLogService : IWeightLogService
+{
+    private readonly ILogger<WeightLogService> _logger;
+
+    public async Task<WeightLogDto> CreateAsync(CreateWeightLogDto dto, CancellationToken ct)
+    {
+        _logger.LogInformation(
+            "💾 Creating weight log for user {UserId} - Date: {Date}, Weight: {Weight}kg",
+            dto.UserId, dto.Date, dto.Weight);
+
+        try
+        {
+            // ... lógica ...
+
+            _logger.LogInformation(
+                "✅ Weight log created - Id: {WeightLogId}, UserId: {UserId}",
+                result.Id, dto.UserId);
+
+            return result;
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogError(ex,
+                "❌ Database error creating weight log for user {UserId}",
+                dto.UserId);
+            throw;
+        }
+    }
+}
+```
+
+### Ventajas
+
+1. **Identificación instantánea**: `grep -E "🤖|🗺️"` en logs
+2. **Debugging visual**: Scrolling rápido en consola Docker
+3. **Diferenciación**: Controller vs Minimal API (🚀 vs 🤖)
+4. **Status at a glance**: ✅/❌ sin leer mensaje completo
+
+### Búsqueda en Logs
+
+```bash
+# Ver SOLO requests de robots.txt
+docker logs controlpeso-web | grep "🤖"
+
+# Ver TODOS los SEO endpoints
+docker logs controlpeso-web | grep -E "🤖|🗺️"
+
+# Ver errores rápidamente
+docker logs controlpeso-web | grep "❌"
+
+# Ver flow completo con emojis
+docker logs controlpeso-web | grep -E "🚀|🤖|🗺️|✅|❌"
+```
+
+### Reglas
+
+- ✅ Usar emojis en `LogInformation` y `LogWarning` (visibilidad)
+- ✅ Usar en INICIO de mensaje (fácil scan visual)
+- ❌ NO usar en `LogError` exception message (puede romper parsing)
+- ❌ NO abusar (máximo 1-2 emojis por categoría)
+- ✅ Documentar emojis en esta sección para consistency
+
+---
+
+## Static Files vs Dynamic Endpoints — Precedence Rules
+
+### Problema: Conflicto entre wwwroot y Endpoints
+
+Si existe `wwwroot/robots.txt` (static file) Y un endpoint `/robots.txt` (dynamic), ASP.NET Core sirve el **static file** por defecto.
+
+### Solución: Eliminar Static Files
+
+```bash
+# 1. Eliminar del source
+rm src/ControlPeso.Web/wwwroot/robots.txt
+rm src/ControlPeso.Web/wwwroot/sitemap.xml
+
+# 2. Eliminar del Dockerfile (por si se regeneran en build)
+# Dockerfile (después de COPY --from=publish)
+RUN rm -f /app/wwwroot/robots.txt* /app/wwwroot/sitemap.xml*
+
+# 3. Verificar en container
+docker exec controlpeso-web ls -la /app/wwwroot/ | grep -E "robots|sitemap"
+# Output esperado: (vacío - no debe existir)
+```
+
+### Orden de Middleware (CRÍTICO)
+
+```csharp
+// Program.cs
+app.MapSeoEndpoints();        // 1. Dynamic endpoints PRIMERO
+app.MapStaticAssets();        // 2. Static files DESPUÉS
+app.MapRazorComponents<App>();
+```
+
+**Regla**: Registrar endpoints dinámicos ANTES de `MapStaticAssets()` o `UseStaticFiles()`.
+
+### Verificación
+
+```bash
+# Test endpoint dinámico (debe retornar contenido generado)
+curl -I https://controlpeso.thiscloud.com.ar/robots.txt
+
+# Verificar headers:
+# ✅ Content-Type: text/plain; charset=utf-8  (dinámico)
+# ❌ Content-Type: text/plain                 (estático, sin charset)
+
+# ✅ Cache-Control: public, max-age=86400     (dinámico con cache)
+# ❌ Cache-Control: (vacío o diferente)       (estático)
+```
+
+### Cuándo usar Static vs Dynamic
+
+| Caso de Uso | Static File | Dynamic Endpoint |
+|-------------|-------------|------------------|
+| Imágenes, CSS, JS | ✅ Siempre | ❌ Nunca |
+| robots.txt con contenido variable | ❌ | ✅ (50+ AI crawlers) |
+| sitemap.xml con URLs dinámicas | ❌ | ✅ (cambios frecuentes) |
+| Archivos grandes (PDFs) | ✅ (CDN ideal) | ❌ (performance) |
+| Contenido personalizado por usuario | ❌ | ✅ (request context) |
+
+### Diagnóstico de Issues
+
+```bash
+# Si /robots.txt retorna contenido viejo/incorrecto:
+
+# 1. Verificar que NO existe static file
+docker exec controlpeso-web ls -la /app/wwwroot/ | grep robots
+
+# 2. Verificar logs de ejecución
+docker logs controlpeso-web --tail=50 | grep -E "🤖|robots"
+# Debe mostrar: "🤖 /robots.txt requested"
+
+# 3. Verificar orden de middleware en Program.cs
+# MapSeoEndpoints() DEBE estar ANTES de MapStaticAssets()
+
+# 4. Rebuild si es necesario (static files pueden quedar en cache)
+docker compose down
+docker compose build --no-cache web
+docker compose up -d
+```
+
+---
+
+## Configuration Management — Templates Pattern
+
+### Problema: Secretos en Git + Config Loss
+
+**Anti-pattern**: `.gitignore` + secretos en `appsettings.json` local → Al cambiar de branch/clonar repo, configs se pierden.
+
+### Solución: Template Files
+
+```
+src/ControlPeso.Web/
+├── appsettings.json                      ← Base config (sin secretos)
+├── appsettings.Development.json.template ← COMMITED (placeholders)
+├── appsettings.Production.json.template  ← COMMITED (placeholders)
+├── appsettings.Development.json          ← IGNORED (real secrets)
+└── appsettings.Production.json           ← IGNORED (real secrets)
+```
+
+### Setup Script
+
+```powershell
+# setup-config.ps1
+# Crea configs reales desde templates con placeholders
+
+$templates = @(
+    @{
+        Source = "src/ControlPeso.Web/appsettings.Development.json.template"
+        Target = "src/ControlPeso.Web/appsettings.Development.json"
+    },
+    @{
+        Source = "src/ControlPeso.Web/appsettings.Production.json.template"
+        Target = "src/ControlPeso.Web/appsettings.Production.json"
+    }
+)
+
+foreach ($item in $templates) {
+    if (-not (Test-Path $item.Target)) {
+        Copy-Item $item.Source $item.Target
+        Write-Host "✅ Created $($item.Target) from template"
+    } else {
+        Write-Host "⚠️ $($item.Target) already exists - skipping"
+    }
+}
+
+Write-Host "`n📝 NEXT STEPS:"
+Write-Host "1. Edit appsettings.Development.json with real secrets"
+Write-Host "2. Edit appsettings.Production.json with real secrets"
+Write-Host "3. These files are in .gitignore - they WON'T be committed"
+```
+
+### Workflow
+
+```bash
+# 1. Primer clone del repo
+git clone https://github.com/usuario/repo.git
+cd repo
+
+# 2. Setup configs desde templates
+./setup-config.ps1
+
+# 3. Editar configs con secretos REALES
+# Editar: src/ControlPeso.Web/appsettings.Development.json
+# Agregar: Google ClientId/ClientSecret, Connection Strings, etc.
+
+# 4. Los .json reales NUNCA se commitean (.gitignore)
+# 5. Cambiar de branch mantiene configs locales
+```
+
+### .gitignore Rules
+
+```gitignore
+# ASP.NET Core configs con secretos (NUNCA commitear)
+**/appsettings.Development.json
+**/appsettings.Production.json
+
+# Templates SÍ se commitean (solo placeholders)
+!**/*.template
+
+# User Secrets también están protegidos
+**/secrets.json
+
+# Docker artifacts
+*.tar
+```
+
+### Template Format
+
+```json
+{
+  "Authentication": {
+    "Google": {
+      "ClientId": "REPLACE_WITH_GOOGLE_CLIENT_ID",
+      "ClientSecret": "REPLACE_WITH_GOOGLE_CLIENT_SECRET"
+    }
+  },
+  "ConnectionStrings": {
+    "DefaultConnection": "REPLACE_WITH_CONNECTION_STRING"
+  },
+  "App": {
+    "BaseUrl": "https://controlpeso.thiscloud.com.ar"
+  }
+}
+```
+
+### Verificación Pre-Commit
+
+```bash
+# SIEMPRE verificar ANTES de git add
+git status
+
+# Verificar que templates existen pero configs reales NO
+# ✅ DEBE aparecer: appsettings.*.json.template (A = added/modified)
+# ❌ NO DEBE aparecer: appsettings.Development.json
+# ❌ NO DEBE aparecer: appsettings.Production.json
+
+# Si aparecen configs reales:
+git reset HEAD appsettings.Development.json
+git reset HEAD appsettings.Production.json
+
+# Agregar a .gitignore si no están
+echo "**/appsettings.Development.json" >> .gitignore
+echo "**/appsettings.Production.json" >> .gitignore
+```
+
+### Referencia
+
+- **Script**: `setup-config.ps1` (root del repo)
+- **Docs**: `docs/CONFIG_MANAGEMENT.md` (detalles completos)
+- **Templates**: `src/ControlPeso.Web/appsettings.*.json.template`
+
+---
+
 ## Referencias Rápidas
 
 - **Plan del Proyecto**: `ControlPeso/docs/Plan_ControlPeso_Thiscloud_v1_0.md`
@@ -1078,6 +1638,8 @@ feature/fase-2 (trabajo actual)
 - **CPM**: `Directory.Packages.props`
 - **CI Workflow**: `.github/workflows/ci.yml`
 - **Framework Integration**: `docs/THISCLOUD_FRAMEWORK_INTEGRATION.md`
+- **SEO Infrastructure**: `docs/SEO_INFRASTRUCTURE.md`
+- **Config Management**: `docs/CONFIG_MANAGEMENT.md`
 
 ---
 
