@@ -201,22 +201,6 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseForwardedHeaders();
-
-    // DEBUG: Log headers received from NPM Plus proxy (temporary for OAuth troubleshooting)
-    app.Use(async (context, next) =>
-    {
-        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
-        logger.LogWarning(
-            "🔍 HEADERS DEBUG: Scheme={Scheme}, Host={Host}, Path={Path}, XForwardedProto={XForwardedProto}, XForwardedHost={XForwardedHost}, XForwardedFor={XForwardedFor}",
-            context.Request.Scheme,
-            context.Request.Host,
-            context.Request.Path,
-            context.Request.Headers["X-Forwarded-Proto"].ToString(),
-            context.Request.Headers["X-Forwarded-Host"].ToString(),
-            context.Request.Headers["X-Forwarded-For"].ToString()
-        );
-        await next();
-    });
 }
 
 // 1. Global exception handler - catches unhandled exceptions and sends to Telegram
