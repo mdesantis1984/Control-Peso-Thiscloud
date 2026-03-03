@@ -11,7 +11,7 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=${SQLSERVER_SA_PASSWORD:-Cp2025!Th1sC10udS3cur3Pwd#}
+      - MSSQL_SA_PASSWORD=${SQLSERVER_SA_PASSWORD:?Error: SQLSERVER_SA_PASSWORD env variable required}
       - MSSQL_PID=Express
       - MSSQL_TCP_PORT=1433
     ports:
@@ -57,7 +57,7 @@ services:
       - ASPNETCORE_DataProtection__Path=/root/.aspnet/DataProtection-Keys
 
       # Database Connection (SQL Server)
-      - ConnectionStrings__DefaultConnection=Server=controlpeso-sqlserver,1433;Database=ControlPeso;User Id=sa;Password=${SQLSERVER_SA_PASSWORD:-Cp2025!Th1sC10udS3cur3Pwd#};TrustServerCertificate=True
+      - ConnectionStrings__DefaultConnection=Server=controlpeso-sqlserver,1433;Database=ControlPeso;User Id=sa;Password=${SQLSERVER_SA_PASSWORD:?Error: SQLSERVER_SA_PASSWORD env variable required};TrustServerCertificate=True
 
       # Logging Configuration (ThisCloud.Framework)
       - ThisCloud__Loggings__IsEnabled=true
@@ -76,7 +76,13 @@ services:
       - AllowedHosts=controlpeso.thiscloud.com.ar
       - ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
 
-      # ⚠️ SECRETS: Configure in docker-compose.override.yml (NOT in Git)
+      # ⚠️ SECRETS: Configure using environment variables or docker-compose.override.yml
+      # REQUIRED:
+      #   - SQLSERVER_SA_PASSWORD: SQL Server SA password
+      #   - GOOGLE_CLIENT_ID: Google OAuth Client ID
+      #   - GOOGLE_CLIENT_SECRET: Google OAuth Client Secret
+      #   - TELEGRAM_BOT_TOKEN: Telegram Bot Token (if notifications enabled)
+      #   - TELEGRAM_CHAT_ID: Telegram Chat ID (if notifications enabled)
       # DO NOT add sensitive values here - this file is tracked by Git
     
     volumes:
