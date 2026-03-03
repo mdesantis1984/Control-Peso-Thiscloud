@@ -1,0 +1,1 @@
+Get-ChildItem -Recurse -Directory -Force -ErrorAction SilentlyContinue | Where-Object { $_.Name -match '^(\.vs|bin|obj)$' } | Remove-Item -Recurse -Force
