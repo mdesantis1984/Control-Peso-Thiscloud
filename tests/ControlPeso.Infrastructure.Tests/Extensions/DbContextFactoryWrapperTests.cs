@@ -24,11 +24,11 @@ public sealed class DbContextFactoryWrapperTests : IDisposable
         // Setup DI container con servicios de Infrastructure
         var services = new ServiceCollection();
 
-        // Configuration fake con connection string SQLite en memoria
+        // Configuration fake con connection string de PostgreSQL (no se conecta hasta usarse)
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = "Data Source=:memory:"
+                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=controlpeso_test;Username=test;Password=test"
             })
             .Build();
 
@@ -186,14 +186,14 @@ public sealed class DbContextFactoryWrapperTests : IDisposable
     }
 
     [Fact]
-    public async Task CreateDbContextAsync_ReturnsContextWithWorkingConnection()
+    public async Task CreateDbContextAsync_ReturnsContextConfiguredForNpgsql()
     {
-        // Act
+        // Act - no server needed: connecting is covered by the PostgreSQL (Testcontainers) tests
         await using var context = await _factoryWrapper.CreateDbContextAsync();
 
         // Assert
         Assert.NotNull(context.Database);
-        Assert.True(await context.Database.CanConnectAsync());
+        Assert.Equal("Npgsql.EntityFrameworkCore.PostgreSQL", context.Database.ProviderName);
     }
 
     [Fact]
@@ -205,7 +205,7 @@ public sealed class DbContextFactoryWrapperTests : IDisposable
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = "Data Source=:memory:"
+                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=controlpeso_test;Username=test;Password=test"
             })
             .Build();
 
@@ -231,7 +231,7 @@ public sealed class DbContextFactoryWrapperTests : IDisposable
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = "Data Source=:memory:"
+                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=controlpeso_test;Username=test;Password=test"
             })
             .Build();
 

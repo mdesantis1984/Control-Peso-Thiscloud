@@ -1,7 +1,8 @@
 using System.Net;
 using System.Text.Json;
 using System.Threading.RateLimiting;
-using ControlPeso.Infrastructure.Extensions;
+using ControlPeso.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using ControlPeso.Web.Extensions;
 using FluentAssertions;
 using Microsoft.AspNetCore.Builder;
@@ -50,11 +51,8 @@ public sealed class HealthEndpointsTests : IAsyncLifetime
             Args = ["--hostBuilder:reloadConfigOnChange=false"]
         });
         builder.Logging.ClearProviders();
-        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
-        {
-            ["ConnectionStrings:DefaultConnection"] = $"Data Source={databasePath}"
-        });
-        builder.Services.AddInfrastructureServices(builder.Configuration, builder.Environment);
+        // Production only ships Npgsql; the test swaps in SQLite files to control reachability without a server
+        builder.Services.AddDbContextFactory<ControlPesoDbContext>(o => o.UseSqlite($"Data Source={databasePath}"));
         builder.Services.AddApplicationHealthChecks();
 
         // Hostile pipeline: everything requires authentication and only one request per minute is allowed

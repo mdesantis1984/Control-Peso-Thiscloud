@@ -20,17 +20,15 @@ public sealed class ServiceCollectionExtensionsTests : IDisposable
     private readonly ServiceCollection _services;
     private readonly IConfiguration _configuration;
     private readonly Mock<IHostEnvironment> _mockEnvironment;
-    private readonly string _testDbPath;
 
     public ServiceCollectionExtensionsTests()
     {
         _services = new ServiceCollection();
-        _testDbPath = Path.Combine(Path.GetTempPath(), $"test_db_{Guid.NewGuid()}.db");
 
         // Create configuration with connection string
         var configData = new Dictionary<string, string?>
         {
-            ["ConnectionStrings:DefaultConnection"] = $"Data Source={_testDbPath}"
+            ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=controlpeso_test;Username=test;Password=test"
         };
 
         _configuration = new ConfigurationBuilder()
@@ -42,18 +40,7 @@ public sealed class ServiceCollectionExtensionsTests : IDisposable
 
     public void Dispose()
     {
-        // Clean up test database
-        if (File.Exists(_testDbPath))
-        {
-            try
-            {
-                File.Delete(_testDbPath);
-            }
-            catch
-            {
-                // Ignore cleanup errors
-            }
-        }
+        // Nothing to clean up: no database is created (Npgsql contexts do not connect until used)
     }
 
     #region Parameter Validation Tests
@@ -234,7 +221,7 @@ public sealed class ServiceCollectionExtensionsTests : IDisposable
     }
 
     [Fact]
-    public void AddInfrastructureServices_ShouldRegisterDbContextWithSQLite_WhenCalled()
+    public void AddInfrastructureServices_ShouldRegisterDbContextWithNpgsql_WhenCalled()
     {
         // Act
         _services.AddInfrastructureServices(_configuration);
@@ -246,7 +233,16 @@ public sealed class ServiceCollectionExtensionsTests : IDisposable
 
         using var dbContext = factory.CreateDbContext();
         dbContext.Should().NotBeNull("Factory should create DbContext instances");
-        dbContext.Database.ProviderName.Should().Be("Microsoft.EntityFrameworkCore.Sqlite", "SQLite provider should be detected from Data Source connection string");
+        dbContext.Database.ProviderName.Should().Be("Npgsql.EntityFrameworkCore.PostgreSQL");
+    }
+
+    [Fact]
+    public void InfrastructureAssembly_DoesNotReferenceTheSqliteProvider()
+    {
+        // The SQLite provider ships a native library with a known advisory (GHSA-2m69-gcr7-jv3q); only tests use it
+        typeof(ControlPesoDbContext).Assembly.GetReferencedAssemblies()
+            .Select(a => a.Name)
+            .Should().NotContain(name => name!.Contains("Sqlite", StringComparison.OrdinalIgnoreCase));
     }
 
     #endregion
