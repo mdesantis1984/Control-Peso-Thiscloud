@@ -154,14 +154,8 @@ public partial class History
             // Load data with cancellation token
             var result = await WeightLogService.GetByUserAsync(userId, filter, ct);
 
-            // Update stats
-            _totalRecords = result.TotalCount;
-            if (result.Items.Count > 0)
-            {
-                _averageWeight = result.Items.Average(x => x.Weight);
-                _minWeight = result.Items.Min(x => x.Weight);
-                _maxWeight = result.Items.Max(x => x.Weight);
-            }
+            // Update the stats panel over ALL records matching the filters (not just the current page)
+            await UpdateStatsAsync(userId, filter, result, ct);
 
             Logger.LogInformation("Loaded {Count} weight logs out of {Total}", result.Items.Count, result.TotalCount);
 
@@ -181,6 +175,40 @@ public partial class History
         {
             _isLoading = false;
         }
+    }
+
+    /// <summary>
+    /// Refreshes total/avg/min/max over every record matching the current filters.
+    /// When the page already holds every match, the page is used; otherwise a second query
+    /// (page 1, page size = total) fetches the full filtered set. The panel lives outside the grid,
+    /// so it must be re-rendered explicitly after each grid load.
+    /// </summary>
+    private async Task UpdateStatsAsync(Guid userId, WeightLogFilter filter, PagedResult<WeightLogDto> page, CancellationToken ct)
+    {
+        IReadOnlyCollection<WeightLogDto> allMatching = page.Items;
+
+        if (page.TotalCount > page.Items.Count)
+        {
+            var allFilter = filter with { Page = 1, PageSize = page.TotalCount };
+            var all = await WeightLogService.GetByUserAsync(userId, allFilter, ct);
+            allMatching = all.Items;
+        }
+
+        _totalRecords = page.TotalCount;
+        if (allMatching.Count > 0)
+        {
+            _averageWeight = allMatching.Average(x => x.Weight);
+            _minWeight = allMatching.Min(x => x.Weight);
+            _maxWeight = allMatching.Max(x => x.Weight);
+        }
+        else
+        {
+            _averageWeight = null;
+            _minWeight = null;
+            _maxWeight = null;
+        }
+
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task OnSearchChanged(string value)
