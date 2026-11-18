@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Localization;
 
 namespace ControlPeso.Web.Components.Pages;
@@ -38,6 +39,7 @@ public partial class Login
     private string GoogleSignInButton => Localizer["GoogleSignInButton"];
     private string SecurityBadge => Localizer["SecurityBadge"];
     private string CreateAccountButton => Localizer["CreateAccountButton"];
+    private string OAuthFailedMessage => Localizer["OAuthFailedMessage"];
 
     // --- Footer Links ---
     private string TermsLink => Localizer["TermsLink"];
@@ -53,6 +55,21 @@ public partial class Login
     /// URL de la ilustración de fondo para la página de login.
     /// </summary>
     private const string IllustrationUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuBIq3Wn-6jEEHYdKS6nK3JUFao8Q0NoOzNcsm4sCJkYtu5MAUS1CIbRooBfMwOWomjdsYPqB2kkFh7yb7FnUf40fxzew62lo27gAMeBDxtaX1R5HyiB_sfRddjnqjqY6aEH6OEGZ_ZHCcKPCG-bgRtAV1aPxNDV87fk3q-dyIUR7qY190IUXU4g6z4i1mQmTeWdjvwLjLXTXs3h7XOrweGUhQ1Gv6u5Eddeu15duylQRqmYDGiSVj78nDU0i-Ks9h7H_NHTJY2m7w";
+
+    // ========================================================================
+    // STATE
+    // ========================================================================
+
+    /// <summary>
+    /// True when the OAuth callback redirected here with <c>?error=...</c> (for example <c>oauth_failed</c>).
+    /// </summary>
+    private bool _showOAuthError;
+
+    protected override void OnInitialized()
+    {
+        var query = QueryHelpers.ParseQuery(new Uri(NavigationManager.Uri).Query);
+        _showOAuthError = query.TryGetValue("error", out var error) && !string.IsNullOrWhiteSpace(error.ToString());
+    }
 
     // ========================================================================
     // METHODS
