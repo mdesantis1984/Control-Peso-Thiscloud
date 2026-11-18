@@ -1,3 +1,4 @@
+using FluentAssertions;
 using ControlPeso.Infrastructure.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -222,7 +223,7 @@ public sealed class DbContextFactoryWrapperTests : IDisposable
     }
 
     [Fact]
-    public void ServiceCollectionExtensions_BackwardCompatibility_RegistersDbContextScoped()
+    public void ServiceCollectionExtensions_DoesNotResolveAGenericScopedDbContext()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -238,13 +239,10 @@ public sealed class DbContextFactoryWrapperTests : IDisposable
         services.AddInfrastructureServices(configuration);
         using var provider = services.BuildServiceProvider();
 
-        // Assert - verificar backward compatibility con DbContext scoped
+        // Assert - Application services get contexts only from the factory, never from the scope
         using var scope = provider.CreateScope();
-        var dbContext = scope.ServiceProvider.GetService<DbContext>();
-        Assert.NotNull(dbContext);
-
-        var controlPesoDbContext = scope.ServiceProvider.GetService<ControlPesoDbContext>();
-        Assert.NotNull(controlPesoDbContext);
+        scope.ServiceProvider.GetService<DbContext>().Should().BeNull();
+        scope.ServiceProvider.GetService<IDbContextFactory<DbContext>>().Should().NotBeNull();
     }
 
     public void Dispose()

@@ -76,20 +76,8 @@ public static class ServiceCollectionExtensions
             return new DbContextFactoryWrapper(factory);
         });
 
-        // BACKWARD COMPATIBILITY: Registrar DbContext scoped para servicios que aún no han migrado
-        // Este registration se puede eliminar una vez que TODOS los servicios usen IDbContextFactory
-        services.AddScoped<DbContext>(provider =>
-        {
-            var factory = provider.GetRequiredService<IDbContextFactory<ControlPesoDbContext>>();
-            return factory.CreateDbContext();
-        });
-
-        // BACKWARD COMPATIBILITY: Registrar ControlPesoDbContext scoped para Infrastructure services
-        services.AddScoped(provider =>
-        {
-            var factory = provider.GetRequiredService<IDbContextFactory<ControlPesoDbContext>>();
-            return factory.CreateDbContext();
-        });
+        // No hand-written scoped DbContext registrations: every consumer creates short-lived contexts
+        // from the factories (a scoped context lives as long as a Blazor circuit and is not thread-safe).
 
         // ⚠️ DbSeeder REMOVED - App works ONLY with real OAuth users
         // No fake/demo data seeding

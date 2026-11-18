@@ -109,10 +109,9 @@ public sealed class ServiceCollectionExtensionsTests : IDisposable
         factoryDescriptor.Should().NotBeNull("IDbContextFactory<ControlPesoDbContext> should be registered");
         factoryDescriptor!.Lifetime.Should().Be(ServiceLifetime.Singleton, "Factory should be Singleton");
 
-        // Backward compatibility: ControlPesoDbContext should also be available as Scoped
-        var dbContextDescriptor = _services.FirstOrDefault(d => d.ServiceType == typeof(ControlPesoDbContext));
-        dbContextDescriptor.Should().NotBeNull("ControlPesoDbContext should be registered for backward compatibility");
-        dbContextDescriptor!.Lifetime.Should().Be(ServiceLifetime.Scoped);
+        // S15: no hand-written scoped registration. The only ControlPesoDbContext descriptor left is the one
+        // AddDbContextFactory adds itself; a second one would be our removed backward-compatibility shim.
+        _services.Count(d => d.ServiceType == typeof(ControlPesoDbContext)).Should().Be(1);
     }
 
     [Fact]
@@ -126,10 +125,9 @@ public sealed class ServiceCollectionExtensionsTests : IDisposable
         factoryDescriptor.Should().NotBeNull("IDbContextFactory<DbContext> wrapper should be registered");
         factoryDescriptor!.Lifetime.Should().Be(ServiceLifetime.Singleton, "Factory wrapper should be Singleton");
 
-        // Backward compatibility: DbContext should also be available as Scoped
-        var dbContextDescriptor = _services.FirstOrDefault(d => d.ServiceType == typeof(DbContext));
-        dbContextDescriptor.Should().NotBeNull("DbContext should be registered for backward compatibility");
-        dbContextDescriptor!.Lifetime.Should().Be(ServiceLifetime.Scoped);
+        // S15: no long-lived scoped context; consumers create short-lived contexts from the factory
+        _services.Should().NotContain(d => d.ServiceType == typeof(DbContext),
+            "DbContext must only come from the factory");
     }
 
     // NOTE: IDbSeeder test removed - service was intentionally removed from Infrastructure
