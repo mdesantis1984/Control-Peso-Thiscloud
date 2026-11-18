@@ -73,7 +73,7 @@ builder.Services.Configure<Microsoft.AspNetCore.Builder.RequestLocalizationOptio
 // ============================================================================
 
 // 3. Configure Forwarded Headers for production (NPM Plus reverse proxy)
-builder.Services.AddForwardedHeadersConfiguration(builder.Environment);
+builder.Services.AddForwardedHeadersConfiguration(builder.Environment, builder.Configuration);
 
 // 3.5. Configure Production Security Policies (HSTS, HTTPS redirection)
 builder.Services.AddProductionHsts(builder.Environment);
