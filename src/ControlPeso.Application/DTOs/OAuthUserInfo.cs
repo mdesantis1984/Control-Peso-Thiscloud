@@ -21,9 +21,15 @@ public sealed record OAuthUserInfo
     public required string Name { get; init; }
 
     /// <summary>
-    /// Email verificado del usuario.
+    /// Email del usuario según el provider.
     /// </summary>
     public required string Email { get; init; }
+
+    /// <summary>
+    /// True only when the provider explicitly asserted <c>email_verified=true</c>.
+    /// An existing account is linked by email, or its email updated, only when this is true.
+    /// </summary>
+    public bool EmailVerified { get; init; }
 
     /// <summary>
     /// URL del avatar/foto de perfil (opcional).
