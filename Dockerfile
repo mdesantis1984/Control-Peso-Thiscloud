@@ -22,10 +22,9 @@ COPY . .
 
 # Build application
 WORKDIR "/src/src/ControlPeso.Web"
-RUN dotnet build "ControlPeso.Web.csproj" -c Release -o /app/build
 
 # ============================================
-# Stage 2: Publish
+# Stage 2: Publish (publish compiles the project; no separate build step)
 # ============================================
 FROM build AS publish
 RUN dotnet publish "ControlPeso.Web.csproj" -c Release -o /app/publish /p:UseAppHost=false
@@ -36,30 +35,37 @@ RUN dotnet publish "ControlPeso.Web.csproj" -c Release -o /app/publish /p:UseApp
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
-# Install curl for health checks
+# Install curl for health checks (no recommended packages, apt lists cleaned)
 RUN apt-get update && \
-    apt-get install -y curl && \
+    apt-get install -y --no-install-recommends curl && \
     rm -rf /var/lib/apt/lists/*
-
-# Create directories for database and logs
-RUN mkdir -p /app/data /app/logs /root/.aspnet/DataProtection-Keys
 
 # Copy published application
 COPY --from=publish /app/publish .
 
 # Remove static SEO files if they exist (served dynamically by Minimal APIs)
-RUN rm -f /app/wwwroot/robots.txt* /app/wwwroot/sitemap.xml*
+# and create the writable directories owned by the non-root runtime user
+# (the "app" user, UID 1654, ships with the .NET 10 images)
+RUN rm -f /app/wwwroot/robots.txt* /app/wwwroot/sitemap.xml* && \
+    mkdir -p /app/data /app/logs /app/keys /app/wwwroot/uploads && \
+    chown -R app:app /app/data /app/logs /app/keys /app/wwwroot/uploads
 
 # Set environment variables
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
+
+# Data Protection keys live under /app/keys (mount a volume there to persist them)
+ENV DataProtection__Path=/app/keys
+
+# Drop root: run as the built-in non-root user (UID 1654)
+USER app
 
 # Expose port
 EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
+    CMD curl -f -H "X-Forwarded-Proto: https" http://localhost:8080/health || exit 1
 
 # Run application
 ENTRYPOINT ["dotnet", "ControlPeso.Web.dll"]
