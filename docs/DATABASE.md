@@ -7,8 +7,28 @@
 
 - **Paradigm**: Database First (SQL schema is source of truth)
 - **Dev/MVP**: SQLite (`controlpeso.db`)
-- **Production**: SQL Server ready (swap connection string + provider)
+- **Production**: PostgreSQL via Npgsql (see [PostgreSQL](#postgresql) below); SQL Server is no longer used by the app
 - **ORM**: Entity Framework Core 9.0.1
+
+## PostgreSQL
+
+- **Provider**: `Npgsql.EntityFrameworkCore.PostgreSQL` 10.0.0 (SQLite is kept for tests). A connection string with `Host=` selects Npgsql; one with `Data Source` and no `Host=` selects SQLite.
+- **Mapping**: ids default to `gen_random_uuid()`, timestamps are `timestamp without time zone` defaulting to `(now() at time zone 'utc')`, `Users.Email` is `citext` with a unique index, and `WeightLogs (UserId, Date, Time)` is unique. The `citext` extension must be creatable by the role that applies the script.
+- **Migrations**: code-first under `src/ControlPeso.Infrastructure/Migrations` (initial migration `InitialPostgreSql`). The app does NOT migrate on startup. Install `dotnet-ef` outside the repo and generate from the design-time factory (`ControlPesoDbContextFactory`, no database connection needed):
+
+```bash
+dotnet tool install dotnet-ef --version 10.0.3 --tool-path "$TMPDIR/tools"
+"$TMPDIR/tools/dotnet-ef" migrations script --idempotent \
+  --project src/ControlPeso.Infrastructure -o docs/schema/postgresql_schema_v1.sql
+```
+
+- **Applying the schema**: run the idempotent script against the target database; it is safe to run more than once.
+
+```bash
+psql "host=<host> dbname=controlpeso user=<role>" -f docs/schema/postgresql_schema_v1.sql
+```
+
+- **Connection string**: `Host=<host>;Port=5432;Database=controlpeso;Username=<role>;Password=<secret>`. Never commit real passwords; in production it comes from `ConnectionStrings__DefaultConnection` (compose variable `CONTROLPESO_DB_CONNECTION`).
 
 ## Schema (docs/schema/schema_v1.sql)
 

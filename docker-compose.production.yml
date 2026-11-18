@@ -2,43 +2,6 @@ version: '3.8'
 
 services:
   # ============================================
-  # SQL Server Express 2022 Linux with Backup Automation
-  # ============================================
-  controlpeso-sqlserver:
-    container_name: controlpeso-sqlserver
-    # IMPORTANTE: NO usar build aquí - imagen debe pre-construirse localmente con docker build
-    # Comando para construir: docker build -t controlpeso-sqlserver:latest -f Dockerfile.sqlserver .
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    environment:
-      - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=${SQLSERVER_SA_PASSWORD}
-      - MSSQL_PID=Express
-      - MSSQL_TCP_PORT=1433
-    ports:
-      - "1433:1433"
-    volumes:
-      # Persist database files
-      - controlpeso-sqlserver-data:/var/opt/mssql/data
-
-      # Persist backups (bind mount to external volume for safety)
-      - /mnt/backups/controlpeso-sqlserver:/var/opt/mssql/backups
-
-      # Persist logs
-      - controlpeso-sqlserver-logs:/var/opt/mssql/log
-    networks:
-      - controlpeso-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $$MSSQL_SA_PASSWORD -C -Q 'SELECT 1' || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
-    labels:
-      com.controlpeso.service: "database"
-      com.controlpeso.version: "2022-express-with-backups"
-
-  # ============================================
   # Control Peso Web Application
   # ============================================
   controlpeso-web:
@@ -56,8 +19,8 @@ services:
       # Data Protection keys path (for antiforgery tokens and auth cookies persistence)
       - ASPNETCORE_DataProtection__Path=/root/.aspnet/DataProtection-Keys
 
-      # Database Connection (SQL Server)
-      - ConnectionStrings__DefaultConnection=Server=controlpeso-sqlserver,1433;Database=ControlPeso;User Id=sa;Password=${SQLSERVER_SA_PASSWORD};TrustServerCertificate=True
+      # Database Connection (PostgreSQL, external server)
+      - ConnectionStrings__DefaultConnection=${CONTROLPESO_DB_CONNECTION}
 
       # Logging Configuration (ThisCloud.Framework)
       - ThisCloud__Loggings__IsEnabled=true
@@ -78,7 +41,7 @@ services:
 
       # ⚠️ SECRETS: Configure using environment variables or docker-compose.override.yml
       # REQUIRED:
-      #   - SQLSERVER_SA_PASSWORD: SQL Server SA password
+      #   - CONTROLPESO_DB_CONNECTION: Npgsql connection string (Host=...;Database=...;Username=...;Password=...)
       #   - GOOGLE_CLIENT_ID: Google OAuth Client ID
       #   - GOOGLE_CLIENT_SECRET: Google OAuth Client Secret
       #   - TELEGRAM_BOT_TOKEN: Telegram Bot Token (if notifications enabled)
@@ -97,10 +60,6 @@ services:
     
     networks:
       - controlpeso-network
-    
-    depends_on:
-      controlpeso-sqlserver:
-        condition: service_healthy
     
     restart: unless-stopped
     
@@ -128,16 +87,6 @@ networks:
 # Volumes
 # ============================================
 volumes:
-  # SQL Server data persistence
-  controlpeso-sqlserver-data:
-    driver: local
-    name: controlpeso-sqlserver-data
-
-  # SQL Server logs persistence
-  controlpeso-sqlserver-logs:
-    driver: local
-    name: controlpeso-sqlserver-logs
-
   # Application logs persistence
   controlpeso-logs:
     driver: local

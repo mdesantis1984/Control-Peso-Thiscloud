@@ -30,72 +30,105 @@ public partial class ControlPesoDbContext : DbContext
         // This allows scaffold to work standalone while production uses appsettings.json
         if (!optionsBuilder.IsConfigured)
         {
-            optionsBuilder.UseSqlServer("Server=localhost\\SQLEXPRESS;Database=ControlPeso;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True");
+            optionsBuilder.UseNpgsql("Host=localhost;Database=controlpeso;Username=postgres");
         }
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.UseCollation("SQL_Latin1_General_CP1_CI_AS");
-
         modelBuilder.Entity<AuditLog>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__AuditLog__3214EC07E8B49735");
+            entity.HasKey(e => e.Id);
 
-            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
-
-            entity.HasOne(d => d.User).WithMany(p => p.AuditLog).HasConstraintName("FK__AuditLog__UserId__73BA3083");
+            entity.HasOne(d => d.User).WithMany(p => p.AuditLog);
         });
 
         modelBuilder.Entity<UserNotifications>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__UserNoti__3214EC076607A559");
+            entity.HasKey(e => e.Id);
 
-            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
-
-            entity.HasOne(d => d.User).WithMany(p => p.UserNotifications).HasConstraintName("FK_UserNotifications_Users");
+            entity.HasOne(d => d.User).WithMany(p => p.UserNotifications);
         });
 
         modelBuilder.Entity<UserPreferences>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__UserPref__3214EC07225CFCD0");
-
-            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.HasKey(e => e.Id);
             entity.Property(e => e.DarkMode).HasDefaultValue(true);
             entity.Property(e => e.NotificationsEnabled).HasDefaultValue(true);
             entity.Property(e => e.TimeZone).HasDefaultValue("America/Argentina/Buenos_Aires");
-            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("(getutcdate())");
 
-            entity.HasOne(d => d.User).WithOne(p => p.UserPreferences).HasConstraintName("FK__UserPrefe__UserI__6C190EBB");
+            entity.HasOne(d => d.User).WithOne(p => p.UserPreferences);
         });
 
         modelBuilder.Entity<Users>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Users__3214EC0706812F7C");
-
-            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.HasKey(e => e.Id);
             entity.Property(e => e.Height).HasDefaultValue(170.0m);
             entity.Property(e => e.Language).HasDefaultValue("es");
-            entity.Property(e => e.MemberSince).HasDefaultValueSql("(getutcdate())");
-            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("(getutcdate())");
         });
 
         modelBuilder.Entity<WeightLogs>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__WeightLo__3214EC0734D73176");
-
-            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.HasKey(e => e.Id);
             entity.Property(e => e.Trend).HasDefaultValue(2);
 
-            entity.HasOne(d => d.User).WithMany(p => p.WeightLogs).HasConstraintName("FK__WeightLog__UserI__619B8048");
+            entity.HasOne(d => d.User).WithMany(p => p.WeightLogs);
         });
+
+        if (Database.IsNpgsql())
+        {
+            ConfigureNpgsql(modelBuilder);
+        }
 
         OnModelCreatingPartial(modelBuilder);
     }
+
+    /// <summary>
+    /// PostgreSQL-specific mapping: server-side defaults, case-insensitive email and
+    /// timestamp columns that keep the previous datetime2 semantics (no time zone conversion).
+    /// Not applied to other providers (for example SQLite in tests) because they cannot parse these SQL expressions.
+    /// </summary>
+    private static void ConfigureNpgsql(ModelBuilder modelBuilder)
+    {
+        modelBuilder.HasPostgresExtension("citext");
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                var clrType = Nullable.GetUnderlyingType(property.ClrType) ?? property.ClrType;
+
+                if (clrType == typeof(DateTime))
+                {
+                    property.SetColumnType("timestamp without time zone");
+                }
+
+                if (property.Name == "Id" && clrType == typeof(Guid))
+                {
+                    property.SetDefaultValueSql("gen_random_uuid()");
+                }
+            }
+        }
+
+        modelBuilder.Entity<AuditLog>().Property(e => e.CreatedAt).HasDefaultValueSql(UtcNow);
+        modelBuilder.Entity<UserNotifications>().Property(e => e.CreatedAt).HasDefaultValueSql(UtcNow);
+        modelBuilder.Entity<UserPreferences>().Property(e => e.UpdatedAt).HasDefaultValueSql(UtcNow);
+        modelBuilder.Entity<Users>(entity =>
+        {
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql(UtcNow);
+            entity.Property(e => e.MemberSince).HasDefaultValueSql(UtcNow);
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql(UtcNow);
+            entity.Property(e => e.Email).HasColumnType("citext");
+            entity.HasIndex(e => e.Email).IsUnique();
+        });
+        modelBuilder.Entity<WeightLogs>(entity =>
+        {
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql(UtcNow);
+            entity.HasIndex(e => new { e.UserId, e.Date, e.Time }).IsUnique();
+        });
+    }
+
+    private const string UtcNow = "(now() at time zone 'utc')";
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

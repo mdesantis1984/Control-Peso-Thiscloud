@@ -27,10 +27,9 @@ public static class ServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
 
-        // Registrar DbContextFactory con SQL Server (REFACTORED for Blazor Server concurrency)
+        // Registrar DbContextFactory con PostgreSQL (Npgsql) (REFACTORED for Blazor Server concurrency)
         // Connection string desde appsettings.json: "ConnectionStrings:DefaultConnection"
-        // SQL Server Express (localhost\SQLEXPRESS) en Development
-        // SQL Server 2022 container en Docker/Production
+        // PostgreSQL en Development, Docker y Production (Sqlite solo para tests)
         var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException(
                 "Connection string 'DefaultConnection' not found in appsettings.json");
@@ -41,9 +40,9 @@ public static class ServiceCollectionExtensions
         {
             // Detect provider from connection string
             // SQLite: "Data Source=path.db"
-            // SQL Server: "Server=..." or contains "SqlServer"
+            // PostgreSQL: "Host=...;Database=..." (default)
             var isSqlite = connectionString.Contains("Data Source", StringComparison.OrdinalIgnoreCase)
-                && !connectionString.Contains("Server=", StringComparison.OrdinalIgnoreCase);
+                && !connectionString.Contains("Host=", StringComparison.OrdinalIgnoreCase);
 
             if (isSqlite)
             {
@@ -51,8 +50,8 @@ public static class ServiceCollectionExtensions
             }
             else
             {
-                // Use SQL Server provider (SQL Server Express locally, SQL Server in Docker/Production)
-                options.UseSqlServer(connectionString);
+                // Use PostgreSQL provider (Npgsql) with transient-failure retries
+                options.UseNpgsql(connectionString, npgsql => npgsql.EnableRetryOnFailure());
             }
 
             // En Development: habilitar logging detallado de queries SQL

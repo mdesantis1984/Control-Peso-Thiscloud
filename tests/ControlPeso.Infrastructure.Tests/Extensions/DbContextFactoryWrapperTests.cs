@@ -181,7 +181,7 @@ public sealed class DbContextFactoryWrapperTests : IDisposable
 
         // Assert
         Assert.NotNull(context.Database);
-        Assert.True(context.Database.IsSqlite() || context.Database.IsSqlServer());
+        Assert.True(context.Database.IsSqlite() || context.Database.IsNpgsql());
     }
 
     [Fact]
