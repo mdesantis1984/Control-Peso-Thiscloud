@@ -90,4 +90,60 @@ public sealed class PostgreSqlModelTests
         dateTimeColumns.Should().NotBeEmpty();
         dateTimeColumns.Should().OnlyContain(c => c.StoreType == "timestamp without time zone");
     }
+
+    private static IEnumerable<IProperty> DateTimeProperties(DbContext context) =>
+        context.Model.GetEntityTypes()
+            .SelectMany(e => e.GetProperties())
+            .Where(p => (Nullable.GetUnderlyingType(p.ClrType) ?? p.ClrType) == typeof(DateTime));
+
+    [Fact]
+    public void Model_ShouldConvertEveryDateTimeProperty_WhenProviderIsNpgsql()
+    {
+        using var context = CreateNpgsqlContext();
+
+        var properties = DateTimeProperties(context).ToList();
+
+        properties.Should().NotBeEmpty();
+        properties.Should().OnlyContain(p => p.GetValueConverter() != null,
+            "Npgsql rejects DateTime values with Kind=Utc for 'timestamp without time zone'");
+    }
+
+    [Fact]
+    public void DateTimeConverter_ShouldWriteUtcAsUnspecified_AndReadBackAsUtc()
+    {
+        using var context = CreateNpgsqlContext();
+        var converter = DateTimeProperties(context).Select(p => p.GetValueConverter()).First()!;
+        var utc = new DateTime(2026, 11, 18, 10, 30, 15, 123, DateTimeKind.Utc);
+
+        var written = (DateTime)converter.ConvertToProvider(utc)!;
+        var read = (DateTime)converter.ConvertFromProvider(new DateTime(2026, 11, 18, 10, 30, 15, 123, DateTimeKind.Unspecified))!;
+
+        written.Kind.Should().Be(DateTimeKind.Unspecified);
+        written.Ticks.Should().Be(utc.Ticks);
+        read.Kind.Should().Be(DateTimeKind.Utc);
+        read.Should().Be(utc);
+    }
+
+    [Fact]
+    public void DateTimeConverter_ShouldNormalizeLocalValuesToUtc_WhenWriting()
+    {
+        using var context = CreateNpgsqlContext();
+        var converter = DateTimeProperties(context).Select(p => p.GetValueConverter()).First()!;
+        var local = new DateTime(2026, 11, 18, 10, 30, 0, DateTimeKind.Local);
+
+        var written = (DateTime)converter.ConvertToProvider(local)!;
+
+        written.Kind.Should().Be(DateTimeKind.Unspecified);
+        written.Ticks.Should().Be(local.ToUniversalTime().Ticks);
+    }
+
+    [Fact]
+    public void Model_ShouldKeepTimestampColumnTypeAndNullability_WhenConverterIsApplied()
+    {
+        using var context = CreateNpgsqlContext();
+
+        DateTimeProperties(context).Should().OnlyContain(p =>
+            p.GetColumnType() == "timestamp without time zone" &&
+            p.IsNullable == (Nullable.GetUnderlyingType(p.ClrType) != null));
+    }
 }
