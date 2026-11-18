@@ -275,17 +275,17 @@ else
                                 @if (context.Item.Trend == WeightTrend.Down)
                                 {
                                     <MudIcon Icon="@Icons.Material.Filled.ArrowDownward" Color="Color.Success" Size="Size.Small" />
-                                    <MudText Typo="Typo.body2" Color="Color.Success">-0.2</MudText>
+                                    <MudText Typo="Typo.body2" Color="Color.Success">@GetDeltaText(context.Item)</MudText>
                                 }
                                 else if (context.Item.Trend == WeightTrend.Up)
                                 {
                                     <MudIcon Icon="@Icons.Material.Filled.ArrowUpward" Color="Color.Error" Size="Size.Small" />
-                                    <MudText Typo="Typo.body2" Color="Color.Error">+0.4</MudText>
+                                    <MudText Typo="Typo.body2" Color="Color.Error">@GetDeltaText(context.Item)</MudText>
                                 }
                                 else
                                 {
                                     <MudIcon Icon="@Icons.Material.Filled.Remove" Color="Color.Secondary" Size="Size.Small" />
-                                    <MudText Typo="Typo.body2" Color="Color.Secondary">0.0</MudText>
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">@GetDeltaText(context.Item)</MudText>
                                 }
                             </div>
                         </CellTemplate>
