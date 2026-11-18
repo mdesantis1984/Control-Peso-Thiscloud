@@ -14,7 +14,10 @@ public partial class NavMenu
     [Inject] private IStringLocalizer<NavMenu> Localizer { get; set; } = null!;
     [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
 
+    [Inject] private IWebHostEnvironment Environment { get; set; } = null!;
+
     private bool _isAdmin = false;
+    private bool _showDiagnostics = false;
 
     // Localized Properties
     private string NavigationTitle => Localizer[nameof(NavigationTitle)];
@@ -28,8 +31,6 @@ public partial class NavMenu
     private string Tests => Localizer[nameof(Tests)];
     private string DiagAuth => Localizer[nameof(DiagAuth)];
     private string TelegramDiagnostics => Localizer[nameof(TelegramDiagnostics)];
-    private string TestBadges => Localizer[nameof(TestBadges)];
-    private string TestFlags => Localizer[nameof(TestFlags)];
     private string Home => Localizer[nameof(Home)];
     private string Login => Localizer[nameof(Login)];
     private string AppVersion => Localizer[nameof(AppVersion)];
@@ -42,6 +43,7 @@ public partial class NavMenu
         {
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
             _isAdmin = authState.User.IsInRole("Administrator");
+            _showDiagnostics = Environment.IsDevelopment();
 
             Logger.LogDebug("NavMenu: User is admin: {IsAdmin}", _isAdmin);
         }

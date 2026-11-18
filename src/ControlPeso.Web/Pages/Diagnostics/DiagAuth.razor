@@ -1,4 +1,5 @@
 @page "/diag-auth"
+@attribute [Authorize(Roles = "Administrator")]
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 @namespace ControlPeso.Web.Pages.Diagnostics
