@@ -158,6 +158,9 @@ builder.Services.AddScoped<ControlPeso.Web.Services.UserStateService>();
 // 6.8. Add SEO Services (Sitemap & Robots.txt generation via Minimal APIs)
 builder.Services.AddScoped<ControlPeso.Web.Services.SitemapService>();
 
+// 6.9. Add health checks (database readiness)
+builder.Services.AddApplicationHealthChecks();
+
 // 7. Add Authentication & Authorization (Google OAuth + LinkedIn OAuth)
 builder.Services.AddOAuthAuthentication(builder.Configuration);
 
@@ -268,16 +271,8 @@ app.MapSeoEndpoints();
 // Register authentication endpoints (OAuth Challenge + Logout)
 app.MapAuthenticationEndpoints();
 
-// Health check endpoint for Docker/Kubernetes
-app.MapGet("/health", () => Results.Ok(new
-{
-    status = "healthy",
-    timestamp = DateTime.UtcNow,
-    version = "1.0.0"
-}))
-.WithName("HealthCheck")
-.WithTags("Health")
-.ExcludeFromDescription(); // No mostrar en Swagger si se agrega
+// Health endpoints: /health (liveness, no DB) and /health/ready (readiness, checks the DB)
+app.MapApplicationHealthEndpoints();
 
 // Static files AFTER SEO endpoints (MapStaticAssets handles optimization)
 app.MapStaticAssets();
