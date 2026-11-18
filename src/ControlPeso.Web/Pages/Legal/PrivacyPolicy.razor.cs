@@ -14,9 +14,9 @@ public partial class PrivacyPolicy
     private string LanguageSwitchTooltip => _isEnglish ? "Switch to Spanish" : "Cambiar a Inglés";
 
     private string EffectiveDateLabel => _isEnglish ? "Effective Date" : "Fecha de Vigencia";
-    private string EffectiveDate => "February 25, 2026";
+    private string EffectiveDate => LegalDateFormatter.Format(LegalDateFormatter.DocumentDate, _isEnglish);
     private string LastUpdatedLabel => _isEnglish ? "Last Updated" : "Última Actualización";
-    private string LastUpdated => "February 25, 2026";
+    private string LastUpdated => LegalDateFormatter.Format(LegalDateFormatter.DocumentDate, _isEnglish);
 
     private string IntroductionTitle => _isEnglish ? "Introduction" : "Introducción";
     private string IntroductionText => _isEnglish
@@ -158,7 +158,7 @@ public partial class PrivacyPolicy
     protected override void OnInitialized()
     {
         // Default to Spanish (can be changed to detect user's browser language)
-        _isEnglish = false;
+        _isEnglish = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en";
     }
 
     private void ToggleLanguage()

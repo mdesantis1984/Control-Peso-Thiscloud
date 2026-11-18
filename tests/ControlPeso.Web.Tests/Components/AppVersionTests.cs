@@ -1,0 +1,68 @@
+using System.Reflection;
+using Bunit;
+using Bunit.TestDoubles;
+using ControlPeso.Shared.Resources.Extensions;
+using ControlPeso.Web.Components.Layout;
+using ControlPeso.Web.Components.Shared;
+using FluentAssertions;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using MudBlazor.Services;
+using NSubstitute;
+
+namespace ControlPeso.Web.Tests.Components;
+
+/// <summary>
+/// S13: one version source (assembly informational version) for sidebar and footer.
+/// </summary>
+public sealed class AppVersionTests : TestContext
+{
+    private static string ExpectedVersion()
+    {
+        var info = typeof(AppVersionInfo).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
+        return info.Split('+')[0];
+    }
+
+    [Fact]
+    public void Current_ShouldBeTheInformationalVersionWithoutBuildMetadata()
+    {
+        AppVersionInfo.Current.Should().Be(ExpectedVersion());
+        AppVersionInfo.Current.Should().NotContain("+");
+    }
+
+    [Fact]
+    public void Footer_ShouldShowTheAssemblyVersion_NotAHardCodedOne()
+    {
+        JSInterop.Mode = JSRuntimeMode.Loose;
+        Services.AddMudServices();
+        RenderComponent<MudBlazor.MudPopoverProvider>();
+
+        var cut = RenderComponent<LegalFooter>();
+
+        cut.Markup.Should().Contain($"v{AppVersionInfo.Current}");
+        if (AppVersionInfo.Current != "1.3.0")
+        {
+            cut.Markup.Should().NotContain("v1.3.0");
+        }
+    }
+
+    [Fact]
+    public void Sidebar_ShouldShowTheSameVersionAsTheFooter()
+    {
+        JSInterop.Mode = JSRuntimeMode.Loose;
+        var env = Substitute.For<IWebHostEnvironment>();
+        env.EnvironmentName.Returns("Production");
+        Services.AddSharedResourcesLocalization();
+        Services.AddLogging();
+        Services.AddSingleton(env);
+        Services.AddMudServices();
+        this.AddTestAuthorization().SetAuthorized("test");
+        RenderComponent<MudBlazor.MudPopoverProvider>();
+
+        var cut = RenderComponent<NavMenu>();
+
+        cut.Markup.Should().Contain($"Control Peso Thiscloud v{AppVersionInfo.Current}");
+        cut.Markup.Should().NotContain("v1.0<");
+    }
+}

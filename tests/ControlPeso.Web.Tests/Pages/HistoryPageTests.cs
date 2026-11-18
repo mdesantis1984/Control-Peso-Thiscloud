@@ -123,4 +123,15 @@ public sealed class HistoryPageTests : TestContext
         // The aggregate query must cover every record matching the filter (no paging truncation).
         _filters.Should().Contain(f => f.PageSize >= 14 && f.Page == 1 && f.UserId == UserId);
     }
+
+    [Fact]
+    public void Page_ShouldHaveExactlyOneH1()
+    {
+        SetupService(Enumerable.Range(0, 3).Select(i => Log(i, 80m + i)).ToList());
+        RenderComponent<MudPopoverProvider>();
+
+        var cut = RenderComponent<History>();
+
+        cut.FindAll("h1").Should().ContainSingle();
+    }
 }

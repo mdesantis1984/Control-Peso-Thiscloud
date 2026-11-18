@@ -154,4 +154,12 @@ public sealed class DashboardPageTests : TestContext
         cut.Markup.Should().Contain(up);
         cut.Markup.Should().Contain(down);
     }
+
+    [Fact]
+    public void Page_ShouldHaveExactlyOneH1()
+    {
+        var cut = RenderDashboard("es-AR", UnitSystem.Metric);
+
+        cut.FindAll("h1").Should().ContainSingle();
+    }
 }

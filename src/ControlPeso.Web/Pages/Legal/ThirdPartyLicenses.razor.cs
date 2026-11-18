@@ -70,6 +70,7 @@ public partial class ThirdPartyLicenses
         ? "Control Peso Thiscloud complies with all license terms of third-party software and services. We include all required copyright notices, provide attribution to original authors, retain original license texts, and comply with redistribution requirements."
         : "Control Peso Thiscloud cumple con todos los términos de licencia del software y servicios de terceros. Incluimos todos los avisos de copyright requeridos, proporcionamos atribución a los autores originales, conservamos los textos de licencia originales y cumplimos con los requisitos de redistribución.";
 
+    private string LastUpdated => LegalDateFormatter.Format(LegalDateFormatter.DocumentDate, _isEnglish);
     private string LastUpdatedLabel => _isEnglish ? "Last Updated" : "Última Actualización";
     private string ThankYouText => _isEnglish ? "Thank you to everyone who contributes to open source!" : "¡Gracias a todos los que contribuyen al código abierto!";
 
@@ -95,7 +96,7 @@ public partial class ThirdPartyLicenses
 
     protected override void OnInitialized()
     {
-        _isEnglish = false; // Default to Spanish
+        _isEnglish = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en"; // Default to Spanish
     }
 
     private void ToggleLanguage()

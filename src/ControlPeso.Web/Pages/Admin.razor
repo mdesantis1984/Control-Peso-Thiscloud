@@ -27,7 +27,7 @@
         <img src="/images/og-image.png" 
              alt="Control Peso Thiscloud Logo" 
              style="width: 48px; height: 48px; border-radius: 8px;" />
-        <MudText Typo="Typo.h4">
+        <MudText Typo="Typo.h4" HtmlTag="h1">
             @AdminPanelTitle
         </MudText>
     </MudStack>
@@ -276,13 +276,15 @@
                                         Size="Size.Small" 
                                         Color="Color.Primary"
                                         OnClick="@(() => OpenChangeRoleDialog(context.Item))"
-                                        title="@ChangeRoleButtonTitle" />
+                                        title="@ChangeRoleButtonTitle"
+                                        aria-label="@ChangeRoleButtonTitle" />
                                     <MudIconButton 
                                         Icon="@Icons.Material.Filled.ToggleOn" 
                                         Size="Size.Small" 
                                         Color="Color.Secondary"
                                         OnClick="@(() => OpenChangeStatusDialog(context.Item))"
-                                        title="@ChangeStatusButtonTitle" />
+                                        title="@ChangeStatusButtonTitle"
+                                        aria-label="@ChangeStatusButtonTitle" />
                                 </MudStack>
                             </CellTemplate>
                         </TemplateColumn>

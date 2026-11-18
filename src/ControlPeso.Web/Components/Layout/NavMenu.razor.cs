@@ -1,3 +1,4 @@
+using ControlPeso.Web.Components.Shared;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Localization;
@@ -33,7 +34,7 @@ public partial class NavMenu
     private string TelegramDiagnostics => Localizer[nameof(TelegramDiagnostics)];
     private string Home => Localizer[nameof(Home)];
     private string Login => Localizer[nameof(Login)];
-    private string AppVersion => Localizer[nameof(AppVersion)];
+    private string AppVersion => Localizer[nameof(AppVersion), AppVersionInfo.Current];
 
     protected override async Task OnInitializedAsync()
     {
