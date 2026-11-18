@@ -1,6 +1,6 @@
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=controlpeso-sqlserver,1433;Database=ControlPeso;User Id=sa;Password=YOUR_SQL_PASSWORD_HERE;TrustServerCertificate=True;MultipleActiveResultSets=True"
+    "DefaultConnection": "Host=CHANGE_ME_HOST;Port=5432;Database=controlpeso;Username=controlpeso;Password=CHANGE_ME"
   },
   "Authentication": {
     "Google": {

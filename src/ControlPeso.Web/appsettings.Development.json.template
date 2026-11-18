@@ -1,6 +1,6 @@
 {
   "ConnectionStrings": { 
-    "DefaultConnection": "Server=localhost\\SQLEXPRESS;Database=ControlPeso;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True" 
+    "DefaultConnection": "Host=localhost;Port=5432;Database=controlpeso;Username=controlpeso;Password=CHANGE_ME" 
   },
   "App": {
     "BaseUrl": "https://localhost:7143"

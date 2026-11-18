@@ -17,7 +17,7 @@ services:
       - ASPNETCORE_URLS=http://+:8080
 
       # Data Protection keys path (for antiforgery tokens and auth cookies persistence)
-      - ASPNETCORE_DataProtection__Path=/root/.aspnet/DataProtection-Keys
+      - DataProtection__Path=/app/keys
 
       # Database Connection (PostgreSQL, external server)
       - ConnectionStrings__DefaultConnection=${CONTROLPESO_DB_CONNECTION}
@@ -53,7 +53,7 @@ services:
       - controlpeso-logs:/app/logs
 
       # Persist Data Protection keys (antiforgery tokens, authentication cookies)
-      - controlpeso-keys:/root/.aspnet/DataProtection-Keys
+      - controlpeso-keys:/app/keys
 
       # Persist uploaded avatars
       - controlpeso-uploads:/app/wwwroot/uploads
@@ -64,7 +64,7 @@ services:
     restart: unless-stopped
     
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD", "curl", "-f", "-H", "X-Forwarded-Proto: https", "http://localhost:8080/health"]
       interval: 30s
       timeout: 10s
       retries: 3
