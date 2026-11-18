@@ -22,7 +22,7 @@ dotnet tool install dotnet-ef --version 10.0.3 --tool-path "$TMPDIR/tools"
   --project src/ControlPeso.Infrastructure -o docs/schema/postgresql_schema_v1.sql
 ```
 
-- **Applying the schema**: run the idempotent script against the target database; it is safe to run more than once.
+- **Applying the schema**: use `scripts/migrate-postgres.sh` (generates the idempotent EF script with a local `dotnet-ef` tool and applies it with `psql`; `--dry-run` only prints it). Connection comes from `PGHOST`, `PGDATABASE`, `PGUSER` and `PGPASSWORD`. The app never migrates at startup. See [Database Migrations](DEPLOYMENT.md#database-migrations-postgresql). Manual alternative: run the idempotent script against the target database; it is safe to run more than once.
 
 ```bash
 psql "host=<host> dbname=controlpeso user=<role>" -f docs/schema/postgresql_schema_v1.sql

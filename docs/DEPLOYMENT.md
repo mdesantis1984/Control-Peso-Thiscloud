@@ -105,6 +105,21 @@ curl http://localhost:8080/health
 
 ---
 
+## Database Migrations (PostgreSQL)
+
+The application **never migrates the database at startup**. Schema changes are an explicit deploy step, run **before** starting the new container:
+
+```bash
+export PGHOST=<host> PGDATABASE=controlpeso PGUSER=<role> PGPASSWORD=<secret>   # secret from your vault, never committed
+scripts/migrate-postgres.sh --dry-run   # generate and print the idempotent SQL only
+scripts/migrate-postgres.sh             # generate and apply it with psql
+```
+
+- The script installs `dotnet-ef` (default 10.0.3, override with `EF_VERSION`) under `EF_TOOL_PATH` (default `${TMPDIR:-/tmp}/controlpeso-ef-tools`), runs `dotnet ef migrations script --idempotent` and applies the result with `psql` (`ON_ERROR_STOP=1`).
+- It is idempotent: running it again on an up-to-date database changes nothing.
+- The role needs permission to create tables and the `citext` extension.
+- Local compose (`docker-compose.yml`) requires `POSTGRES_PASSWORD` in the environment or a gitignored `.env`; the web container does not create the schema, run the script against `localhost:5432` first.
+
 ## Environment Configuration
 
 ### Development (Local)
