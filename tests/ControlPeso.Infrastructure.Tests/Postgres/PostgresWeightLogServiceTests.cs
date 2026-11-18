@@ -33,9 +33,8 @@ public sealed class PostgresWeightLogServiceTests : IClassFixture<PostgresFixtur
             Email = $"{Guid.NewGuid():N}@example.com"
         });
 
-        // The service receives a DbContext today; if it moves to IDbContextFactory this is the only line to adapt.
         var service = new WeightLogService(
-            PostgresFixture.CreateContext(connectionString),
+            new PostgresDbContextFactory(connectionString),
             NullLogger<WeightLogService>.Instance);
         return (service, user.Id);
     }
