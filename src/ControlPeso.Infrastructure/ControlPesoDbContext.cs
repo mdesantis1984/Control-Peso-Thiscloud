@@ -1,5 +1,6 @@
 using ControlPeso.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ControlPeso.Infrastructure;
 
@@ -101,6 +102,7 @@ public partial class ControlPesoDbContext : DbContext
                 if (clrType == typeof(DateTime))
                 {
                     property.SetColumnType("timestamp without time zone");
+                    property.SetValueConverter(UtcDateTimeConverter);
                 }
 
                 if (property.Name == "Id" && clrType == typeof(Guid))
@@ -127,6 +129,17 @@ public partial class ControlPesoDbContext : DbContext
             entity.HasIndex(e => new { e.UserId, e.Date, e.Time }).IsUnique();
         });
     }
+
+    /// <summary>
+    /// Npgsql refuses to write DateTime values with Kind=Utc into 'timestamp without time zone'.
+    /// All timestamps in this application are UTC by convention: write them as Unspecified
+    /// (same clock value, no time zone conversion) and read them back as Utc.
+    /// </summary>
+    private static readonly ValueConverter<DateTime, DateTime> UtcDateTimeConverter = new(
+        value => DateTime.SpecifyKind(
+            value.Kind == DateTimeKind.Local ? value.ToUniversalTime() : value,
+            DateTimeKind.Unspecified),
+        value => DateTime.SpecifyKind(value, DateTimeKind.Utc));
 
     private const string UtcNow = "(now() at time zone 'utc')";
 
