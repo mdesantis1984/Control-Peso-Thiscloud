@@ -134,13 +134,12 @@ builder.Services.AddHttpContextAccessor();
 // 6. Add MudBlazor services
 builder.Services.AddMudServices();
 
-// 6.3. Add Storage Services (unified interface for localStorage, sessionStorage, cookies)
+// 6.3. Add Storage Services (unified interface for localStorage, sessionStorage)
 // IMPORTANTE: LocalStorageService es el predeterminado (IStorageService → LocalStorageService)
 // Para usar otro storage, inyectar explícitamente (ej: IEnumerable<IStorageService> y resolver por tipo)
 builder.Services.AddScoped<ControlPeso.Web.Services.Storage.IStorageService, ControlPeso.Web.Services.Storage.LocalStorageService>();
 builder.Services.AddScoped<ControlPeso.Web.Services.Storage.LocalStorageService>();
 builder.Services.AddScoped<ControlPeso.Web.Services.Storage.SessionStorageService>();
-builder.Services.AddScoped<ControlPeso.Web.Services.Storage.CookieStorageService>();
 
 // 6.5. Add Theme Service (gestión de tema con persistencia en localStorage/DB)
 builder.Services.AddScoped<ControlPeso.Web.Services.ThemeService>();
