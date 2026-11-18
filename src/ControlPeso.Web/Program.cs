@@ -73,7 +73,10 @@ builder.Services.Configure<Microsoft.AspNetCore.Builder.RequestLocalizationOptio
 // ============================================================================
 
 // 3. Configure Forwarded Headers for production (NPM Plus reverse proxy)
-builder.Services.AddForwardedHeadersConfiguration(builder.Environment);
+builder.Services.AddForwardedHeadersConfiguration(builder.Environment, builder.Configuration);
+
+// 3.2. Persist Data Protection keys when DataProtection:Path is configured (mounted volume)
+builder.Services.AddConfiguredDataProtection(builder.Configuration);
 
 // 3.5. Configure Production Security Policies (HSTS, HTTPS redirection)
 builder.Services.AddProductionHsts(builder.Environment);
@@ -134,13 +137,12 @@ builder.Services.AddHttpContextAccessor();
 // 6. Add MudBlazor services
 builder.Services.AddMudServices();
 
-// 6.3. Add Storage Services (unified interface for localStorage, sessionStorage, cookies)
+// 6.3. Add Storage Services (unified interface for localStorage, sessionStorage)
 // IMPORTANTE: LocalStorageService es el predeterminado (IStorageService → LocalStorageService)
 // Para usar otro storage, inyectar explícitamente (ej: IEnumerable<IStorageService> y resolver por tipo)
 builder.Services.AddScoped<ControlPeso.Web.Services.Storage.IStorageService, ControlPeso.Web.Services.Storage.LocalStorageService>();
 builder.Services.AddScoped<ControlPeso.Web.Services.Storage.LocalStorageService>();
 builder.Services.AddScoped<ControlPeso.Web.Services.Storage.SessionStorageService>();
-builder.Services.AddScoped<ControlPeso.Web.Services.Storage.CookieStorageService>();
 
 // 6.5. Add Theme Service (gestión de tema con persistencia en localStorage/DB)
 builder.Services.AddScoped<ControlPeso.Web.Services.ThemeService>();
@@ -158,6 +160,9 @@ builder.Services.AddScoped<ControlPeso.Web.Services.UserStateService>();
 
 // 6.8. Add SEO Services (Sitemap & Robots.txt generation via Minimal APIs)
 builder.Services.AddScoped<ControlPeso.Web.Services.SitemapService>();
+
+// 6.9. Add health checks (database readiness)
+builder.Services.AddApplicationHealthChecks();
 
 // 7. Add Authentication & Authorization (Google OAuth + LinkedIn OAuth)
 builder.Services.AddOAuthAuthentication(builder.Configuration);
@@ -269,16 +274,8 @@ app.MapSeoEndpoints();
 // Register authentication endpoints (OAuth Challenge + Logout)
 app.MapAuthenticationEndpoints();
 
-// Health check endpoint for Docker/Kubernetes
-app.MapGet("/health", () => Results.Ok(new
-{
-    status = "healthy",
-    timestamp = DateTime.UtcNow,
-    version = "1.0.0"
-}))
-.WithName("HealthCheck")
-.WithTags("Health")
-.ExcludeFromDescription(); // No mostrar en Swagger si se agrega
+// Health endpoints: /health (liveness, no DB) and /health/ready (readiness, checks the DB)
+app.MapApplicationHealthEndpoints();
 
 // Static files AFTER SEO endpoints (MapStaticAssets handles optimization)
 app.MapStaticAssets();

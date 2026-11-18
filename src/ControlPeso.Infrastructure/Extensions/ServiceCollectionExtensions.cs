@@ -29,7 +29,7 @@ public static class ServiceCollectionExtensions
 
         // Registrar DbContextFactory con PostgreSQL (Npgsql) (REFACTORED for Blazor Server concurrency)
         // Connection string desde appsettings.json: "ConnectionStrings:DefaultConnection"
-        // PostgreSQL en Development, Docker y Production (Sqlite solo para tests)
+        // PostgreSQL en Development, Docker y Production (SQLite solo existe en los proyectos de test)
         var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException(
                 "Connection string 'DefaultConnection' not found in appsettings.json");
@@ -38,21 +38,9 @@ public static class ServiceCollectionExtensions
         // Esto permite crear múltiples instancias de DbContext de forma segura en circuitos concurrentes
         services.AddDbContextFactory<ControlPesoDbContext>(options =>
         {
-            // Detect provider from connection string
-            // SQLite: "Data Source=path.db"
-            // PostgreSQL: "Host=...;Database=..." (default)
-            var isSqlite = connectionString.Contains("Data Source", StringComparison.OrdinalIgnoreCase)
-                && !connectionString.Contains("Host=", StringComparison.OrdinalIgnoreCase);
-
-            if (isSqlite)
-            {
-                options.UseSqlite(connectionString);
-            }
-            else
-            {
-                // Use PostgreSQL provider (Npgsql) with transient-failure retries
-                options.UseNpgsql(connectionString, npgsql => npgsql.EnableRetryOnFailure());
-            }
+            // PostgreSQL (Npgsql) with transient-failure retries. Manual transactions, if ever added,
+            // must run inside CreateExecutionStrategy().ExecuteAsync.
+            options.UseNpgsql(connectionString, npgsql => npgsql.EnableRetryOnFailure());
 
             // En Development: habilitar logging detallado de queries SQL
             // En Production: solo errores
@@ -76,20 +64,8 @@ public static class ServiceCollectionExtensions
             return new DbContextFactoryWrapper(factory);
         });
 
-        // BACKWARD COMPATIBILITY: Registrar DbContext scoped para servicios que aún no han migrado
-        // Este registration se puede eliminar una vez que TODOS los servicios usen IDbContextFactory
-        services.AddScoped<DbContext>(provider =>
-        {
-            var factory = provider.GetRequiredService<IDbContextFactory<ControlPesoDbContext>>();
-            return factory.CreateDbContext();
-        });
-
-        // BACKWARD COMPATIBILITY: Registrar ControlPesoDbContext scoped para Infrastructure services
-        services.AddScoped(provider =>
-        {
-            var factory = provider.GetRequiredService<IDbContextFactory<ControlPesoDbContext>>();
-            return factory.CreateDbContext();
-        });
+        // No hand-written scoped DbContext registrations: every consumer creates short-lived contexts
+        // from the factories (a scoped context lives as long as a Blazor circuit and is not thread-safe).
 
         // ⚠️ DbSeeder REMOVED - App works ONLY with real OAuth users
         // No fake/demo data seeding

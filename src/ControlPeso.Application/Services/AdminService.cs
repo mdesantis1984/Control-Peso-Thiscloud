@@ -174,6 +174,9 @@ public sealed class AdminService : IAdminService
             context.Set<AuditLog>().Add(auditLog);
             await context.SaveChangesAsync(ct);
 
+            // Role/status feed claims transformation through the cached user: evict it by id and email
+            _userService.InvalidateCache(userId, user.Email);
+
             _logger.LogInformation(
                 "User role updated successfully - UserId: {UserId}, OldRole: {OldRole}, NewRole: {NewRole}",
                 userId, oldRole, role);
@@ -248,6 +251,9 @@ public sealed class AdminService : IAdminService
 
             context.Set<AuditLog>().Add(auditLog);
             await context.SaveChangesAsync(ct);
+
+            // Role/status feed claims transformation through the cached user: evict it by id and email
+            _userService.InvalidateCache(userId, user.Email);
 
             _logger.LogInformation(
                 "User status updated successfully - UserId: {UserId}, OldStatus: {OldStatus}, NewStatus: {NewStatus}",

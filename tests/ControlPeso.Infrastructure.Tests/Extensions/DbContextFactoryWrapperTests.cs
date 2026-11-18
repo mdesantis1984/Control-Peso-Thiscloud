@@ -1,3 +1,4 @@
+using FluentAssertions;
 using ControlPeso.Infrastructure.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -23,11 +24,11 @@ public sealed class DbContextFactoryWrapperTests : IDisposable
         // Setup DI container con servicios de Infrastructure
         var services = new ServiceCollection();
 
-        // Configuration fake con connection string SQLite en memoria
+        // Configuration fake con connection string de PostgreSQL (no se conecta hasta usarse)
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = "Data Source=:memory:"
+                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=controlpeso_test;Username=test;Password=test"
             })
             .Build();
 
@@ -185,14 +186,14 @@ public sealed class DbContextFactoryWrapperTests : IDisposable
     }
 
     [Fact]
-    public async Task CreateDbContextAsync_ReturnsContextWithWorkingConnection()
+    public async Task CreateDbContextAsync_ReturnsContextConfiguredForNpgsql()
     {
-        // Act
+        // Act - no server needed: connecting is covered by the PostgreSQL (Testcontainers) tests
         await using var context = await _factoryWrapper.CreateDbContextAsync();
 
         // Assert
         Assert.NotNull(context.Database);
-        Assert.True(await context.Database.CanConnectAsync());
+        Assert.Equal("Npgsql.EntityFrameworkCore.PostgreSQL", context.Database.ProviderName);
     }
 
     [Fact]
@@ -204,7 +205,7 @@ public sealed class DbContextFactoryWrapperTests : IDisposable
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = "Data Source=:memory:"
+                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=controlpeso_test;Username=test;Password=test"
             })
             .Build();
 
@@ -222,7 +223,7 @@ public sealed class DbContextFactoryWrapperTests : IDisposable
     }
 
     [Fact]
-    public void ServiceCollectionExtensions_BackwardCompatibility_RegistersDbContextScoped()
+    public void ServiceCollectionExtensions_DoesNotResolveAGenericScopedDbContext()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -230,7 +231,7 @@ public sealed class DbContextFactoryWrapperTests : IDisposable
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = "Data Source=:memory:"
+                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=controlpeso_test;Username=test;Password=test"
             })
             .Build();
 
@@ -238,13 +239,10 @@ public sealed class DbContextFactoryWrapperTests : IDisposable
         services.AddInfrastructureServices(configuration);
         using var provider = services.BuildServiceProvider();
 
-        // Assert - verificar backward compatibility con DbContext scoped
+        // Assert - Application services get contexts only from the factory, never from the scope
         using var scope = provider.CreateScope();
-        var dbContext = scope.ServiceProvider.GetService<DbContext>();
-        Assert.NotNull(dbContext);
-
-        var controlPesoDbContext = scope.ServiceProvider.GetService<ControlPesoDbContext>();
-        Assert.NotNull(controlPesoDbContext);
+        scope.ServiceProvider.GetService<DbContext>().Should().BeNull();
+        scope.ServiceProvider.GetService<IDbContextFactory<DbContext>>().Should().NotBeNull();
     }
 
     public void Dispose()

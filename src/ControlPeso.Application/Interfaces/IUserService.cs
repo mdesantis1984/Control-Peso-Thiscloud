@@ -19,4 +19,10 @@ public interface IUserService
     Task<UserDto> CreateOrUpdateFromGoogleAsync(GoogleUserInfo info, CancellationToken ct = default);
     Task<UserDto> CreateOrUpdateFromOAuthAsync(OAuthUserInfo info, CancellationToken ct = default);
     Task<UserDto> UpdateProfileAsync(Guid id, UpdateUserProfileDto dto, CancellationToken ct = default);
+
+    /// <summary>
+    /// Evicts the cached user by id and by email so the next read hits the database.
+    /// Call after any change made outside this service that alters role, status or email.
+    /// </summary>
+    void InvalidateCache(Guid userId, string? email = null);
 }

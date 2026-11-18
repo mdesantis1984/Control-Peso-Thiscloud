@@ -18,8 +18,13 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" />
     <PackageReference Include="AspNet.Security.OAuth.LinkedIn" />
     <PackageReference Include="CsvHelper" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" />
     <PackageReference Include="ThisCloud.Framework.Loggings.Abstractions" />
     <PackageReference Include="ThisCloud.Framework.Loggings.Serilog" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ControlPeso.Web.Tests" />
   </ItemGroup>
 
   <ItemGroup>

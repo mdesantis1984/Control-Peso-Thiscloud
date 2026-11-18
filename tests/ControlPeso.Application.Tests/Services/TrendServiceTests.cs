@@ -23,7 +23,7 @@ public sealed class TrendServiceTests : IDisposable
 
         _context = new TestDbContext(options);
         _loggerMock = new Mock<ILogger<TrendService>>();
-        _service = new TrendService(_context, _loggerMock.Object);
+        _service = new TrendService(new TestDbContextFactory(options), _loggerMock.Object);
     }
 
     public void Dispose()
@@ -427,6 +427,12 @@ public sealed class TrendServiceTests : IDisposable
     #endregion
 
     // Test DbContext for in-memory testing
+    /// <summary>Hands out a fresh context per call over the same in-memory database, like the real factory.</summary>
+    private sealed class TestDbContextFactory(DbContextOptions<DbContext> options) : IDbContextFactory<DbContext>
+    {
+        public DbContext CreateDbContext() => new TestDbContext(options);
+    }
+
     private sealed class TestDbContext : DbContext
     {
         public TestDbContext(DbContextOptions options) : base(options) { }
