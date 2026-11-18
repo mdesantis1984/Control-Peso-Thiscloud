@@ -43,8 +43,6 @@ public sealed class SitemapService
         "/_blazor/",
         "/_framework/",
         "/diagnostics/",
-        "/counter",
-        "/weather",
         "/testflags"
     ];
 
