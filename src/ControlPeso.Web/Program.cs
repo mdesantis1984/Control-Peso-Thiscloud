@@ -75,6 +75,9 @@ builder.Services.Configure<Microsoft.AspNetCore.Builder.RequestLocalizationOptio
 // 3. Configure Forwarded Headers for production (NPM Plus reverse proxy)
 builder.Services.AddForwardedHeadersConfiguration(builder.Environment, builder.Configuration);
 
+// 3.2. Persist Data Protection keys when DataProtection:Path is configured (mounted volume)
+builder.Services.AddConfiguredDataProtection(builder.Configuration);
+
 // 3.5. Configure Production Security Policies (HSTS, HTTPS redirection)
 builder.Services.AddProductionHsts(builder.Environment);
 builder.Services.AddProductionHttpsRedirection(builder.Environment);
