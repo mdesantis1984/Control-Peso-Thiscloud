@@ -40,11 +40,12 @@ public sealed class HealthEndpointsTests : IAsyncLifetime
     }
 
     /// <summary>Starts the real health endpoints on loopback with SQLite; <paramref name="databasePath"/> decides reachability.</summary>
-    private async Task<HttpClient> StartAsync(string databasePath)
+    private async Task<HttpClient> StartAsync(string databasePath, bool productionProxyPipeline = false)
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
             ContentRootPath = _scratch,
+            EnvironmentName = productionProxyPipeline ? Environments.Production : Environments.Development,
             // No file watchers: CI and shared dev machines have a low inotify instance limit
             Args = ["--hostBuilder:reloadConfigOnChange=false"]
         });
@@ -70,7 +71,20 @@ public sealed class HealthEndpointsTests : IAsyncLifetime
                 }));
         });
 
+        if (productionProxyPipeline)
+        {
+            // Same order as Program.cs: forwarded headers first, then HTTPS redirection
+            builder.Configuration["HTTPS_PORT"] = "443";
+            builder.Services.AddForwardedHeadersConfiguration(builder.Environment, builder.Configuration);
+        }
+
         var app = builder.Build();
+        if (productionProxyPipeline)
+        {
+            app.UseForwardedHeaders();
+            app.UseHttpsRedirection();
+        }
+
         app.UseRateLimiter();
         app.UseAuthentication();
         app.UseAuthorization();
@@ -148,5 +162,29 @@ public sealed class HealthEndpointsTests : IAsyncLifetime
         }
 
         statuses.Should().OnlyContain(s => s == HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task Liveness_FromLoopbackWithForwardedProtoHttps_Returns200WithoutHttpsRedirect()
+    {
+        // The container HEALTHCHECK runs `curl http://localhost:8080/health` with X-Forwarded-Proto: https
+        using var client = await StartAsync(ReachableDatabase(), productionProxyPipeline: true);
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/health");
+        request.Headers.Add("X-Forwarded-Proto", "https");
+
+        var response = await client.SendAsync(request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task Liveness_FromLoopbackWithoutForwardedProto_IsRedirectedToHttps()
+    {
+        // Control: proves the pipeline above really redirects, so the 200 above comes from trusting loopback
+        using var client = await StartAsync(ReachableDatabase(), productionProxyPipeline: true);
+
+        var response = await client.GetAsync("/health");
+
+        ((int)response.StatusCode).Should().BeInRange(300, 399);
     }
 }

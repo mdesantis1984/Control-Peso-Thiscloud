@@ -11,15 +11,18 @@ public static class ForwardedHeadersExtensions
     /// <summary>Configuration section holding the trusted proxy lists.</summary>
     public const string ConfigSection = "ForwardedHeaders";
 
-    /// <summary>Docker private ranges and the LAN where NPMplus runs; used when nothing is configured.</summary>
-    private static readonly string[] DefaultKnownNetworks = ["172.16.0.0/12", "192.168.178.0/24"];
+    /// <summary>
+    /// Loopback (the container HEALTHCHECK curls localhost with X-Forwarded-Proto: https), Docker private ranges
+    /// and the LAN where NPMplus runs; used when nothing is configured.
+    /// </summary>
+    private static readonly string[] DefaultKnownNetworks = ["127.0.0.0/8", "::1/128", "172.16.0.0/12", "192.168.178.0/24"];
 
     /// <summary>
     /// Configures forwarded headers for production deployment behind the NPMplus reverse proxy.
     /// Required for: correct HTTPS redirection, OAuth redirect URIs, IP logging, HSTS.
     /// Only proxies listed in <c>ForwardedHeaders:KnownNetworks</c> (CIDR) and <c>ForwardedHeaders:KnownProxies</c> (IP)
     /// are trusted; each list accepts an array or a comma-separated value. When both are absent or empty the
-    /// defaults apply (172.16.0.0/12 and 192.168.178.0/24). The lists are never both emptied (that would trust every client).
+    /// defaults apply (loopback, 172.16.0.0/12 and 192.168.178.0/24). The lists are never both emptied (that would trust every client).
     /// </summary>
     /// <exception cref="InvalidOperationException">A configured CIDR or IP address cannot be parsed.</exception>
     public static IServiceCollection AddForwardedHeadersConfiguration(

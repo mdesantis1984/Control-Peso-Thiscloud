@@ -56,6 +56,24 @@ public sealed class ForwardedHeadersExtensionsTests
         return context;
     }
 
+    [Theory]
+    [InlineData("127.0.0.1")]
+    [InlineData("::1")]
+    public async Task Loopback_IsTrustedByDefault_AndByTheShippedAppsettings(string loopback)
+    {
+        var shipped = new ConfigurationBuilder()
+            .AddJsonFile(Path.Combine(AppContext.BaseDirectory, "appsettings.json"), optional: false)
+            .Build();
+
+        foreach (var configuration in new[] { Config(), shipped })
+        {
+            var context = await SendAsync(configuration, loopback);
+
+            context.Request.Scheme.Should().Be("https");
+            context.Connection.RemoteIpAddress.Should().Be(IPAddress.Parse(ClientIp));
+        }
+    }
+
     [Fact]
     public async Task UntrustedRemote_WithForwardedFor_DoesNotChangeRemoteIpOrScheme()
     {
