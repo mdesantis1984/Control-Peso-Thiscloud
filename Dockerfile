@@ -65,7 +65,7 @@ EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f -H "X-Forwarded-Proto: https" http://localhost:8080/health || exit 1
+    CMD [ "$(curl -s -o /dev/null -w '%{http_code}' -H 'X-Forwarded-Proto: https' http://localhost:8080/health)" = "200" ] || exit 1
 
 # Run application
 ENTRYPOINT ["dotnet", "ControlPeso.Web.dll"]
