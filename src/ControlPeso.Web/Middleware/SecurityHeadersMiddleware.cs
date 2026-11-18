@@ -8,14 +8,23 @@ public sealed class SecurityHeadersMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<SecurityHeadersMiddleware> _logger;
+    private readonly bool _analyticsEnabled;
 
-    public SecurityHeadersMiddleware(RequestDelegate next, ILogger<SecurityHeadersMiddleware> logger)
+    public SecurityHeadersMiddleware(
+        RequestDelegate next,
+        ILogger<SecurityHeadersMiddleware> logger,
+        IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(next);
         ArgumentNullException.ThrowIfNull(logger);
+        ArgumentNullException.ThrowIfNull(configuration);
 
         _next = next;
         _logger = logger;
+
+        // Google domains are only allowed when a real GA measurement id is configured
+        _analyticsEnabled = GoogleAnalyticsSettings.IsConfigured(
+            configuration[GoogleAnalyticsSettings.MeasurementIdKey]);
     }
 
     public Task InvokeAsync(HttpContext context)
@@ -71,7 +80,7 @@ public sealed class SecurityHeadersMiddleware
 
             // Content-Security-Policy: Política de seguridad de contenido
             // Define fuentes permitidas para scripts, estilos, imágenes, etc
-            var csp = BuildContentSecurityPolicy();
+            var csp = BuildContentSecurityPolicy(_analyticsEnabled);
             context.Response.Headers["Content-Security-Policy"] = csp;
 
             // DEBUG: Log CSP to verify it's being applied correctly
@@ -81,7 +90,7 @@ public sealed class SecurityHeadersMiddleware
         return _next(context);
     }
 
-    private static string BuildContentSecurityPolicy()
+    internal static string BuildContentSecurityPolicy(bool analyticsEnabled)
     {
         // CSP restrictivo para Blazor Server + MudBlazor
         var directives = new List<string>
@@ -93,9 +102,10 @@ public sealed class SecurityHeadersMiddleware
             // 'self': Scripts del mismo origen
             // 'unsafe-inline': Requerido por Blazor Server para scripts inline
             // 'unsafe-eval': Requerido por Blazor Server para eval()
-            // https://www.googletagmanager.com: Google Analytics
             // https://static.cloudflareinsights.com: Cloudflare Analytics
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://static.cloudflareinsights.com",
+            // Google Tag Manager is appended only when Google Analytics is configured
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com"
+                + (analyticsEnabled ? " https://www.googletagmanager.com" : string.Empty),
 
             // style-src: Estilos permitidos
             // 'self': Estilos del mismo origen
@@ -114,15 +124,17 @@ public sealed class SecurityHeadersMiddleware
             // https://*.googleusercontent.com: Avatares de Google OAuth
             // https://*.licdn.com: Avatares de LinkedIn OAuth
             // https://flagcdn.com: Banderas de países (Flagpedia API - w40, w20, etc)
-            "img-src 'self' data: https://*.googleusercontent.com https://*.licdn.com https://flagcdn.com",
+            // Google Analytics beacons are allowed only when Google Analytics is configured
+            "img-src 'self' data: https://*.googleusercontent.com https://*.licdn.com https://flagcdn.com"
+                + (analyticsEnabled ? " https://www.googletagmanager.com https://*.google-analytics.com" : string.Empty),
 
             // connect-src: Conexiones AJAX/WebSocket permitidas
             // 'self': Conexiones al mismo origen
             // wss:: WebSocket (requerido por Blazor Server SignalR)
-            // https://www.googletagmanager.com: Google Tag Manager (gtag.js)
-            // https://*.google-analytics.com: Google Analytics (incluye region1, region2, etc.)
             // https://cloudflareinsights.com: Cloudflare Analytics
-            "connect-src 'self' wss: https://www.googletagmanager.com https://*.google-analytics.com https://cloudflareinsights.com",
+            // Google Tag Manager / Google Analytics (incl. region1, region2, etc.) only when configured
+            "connect-src 'self' wss: https://cloudflareinsights.com"
+                + (analyticsEnabled ? " https://www.googletagmanager.com https://*.google-analytics.com" : string.Empty),
 
             // frame-ancestors: Quién puede embeber esta página en iframe
             // 'none': Nadie puede embeber (equivalente a X-Frame-Options: DENY)
@@ -141,6 +153,35 @@ public sealed class SecurityHeadersMiddleware
         };
 
         return string.Join("; ", directives);
+    }
+}
+
+/// <summary>
+/// Rules for deciding whether Google Analytics is configured with a real measurement id.
+/// </summary>
+public static class GoogleAnalyticsSettings
+{
+    /// <summary>Configuration key that holds the GA4 measurement id.</summary>
+    public const string MeasurementIdKey = "GoogleAnalytics:MeasurementId";
+
+    /// <summary>
+    /// True only for a real measurement id: not empty, not a template placeholder (contains "YOUR_"),
+    /// and made only of letters, digits and dashes (it is written into an inline script and a URL).
+    /// </summary>
+    public static bool IsConfigured(string? measurementId)
+    {
+        if (string.IsNullOrWhiteSpace(measurementId))
+        {
+            return false;
+        }
+
+        var id = measurementId.Trim();
+        if (id.Contains("YOUR_", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return id.All(c => char.IsAsciiLetterOrDigit(c) || c == '-');
     }
 }
 
