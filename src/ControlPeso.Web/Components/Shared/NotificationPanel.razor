@@ -17,14 +17,16 @@
                             <MudIconButton Icon="@Icons.Material.Filled.DoneAll" 
                                            Size="Size.Small" 
                                            OnClick="@MarkAllAsReadAsync" 
-                                           Disabled="@_isLoading" />
+                                           Disabled="@_isLoading"
+                                           aria-label="Marcar todas como leídas" />
                         </MudTooltip>
                         <MudTooltip Text="Borrar todas">
                             <MudIconButton Icon="@Icons.Material.Filled.DeleteSweep" 
                                            Size="Size.Small" 
                                            Color="Color.Error"
                                            OnClick="@DeleteAllAsync" 
-                                           Disabled="@_isLoading" />
+                                           Disabled="@_isLoading"
+                                           aria-label="Borrar todas" />
                         </MudTooltip>
                     </MudStack>
                 }
@@ -67,7 +69,8 @@
                                         <MudIconButton Icon="@Icons.Material.Filled.Close" 
                                                        Size="Size.Small" 
                                                        OnClick="@(() => DeleteAsync(notification.Id))"
-                                                       Disabled="@_isLoading" />
+                                                       Disabled="@_isLoading"
+                                                       aria-label="Borrar" />
                                     </MudTooltip>
                                 </MudStack>
 

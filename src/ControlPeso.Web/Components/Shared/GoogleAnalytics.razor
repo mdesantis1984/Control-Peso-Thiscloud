@@ -1,0 +1,24 @@
+@namespace ControlPeso.Web.Components.Shared
+@using ControlPeso.Web.Middleware
+
+@* Google Analytics 4: rendered only when a real measurement id is configured (never a placeholder). *@
+@if (GoogleAnalyticsSettings.IsConfigured(MeasurementId))
+{
+    var id = MeasurementId!.Trim();
+    <script async src="https://www.googletagmanager.com/gtag/js?id=@id"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '@id', {
+            'anonymize_ip': true,
+            'cookie_flags': 'SameSite=Strict;Secure'
+        });
+    </script>
+}
+
+@code {
+    /// <summary>GA4 measurement id (for example G-XXXXXXXXXX). Empty or placeholder values render nothing.</summary>
+    [Parameter]
+    public string? MeasurementId { get; set; }
+}

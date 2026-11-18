@@ -128,4 +128,8 @@
     <value>Contact Support</value>
     <comment>Support contact link</comment>
   </data>
+  <data name="OAuthFailedMessage" xml:space="preserve">
+    <value>We couldn't sign you in. Please try again.</value>
+    <comment>Message shown when the OAuth sign-in fails (/login?error=...)</comment>
+  </data>
 </root>

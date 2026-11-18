@@ -104,7 +104,7 @@ public partial class Changelog
 
     protected override void OnInitialized()
     {
-        _isEnglish = false; // Default to Spanish
+        _isEnglish = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en"; // Default to Spanish
     }
 
     private void ToggleLanguage()
