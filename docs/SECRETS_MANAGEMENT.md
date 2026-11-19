@@ -10,7 +10,6 @@ Secrets never go into Git. Tracked files only contain placeholders (`CHANGE_ME`,
 | Npgsql connection string, includes the password (production) | `CONTROLPESO_DB_CONNECTION` | Production |
 | Google OAuth client id | `Authentication__Google__ClientId` | Yes |
 | Google OAuth client secret | `Authentication__Google__ClientSecret` | Yes |
-| LinkedIn OAuth client id / secret | `Authentication__LinkedIn__ClientId` / `ClientSecret` | No (disabled in the UI) |
 | Google Analytics measurement id | `GoogleAnalytics__MeasurementId` | No (not a secret, but environment specific) |
 
 ## Model

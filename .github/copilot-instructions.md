@@ -138,7 +138,6 @@ public class Users
 {
     public Guid Id { get; set; }
     public string? GoogleId { get; set; }
-    public string? LinkedInId { get; set; }
     public string Name { get; set; }
     public string Email { get; set; }          // citext, único
     public int Role { get; set; }              // UserRole: 0=User, 1=Administrator

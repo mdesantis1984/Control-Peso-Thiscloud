@@ -33,7 +33,7 @@ Aplicación web de control de peso corporal construida con **Blazor Server (.NET
 |------|------------|
 | Runtime / UI | .NET 10, Blazor Server, MudBlazor 9 |
 | Datos | PostgreSQL 15, Entity Framework Core 10, Npgsql (`citext` para el email) |
-| Autenticación | Cookies + Google OAuth (LinkedIn está implementado pero desactivado: solo se registra si se configura) |
+| Autenticación | Cookies + Google OAuth |
 | Validación | FluentValidation |
 | Imágenes | SkiaSharp (avatares) |
 | Logging | Serilog vía `ThisCloud.Framework.Loggings` (NDJSON, redacción, `X-Correlation-Id`) |
