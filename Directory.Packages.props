@@ -46,6 +46,10 @@
     <PackageVersion Include="SkiaSharp" Version="4.157.0" />
     <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.157.0" />
   </ItemGroup>
+  <ItemGroup Label="Build tooling">
+    <!-- Derives the app version from git release tags (Apache-2.0). -->
+    <PackageVersion Include="MinVer" Version="8.0.0" />
+  </ItemGroup>
   <ItemGroup Label="Testing Dependencies">
     <!-- Testing Framework -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />

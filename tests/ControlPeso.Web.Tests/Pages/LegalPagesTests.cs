@@ -97,7 +97,9 @@ public sealed class LegalPagesTests : TestContext
     {
         var cut = Render<Changelog>(culture);
 
-        cut.Markup.Should().Contain("v1.3.0 - ");
+        cut.Markup.Should().Contain("v9.0.1 - ");
+        cut.Markup.Should().Contain("v9.0.0 - ");
+        cut.Markup.Should().NotContain("v1.3.0 - ");
         cut.Markup.Should().Contain(datePart);
         cut.Markup.Should().Contain("v1.3.0-initial - February 25, 2026");
         cut.Markup.Should().Contain("PostgreSQL 15");

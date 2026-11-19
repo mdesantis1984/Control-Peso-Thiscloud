@@ -1,6 +1,6 @@
 # Architecture Documentation - Control Peso Thiscloud
 
-> Verified against the code on 2026-11-19 (version 1.3.0, branch `feature/postgresql-migration`).
+> Verified against the code on 2026-11-19 (version 9.0.0, branch `feature/postgresql-migration`).
 
 ## Table of Contents
 

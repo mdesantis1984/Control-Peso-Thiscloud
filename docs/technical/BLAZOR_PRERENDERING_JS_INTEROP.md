@@ -1,6 +1,6 @@
 # Blazor Server: prerendering y JavaScript interop
 
-> **Verificado contra el código**: 2026-11-19 (versión 1.3.0)
+> **Verificado contra el código**: 2026-11-19 (versión 9.0.0)
 
 ## Problema
 

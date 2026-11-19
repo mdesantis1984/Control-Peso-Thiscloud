@@ -1,6 +1,6 @@
 # SEO Infrastructure - Control Peso Thiscloud
 
-> **Verified against the code**: 2026-11-19 (version 1.3.0)
+> **Verified against the code**: 2026-11-19 (version 9.0.0)
 
 `/robots.txt` and `/sitemap.xml` are generated dynamically; there are no static files.
 

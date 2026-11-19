@@ -1,6 +1,6 @@
 # Sistema de unidades y estado global del usuario
 
-> **Verificado contra el código**: 2026-11-19 (versión 1.3.0)
+> **Verificado contra el código**: 2026-11-19 (versión 9.0.0)
 
 El peso y la altura se guardan **siempre** en kg y cm en la base de datos. El sistema de unidades del usuario (Métrico/Imperial) solo afecta a la **visualización** y a la entrada de datos en la UI.
 

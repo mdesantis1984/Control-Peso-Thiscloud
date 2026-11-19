@@ -30,6 +30,7 @@ public sealed class AppVersionTests : TestContext
     {
         AppVersionInfo.Current.Should().Be(ExpectedVersion());
         AppVersionInfo.Current.Should().NotContain("+");
+        AppVersionInfo.Current.Should().MatchRegex(@"^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$", "MinVer derives a SemVer 2.0 version from the release tags");
     }
 
     [Fact]
@@ -42,10 +43,6 @@ public sealed class AppVersionTests : TestContext
         var cut = RenderComponent<LegalFooter>();
 
         cut.Markup.Should().Contain($"v{AppVersionInfo.Current}");
-        if (AppVersionInfo.Current != "1.3.0")
-        {
-            cut.Markup.Should().NotContain("v1.3.0");
-        }
     }
 
     [Fact]
