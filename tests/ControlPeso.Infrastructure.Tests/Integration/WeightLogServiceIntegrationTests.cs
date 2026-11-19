@@ -32,7 +32,7 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
         // Arrange
         var databaseName = $"WeightLogServiceTests_{Guid.NewGuid()}";
         (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(databaseName);
-        var service = new WeightLogService(_context, NullLogger<WeightLogService>.Instance);
+        var service = new WeightLogService(new SharedConnectionContextFactory(_connection!), NullLogger<WeightLogService>.Instance);
 
         var existingUser = await _context.Users.FirstAsync();
         var createDto = new CreateWeightLogDto
@@ -55,7 +55,7 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
         Assert.Equal(createDto.Note, result.Note);
 
         // Verify persistence: query DB directly
-        var savedLog = await _context.WeightLogs.FindAsync(result.Id);
+        var savedLog = await _context.WeightLogs.AsNoTracking().FirstOrDefaultAsync(e => e.Id == result.Id); // fresh read: the service used its own context
         Assert.NotNull(savedLog);
         Assert.Equal(75.5m, savedLog.Weight, precision: 2);
         Assert.Equal("Test weight log from integration test", savedLog.Note);
@@ -67,7 +67,7 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
         // Arrange
         var databaseName = $"WeightLogServiceTests_{Guid.NewGuid()}";
         (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(databaseName);
-        var service = new WeightLogService(_context, NullLogger<WeightLogService>.Instance);
+        var service = new WeightLogService(new SharedConnectionContextFactory(_connection!), NullLogger<WeightLogService>.Instance);
 
         var existingUser = await _context.Users.FirstAsync();
         var userId = existingUser.Id;
@@ -99,7 +99,7 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
         // Arrange
         var databaseName = $"WeightLogServiceTests_{Guid.NewGuid()}";
         (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(databaseName);
-        var service = new WeightLogService(_context, NullLogger<WeightLogService>.Instance);
+        var service = new WeightLogService(new SharedConnectionContextFactory(_connection!), NullLogger<WeightLogService>.Instance);
 
         var existingUser = await _context.Users.FirstAsync();
         var userId = existingUser.Id;
@@ -137,7 +137,7 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
         // Arrange
         var databaseName = $"WeightLogServiceTests_{Guid.NewGuid()}";
         (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(databaseName);
-        var service = new WeightLogService(_context, NullLogger<WeightLogService>.Instance);
+        var service = new WeightLogService(new SharedConnectionContextFactory(_connection!), NullLogger<WeightLogService>.Instance);
 
         // Get existing weight log
         var existingLog = await _context.WeightLogs.FirstAsync();
@@ -162,7 +162,7 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
         Assert.Equal("Updated note from integration test", result.Note);
 
         // Verify persistence
-        var updatedLog = await _context.WeightLogs.FindAsync(logId);
+        var updatedLog = await _context.WeightLogs.AsNoTracking().FirstOrDefaultAsync(e => e.Id == logId); // fresh read: the service used its own context
         Assert.NotNull(updatedLog);
         Assert.Equal(80.0m, updatedLog.Weight, precision: 2);
         Assert.Equal("Updated note from integration test", updatedLog.Note);
@@ -174,7 +174,7 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
         // Arrange
         var databaseName = $"WeightLogServiceTests_{Guid.NewGuid()}";
         (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(databaseName);
-        var service = new WeightLogService(_context, NullLogger<WeightLogService>.Instance);
+        var service = new WeightLogService(new SharedConnectionContextFactory(_connection!), NullLogger<WeightLogService>.Instance);
 
         var existingLog = await _context.WeightLogs.FirstAsync();
         var logId = existingLog.Id;
@@ -183,7 +183,7 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
         await service.DeleteAsync(logId);
 
         // Assert - verify record is deleted
-        var deletedLog = await _context.WeightLogs.FindAsync(logId);
+        var deletedLog = await _context.WeightLogs.AsNoTracking().FirstOrDefaultAsync(e => e.Id == logId); // fresh read: the service used its own context
         Assert.Null(deletedLog);
     }
 
@@ -193,7 +193,7 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
         // Arrange
         var databaseName = $"WeightLogServiceTests_{Guid.NewGuid()}";
         (_context, _connection) = await InMemoryDbContextFactory.CreateWithSeedDataAsync(databaseName);
-        var service = new WeightLogService(_context, NullLogger<WeightLogService>.Instance);
+        var service = new WeightLogService(new SharedConnectionContextFactory(_connection!), NullLogger<WeightLogService>.Instance);
 
         var existingUser = await _context.Users.FirstAsync();
         var userId = existingUser.Id;
@@ -227,7 +227,7 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
         // Arrange
         var databaseName = $"WeightLogServiceTests_{Guid.NewGuid()}";
         (_context, _connection) = InMemoryDbContextFactory.Create(databaseName);
-        var service = new WeightLogService(_context, NullLogger<WeightLogService>.Instance);
+        var service = new WeightLogService(new SharedConnectionContextFactory(_connection!), NullLogger<WeightLogService>.Instance);
 
         // Usar GoogleId único para cada test para evitar conflictos
         var uniqueGoogleId = $"test_google_{Guid.NewGuid():N}";
@@ -271,7 +271,7 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
         Assert.NotNull(result);
 
         // Verify StartingWeight was auto-set
-        var updatedUser = await _context.Users.FindAsync(newUser.Id);
+        var updatedUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(e => e.Id == newUser.Id); // fresh read: the service used its own context
         Assert.NotNull(updatedUser);
         Assert.NotNull(updatedUser.StartingWeight);
         Assert.Equal(85.5m, updatedUser.StartingWeight.Value, precision: 2);
@@ -283,7 +283,7 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
         // Arrange
         var databaseName = $"WeightLogServiceTests_{Guid.NewGuid()}";
         (_context, _connection) = InMemoryDbContextFactory.Create(databaseName);
-        var service = new WeightLogService(_context, NullLogger<WeightLogService>.Instance);
+        var service = new WeightLogService(new SharedConnectionContextFactory(_connection!), NullLogger<WeightLogService>.Instance);
 
         var nonExistentId = Guid.NewGuid();
 
@@ -300,7 +300,7 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
         // Arrange
         var databaseName = $"WeightLogServiceTests_{Guid.NewGuid()}";
         (_context, _connection) = InMemoryDbContextFactory.Create(databaseName);
-        var service = new WeightLogService(_context, NullLogger<WeightLogService>.Instance);
+        var service = new WeightLogService(new SharedConnectionContextFactory(_connection!), NullLogger<WeightLogService>.Instance);
 
         var nonExistentId = Guid.NewGuid();
         var updateDto = new UpdateWeightLogDto
@@ -321,11 +321,19 @@ public sealed class WeightLogServiceIntegrationTests : IDisposable
         // Arrange
         var databaseName = $"WeightLogServiceTests_{Guid.NewGuid()}";
         (_context, _connection) = InMemoryDbContextFactory.Create(databaseName);
-        var service = new WeightLogService(_context, NullLogger<WeightLogService>.Instance);
+        var service = new WeightLogService(new SharedConnectionContextFactory(_connection!), NullLogger<WeightLogService>.Instance);
 
         var nonExistentId = Guid.NewGuid();
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(() => service.DeleteAsync(nonExistentId));
     }
+
+    /// <summary>One short-lived context per call over the test's open in-memory SQLite connection.</summary>
+    private sealed class SharedConnectionContextFactory(SqliteConnection connection) : IDbContextFactory<DbContext>
+    {
+        public DbContext CreateDbContext() =>
+            new ControlPesoDbContext(new DbContextOptionsBuilder<ControlPesoDbContext>().UseSqlite(connection).Options);
+    }
 }
+

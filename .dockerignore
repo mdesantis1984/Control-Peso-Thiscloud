@@ -12,3 +12,12 @@ docker-logs/
 backup-*.db
 *-backup/
 *.tar.gz
+
+# Local, untracked configuration may hold real credentials: never bake it into an image.
+# Production settings come from environment variables (docker-compose.override.yml).
+**/appsettings.Development.json
+**/appsettings.Production.json
+**/appsettings.Staging.json
+**/appsettings.Local.json
+odd/
+.worktrees/

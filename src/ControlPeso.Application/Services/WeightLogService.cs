@@ -16,17 +16,17 @@ namespace ControlPeso.Application.Services;
 /// </summary>
 public sealed class WeightLogService : IWeightLogService
 {
-    private readonly DbContext _context;
+    private readonly IDbContextFactory<DbContext> _contextFactory;
     private readonly ILogger<WeightLogService> _logger;
 
     public WeightLogService(
-        DbContext context,
+        IDbContextFactory<DbContext> contextFactory,
         ILogger<WeightLogService> logger)
     {
-        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(contextFactory);
         ArgumentNullException.ThrowIfNull(logger);
 
-        _context = context;
+        _contextFactory = contextFactory;
         _logger = logger;
     }
 
@@ -37,7 +37,8 @@ public sealed class WeightLogService : IWeightLogService
 
         try
         {
-            var entity = await _context.Set<WeightLogs>()
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
+            var entity = await context.Set<WeightLogs>()
                 .AsNoTracking()
                 .FirstOrDefaultAsync(w => w.Id == id, ct);
 
@@ -69,7 +70,8 @@ public sealed class WeightLogService : IWeightLogService
 
         try
         {
-            var query = _context.Set<WeightLogs>()
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
+            var query = context.Set<WeightLogs>()
                 .AsNoTracking()
                 .Where(w => w.UserId == userId);
 
@@ -134,18 +136,19 @@ public sealed class WeightLogService : IWeightLogService
 
         try
         {
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
             // Calculate trend based on previous weight
-            var previousWeight = await GetLastWeightAsync(dto.UserId, dto.Date, ct);
+            var previousWeight = await GetLastWeightAsync(context, dto.UserId, dto.Date, ct);
             var trend = CalculateTrend(dto.Weight, previousWeight);
 
             var entity = WeightLogMapper.ToEntity(dto);
             entity.Trend = (int)trend;
 
-            _context.Set<WeightLogs>().Add(entity);
-            await _context.SaveChangesAsync(ct);
+            context.Set<WeightLogs>().Add(entity);
+            await context.SaveChangesAsync(ct);
 
             // Update user's StartingWeight if this is the first log
-            await UpdateUserStartingWeightIfNeededAsync(dto.UserId, entity.Weight, ct);
+            await UpdateUserStartingWeightIfNeededAsync(context, dto.UserId, entity.Weight, ct);
 
             var result = WeightLogMapper.ToDto(entity);
 
@@ -173,7 +176,8 @@ public sealed class WeightLogService : IWeightLogService
 
         try
         {
-            var entity = await _context.Set<WeightLogs>()
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
+            var entity = await context.Set<WeightLogs>()
                 .FirstOrDefaultAsync(w => w.Id == id, ct);
 
             if (entity is null)
@@ -187,10 +191,10 @@ public sealed class WeightLogService : IWeightLogService
             WeightLogMapper.UpdateEntity(entity, dto);
 
             // Recalculate trend if weight changed
-            var previousWeight = await GetLastWeightAsync(userId, dto.Date, ct);
+            var previousWeight = await GetLastWeightAsync(context, userId, dto.Date, ct);
             entity.Trend = (int)CalculateTrend(dto.Weight, previousWeight);
 
-            await _context.SaveChangesAsync(ct);
+            await context.SaveChangesAsync(ct);
 
             var result = WeightLogMapper.ToDto(entity);
 
@@ -216,7 +220,8 @@ public sealed class WeightLogService : IWeightLogService
 
         try
         {
-            var entity = await _context.Set<WeightLogs>()
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
+            var entity = await context.Set<WeightLogs>()
                 .FirstOrDefaultAsync(w => w.Id == id, ct);
 
             if (entity is null)
@@ -225,8 +230,8 @@ public sealed class WeightLogService : IWeightLogService
                 throw new InvalidOperationException($"Weight log with ID {id} not found.");
             }
 
-            _context.Set<WeightLogs>().Remove(entity);
-            await _context.SaveChangesAsync(ct);
+            context.Set<WeightLogs>().Remove(entity);
+            await context.SaveChangesAsync(ct);
 
             _logger.LogInformation("Weight log deleted successfully: {WeightLogId}", id);
         }
@@ -250,8 +255,9 @@ public sealed class WeightLogService : IWeightLogService
 
         try
         {
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
             // DateOnly comparison in SQL Server
-            var weights = await _context.Set<WeightLogs>()
+            var weights = await context.Set<WeightLogs>()
                 .AsNoTracking()
                 .Where(w => w.UserId == userId
                     && w.Date >= range.StartDate
@@ -313,10 +319,10 @@ public sealed class WeightLogService : IWeightLogService
 
     // Private helper methods
 
-    private async Task<decimal?> GetLastWeightAsync(Guid userId, DateOnly beforeDate, CancellationToken ct)
+    private async Task<decimal?> GetLastWeightAsync(DbContext context, Guid userId, DateOnly beforeDate, CancellationToken ct)
     {
         // DateOnly comparison in SQL Server
-        var lastWeight = await _context.Set<WeightLogs>()
+        var lastWeight = await context.Set<WeightLogs>()
             .AsNoTracking()
             .Where(w => w.UserId == userId
                 && w.Date < beforeDate)
@@ -343,15 +349,15 @@ public sealed class WeightLogService : IWeightLogService
         };
     }
 
-    private async Task UpdateUserStartingWeightIfNeededAsync(Guid userId, decimal weight, CancellationToken ct)
+    private async Task UpdateUserStartingWeightIfNeededAsync(DbContext context, Guid userId, decimal weight, CancellationToken ct)
     {
-        var user = await _context.Set<Users>()
+        var user = await context.Set<Users>()
             .FirstOrDefaultAsync(u => u.Id == userId, ct);
 
         if (user is not null && !user.StartingWeight.HasValue)
         {
             user.StartingWeight = weight;
-            await _context.SaveChangesAsync(ct);
+            await context.SaveChangesAsync(ct);
 
             _logger.LogInformation(
                 "Set starting weight for user {UserId}: {Weight}kg",

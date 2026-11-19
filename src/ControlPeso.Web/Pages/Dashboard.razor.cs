@@ -46,6 +46,9 @@ public partial class Dashboard : IDisposable
     private List<WeightLogDto> _recentLogs = new();
     private WeightStatsDto? _stats = null;
 
+    // Weight change (kg) of each record versus the previous (older) record, keyed by record id
+    private Dictionary<Guid, decimal> _deltaById = new();
+
     private Guid _currentUserId;
     private string _userName = string.Empty;
     private bool _isLoading = true;
@@ -100,7 +103,7 @@ public partial class Dashboard : IDisposable
     private string OnTrack => Localizer["OnTrack"];
     private string AboveTarget => Localizer["AboveTarget"];
     private string GoalProgressLabel => Localizer["GoalProgressLabel"];
-    private string ToTarget => Localizer["ToTarget", GetRemainingWeight()];
+    private string ToTarget => Localizer["ToTarget", GetRemainingWeight()]; // {0} already includes the unit
 
     // Chart section
     private string WeightEvolutionTitle => Localizer["WeightEvolutionTitle"];
@@ -114,7 +117,7 @@ public partial class Dashboard : IDisposable
     private string MeasurementLogTitle => Localizer["MeasurementLogTitle"];
     private string SearchPlaceholder => Localizer["SearchPlaceholder"];
     private string TableHeaderDateTime => Localizer["TableHeaderDateTime"];
-    private string TableHeaderWeight => Localizer["TableHeaderWeight"];
+    private string TableHeaderWeight => Localizer["TableHeaderWeight", WeightUnit];
     private string TableHeaderTrend => Localizer["TableHeaderTrend"];
     private string TableHeaderNotes => Localizer["TableHeaderNotes"];
     private string TableHeaderActions => Localizer["TableHeaderActions"];
@@ -225,6 +228,7 @@ public partial class Dashboard : IDisposable
             var result = await WeightLogService.GetByUserAsync(_currentUserId, filter);
             _weightLogs = result.Items.ToList();
             _recentLogs = _weightLogs.Take(5).ToList();
+            _deltaById = ComputeDeltas(_weightLogs);
 
             Logger.LogInformation("Dashboard: Loaded {Count} weight logs", _weightLogs.Count);
 
@@ -286,6 +290,29 @@ public partial class Dashboard : IDisposable
             Snackbar.Add(ErrorLoadingData(ex.Message), Severity.Error);
         }
     }
+
+    /// <summary>
+    /// Computes, for each record, the change versus the next older record (input is newest first).
+    /// The oldest loaded record has no previous record and no entry.
+    /// </summary>
+    private static Dictionary<Guid, decimal> ComputeDeltas(IReadOnlyList<WeightLogDto> newestFirst)
+    {
+        var deltas = new Dictionary<Guid, decimal>();
+        for (var i = 0; i < newestFirst.Count - 1; i++)
+        {
+            deltas[newestFirst[i].Id] = newestFirst[i].Weight - newestFirst[i + 1].Weight;
+        }
+
+        return deltas;
+    }
+
+    /// <summary>
+    /// Trend delta in the user's display unit, formatted with the current culture ("+0,4").
+    /// </summary>
+    private string GetDeltaText(WeightLogDto log) =>
+        _deltaById.TryGetValue(log.Id, out var delta)
+            ? WeightDeltaFormatter.Format(ConvertedWeight(delta))
+            : "-";
 
     /// <summary>
     /// Cambia el período de visualización del gráfico

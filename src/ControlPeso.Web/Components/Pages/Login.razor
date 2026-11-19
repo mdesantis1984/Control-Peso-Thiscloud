@@ -46,7 +46,7 @@
 
             @* Títulos *@
             <MudStack Spacing="2" AlignItems="AlignItems.Center">
-                <MudText Typo="Typo.h4" Align="Align.Center" Class="font-weight-bold">
+                <MudText Typo="Typo.h4" HtmlTag="h1" Align="Align.Center" Class="font-weight-bold">
                     @MainTitle
                 </MudText>
                 <MudText Typo="Typo.body1" Align="Align.Center" Color="Color.Secondary">
@@ -57,6 +57,18 @@
             @* Ilustración Placeholder *@
             <MudPaper Elevation="0" Class="login-illustration" Style="@GetIllustrationStyle()">
             </MudPaper>
+
+            @* OAuth failure (redirected from the callback with ?error=...) *@
+            @if (_showOAuthError)
+            {
+                <MudAlert Severity="Severity.Error"
+                          Variant="Variant.Outlined"
+                          Dense="true"
+                          Class="oauth-error-alert"
+                          role="alert">
+                    @OAuthFailedMessage
+                </MudAlert>
+            }
 
             @* Botón Google OAuth - Custom Styled *@
             <MudButton 

@@ -34,7 +34,7 @@ _logger.LogDebug("Circuit opened - CircuitId: {CircuitId}", circuitId);
 ```
 
 **Características**:
-- Deshabilitado en Production
+- Deshabilitado en Production (nivel mínimo configurable en `ThisCloud:Loggings:MinimumLevel`)
 - Puede ser verbose
 - Para entender flujo interno
 
@@ -50,7 +50,7 @@ _logger.LogInformation("Request completed - Path: {Path}, Duration: {DurationMs}
 ```
 
 **Características**:
-- Nivel por defecto en Production
+- Nivel por defecto del framework; en producción el compose fija `Warning`, por lo que estos eventos solo se ven en desarrollo o al bajar el nivel
 - Documenta flujo de negocio normal
 - No spam - solo eventos significativos
 
@@ -109,7 +109,7 @@ throw; // App debe terminar
 **Características**:
 - Reservado para crashes reales
 - Implica que la app no puede continuar
-- Dispara alertas de máxima prioridad
+- No existe canal de alertas externo: los errores quedan **solo** en los logs NDJSON (`/app/logs`), así que hay que revisarlos (ver la guía de consulta)
 
 ---
 
@@ -120,7 +120,7 @@ throw; // App debe terminar
 ```csharp
 public sealed class WeightLogService : IWeightLogService
 {
-    private readonly DbContext _context;
+    private readonly IDbContextFactory<DbContext> _contextFactory;
     private readonly ILogger<WeightLogService> _logger;
 
     public async Task<WeightLogDto> CreateAsync(CreateWeightLogDto dto, CancellationToken ct = default)
@@ -439,7 +439,7 @@ Antes de marcar feature como "Done":
 
 ## 🔍 Troubleshooting con Logs
 
-Ver guía completa en: [`docs/LOGGING_QUERY_GUIDE.md`](./LOGGING_QUERY_GUIDE.md)
+Ver guía completa en: [`LOGGING_QUERY_GUIDE.md`](./LOGGING_QUERY_GUIDE.md)
 
 **Flujo típico de debugging**:
 
@@ -454,12 +454,12 @@ Ver guía completa en: [`docs/LOGGING_QUERY_GUIDE.md`](./LOGGING_QUERY_GUIDE.md)
 ## 📚 Referencias
 
 - **Logging extensions**: `src/ControlPeso.Application/Logging/LoggingExtensions.cs`
-- **Framework config**: `appsettings.json` → `ThisCloud.Loggings`
-- **Query guide**: `docs/LOGGING_QUERY_GUIDE.md`
-- **Fix history**: `docs/LOGGING_FIXES_SUMMARY.md`
+- **Framework config**: `appsettings.json` → `ThisCloud:Loggings` (en Docker: variables `ThisCloud__Loggings__*`)
+- **Query guide**: [`LOGGING_QUERY_GUIDE.md`](./LOGGING_QUERY_GUIDE.md)
+- **Integración del framework**: [`THISCLOUD_FRAMEWORK_INTEGRATION.md`](./THISCLOUD_FRAMEWORK_INTEGRATION.md)
 
 ---
 
-**Última actualización**: 2026-02-21  
-**Versión**: 1.0  
+**Última verificación**: 2026-11-19  
+**Versión de la aplicación**: 1.3.0  
 **Revisar**: Cada release mayor

@@ -14,7 +14,7 @@ namespace ControlPeso.Application.Services;
 /// </summary>
 public sealed class TrendService : ITrendService
 {
-    private readonly DbContext _context;
+    private readonly IDbContextFactory<DbContext> _contextFactory;
     private readonly ILogger<TrendService> _logger;
 
     // Constantes para cálculos
@@ -22,13 +22,13 @@ public sealed class TrendService : ITrendService
     private const int DefaultProjectionDays = 30; // Proyección por defecto a 30 días
 
     public TrendService(
-        DbContext context,
+        IDbContextFactory<DbContext> contextFactory,
         ILogger<TrendService> logger)
     {
-        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(contextFactory);
         ArgumentNullException.ThrowIfNull(logger);
 
-        _context = context;
+        _contextFactory = contextFactory;
         _logger = logger;
     }
 
@@ -46,8 +46,9 @@ public sealed class TrendService : ITrendService
 
         try
         {
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
             // Obtener registros de peso en el rango ordenados cronológicamente
-            var logs = await _context.Set<WeightLogs>()
+            var logs = await context.Set<WeightLogs>()
                 .AsNoTracking()
                 .Where(wl => wl.UserId == userId)
                 .Where(wl => wl.Date >= range.StartDate && wl.Date <= range.EndDate)
@@ -140,8 +141,9 @@ public sealed class TrendService : ITrendService
 
         try
         {
+            await using var context = await _contextFactory.CreateDbContextAsync(ct);
             // Obtener usuario para verificar peso objetivo
-            var user = await _context.Set<Users>()
+            var user = await context.Set<Users>()
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.Id == userId, ct);
 
@@ -157,7 +159,7 @@ public sealed class TrendService : ITrendService
             var thirtyDaysAgo = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30));
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
-            var logs = await _context.Set<WeightLogs>()
+            var logs = await context.Set<WeightLogs>()
                 .AsNoTracking()
                 .Where(wl => wl.UserId == userId)
                 .Where(wl => wl.Date >= thirtyDaysAgo && wl.Date <= today)

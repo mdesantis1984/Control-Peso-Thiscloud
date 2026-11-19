@@ -1,1074 +1,195 @@
-# Soporte & Troubleshooting - Control Peso Thiscloud
+# Soporte y resolución de problemas - Control Peso Thiscloud
 
-> **Documento Maestro de Soporte**  
-> **Última actualización**: 2026-03-03  
-> **Versión**: 1.0.0  
-> **Estado**: ✅ Producción
+Guía operativa para diagnosticar la aplicación en producción y en desarrollo. Los detalles de despliegue están en [DEPLOYMENT.md](DEPLOYMENT.md), la topología en [infraestructura.md](infraestructura.md) y las buenas prácticas de logging en [LOGGING_BEST_PRACTICES.md](LOGGING_BEST_PRACTICES.md).
 
----
+## Contenido
 
-## Tabla de Contenido
-
-1. [Logging & Diagnóstico](#1-logging--diagnóstico)
-2. [Telegram Bot](#2-telegram-bot)
-3. [Blazor Técnico](#3-blazor-técnico)
-4. [Comandos & Scripts de Referencia](#4-comandos--scripts-de-referencia)
+1. [Diagnóstico rápido](#1-diagnóstico-rápido)
+2. [Logs](#2-logs)
+3. [Errores y alertas](#3-errores-y-alertas)
+4. [Blazor: notas técnicas](#4-blazor-notas-técnicas)
+5. [Comandos de referencia](#5-comandos-de-referencia)
+6. [Scripts del repositorio](#6-scripts-del-repositorio)
 
 ---
 
-## 1. Logging & Diagnóstico
-
-### 1.1. Best Practices
-
-#### Principios Fundamentales
-
-**1. Signal over Noise**
-- ❌ NO loguear TODO - logs ruidosos ocultan problemas reales
-- ✅ Loguear eventos IMPORTANTES con contexto accionable
-- ✅ Usar niveles correctos para filtrado efectivo
-
-**2. Structured Logging Always**
-- ❌ NO usar string interpolation: `$"User {userId} logged in"`
-- ✅ Usar parámetros nombrados: `"User {UserId} logged in", userId`
-- **Por qué**: Permite queries y agregaciones por propiedades
-
-**3. Contexto es Rey**
-- ❌ Log: `"Error saving data"`
-- ✅ Log: `"Error saving weight log - UserId: {UserId}, Date: {Date}", userId, date`
-- **Incluir**: IDs de entidades, operación fallida, valores de entrada
-
----
-
-#### Niveles de Log - Cuándo Usar Cada Uno
-
-##### `Debug` (Development only)
-
-**Cuándo**: Detalles técnicos internos para diagnóstico de desarrollo
-
-```csharp
-_logger.LogDebug("Initializing Cropper.js for element: {ElementId}", elementId);
-_logger.LogDebug("Circuit opened - CircuitId: {CircuitId}", circuitId);
-```
-
-**Características**:
-- Deshabilitado en Production
-- Puede ser verbose
-- Para entender flujo interno
-
----
-
-##### `Information` (Default)
-
-**Cuándo**: Eventos normales de negocio que documentan la actividad de la aplicación
-
-```csharp
-_logger.LogInformation("User logged in - UserId: {UserId}, Email: {Email}", userId, email);
-_logger.LogInformation("Weight log created - Id: {WeightLogId}, UserId: {UserId}, Weight: {Weight}kg", id, userId, weight);
-_logger.LogInformation("Request completed - Path: {Path}, Duration: {DurationMs}ms", path, duration);
-```
-
-**Características**:
-- Nivel por defecto en Production
-- Documenta flujo de negocio normal
-- No spam - solo eventos significativos
-
----
-
-##### `Warning` (Situaciones anómalas recuperables)
-
-**Cuándo**: Algo raro pero manejado, comportamiento subóptimo, degradación
-
-```csharp
-_logger.LogWarning("Slow request detected - Duration: {DurationMs}ms exceeds threshold", durationMs);
-_logger.LogWarning("Cropper.js library not loaded - this may indicate CDN issue");
-_logger.LogWarning("Blazor circuit connection lost - CircuitId: {CircuitId}", circuitId);
-```
-
-**Características**:
-- Indica problema potencial que necesita investigación
-- Sistema sigue funcionando
-- Puede requerir acción correctiva
-
----
-
-##### `Error` (Operación falló)
-
-**Cuándo**: Una operación NO se completó, pero la app sigue corriendo
-
-```csharp
-try
-{
-    await _context.SaveChangesAsync();
-}
-catch (DbUpdateException ex)
-{
-    _logger.LogError(ex, "Error saving weight log - UserId: {UserId}", userId);
-    throw; // Re-throw para que el caller maneje
-}
-```
-
-**Características**:
-- ✅ **SIEMPRE** incluir la excepción como primer parámetro
-- ✅ **SIEMPRE** incluir contexto de lo que se estaba haciendo
-- ❌ **NO** usar para validación fallida (usar Warning)
-
----
-
-##### `Critical` / `Fatal` (Aplicación crasheando)
-
-**Cuándo**: SOLO cuando la aplicación está cayendo o en estado corrupto
-
-```csharp
-_logger.LogCritical(ex, "Database connection lost - application cannot start");
-_logger.LogCritical("Configuration validation failed - missing required settings");
-```
-
-**Características**:
-- Rarísimo - menos de 1 vez por mes
-- Requiere intervención INMEDIATA
-- Generalmente acompañado de crash
-
----
-
-#### Emojis en Logs (Identificación Visual)
-
-Control Peso Thiscloud usa **emojis como marcadores visuales** para identificar rápidamente el origen en logs.
-
-| Emoji | Contexto | Ejemplo |
-|-------|----------|---------|
-| 🤖 | `/robots.txt` requests | `🤖 /robots.txt requested from {UserAgent}` |
-| 🗺️ | `/sitemap.xml` requests | `🗺️ /sitemap.xml requested from {UserAgent}` |
-| 🚀 | Controller methods | `🚀 Controller method executed` |
-| 💾 | Database operations | `💾 Creating weight log for user {UserId}` |
-| ✅ | Success, operación completada | `✅ Weight log created - Id: {Id}` |
-| ❌ | Error, operación fallida | `❌ Database error creating weight log` |
-| ⚠️ | Warning, situación anómala | `⚠️ Slow query detected - Duration: {Ms}ms` |
-| ℹ️ | Information, evento normal | `ℹ️ User logged in successfully` |
-| 🔐 | Authentication/Authorization | `🔐 Google OAuth callback received` |
-
-**Ejemplo de uso**:
-
-```csharp
-_logger.LogInformation("🤖 /robots.txt requested from {UserAgent}", userAgent);
-_logger.LogInformation("💾 Creating weight log for user {UserId} - Date: {Date}, Weight: {Weight}kg", userId, date, weight);
-_logger.LogInformation("✅ Weight log created successfully - Id: {WeightLogId}", id);
-_logger.LogError(ex, "❌ Database error creating weight log for user {UserId}", userId);
-```
-
-**Ventajas**:
-- ✅ Identificación instantánea en consola Docker
-- ✅ Grep/filter rápido: `docker logs controlpeso-web | grep "🤖"`
-- ✅ Debug visual sin leer mensaje completo
-- ✅ Diferenciación Controller vs Minimal API (🚀 vs 🤖)
-
----
-
-#### Reglas PROHIBIDAS
-
-**❌ NUNCA loguear secretos**:
-- Tokens de autenticación
-- Google ClientSecret
-- Connection strings con passwords
-- JWT tokens
-- API keys
-
-**❌ NUNCA loguear PII sin necesidad**:
-- Passwords (obvio)
-- Números de tarjeta de crédito
-- Direcciones completas (solo ciudad/país si necesario)
-- Números de teléfono completos
-
-**❌ NUNCA usar `try/catch` vacíos**:
-
-```csharp
-// ❌ MAL
-try { await _context.SaveChangesAsync(); } catch { }
-
-// ✅ BIEN
-try 
-{ 
-    await _context.SaveChangesAsync(); 
-}
-catch (DbUpdateException ex)
-{
-    _logger.LogError(ex, "Error saving weight log for user {UserId}", userId);
-    throw; // Re-throw para que caller maneje
-}
-```
-
----
-
-### 1.2. Query Guide
-
-#### Archivo de Logs
-
-**Location**: `src/ControlPeso.Web/logs/controlpeso-.ndjson`  
-**Format**: NDJSON (Newline Delimited JSON)  
-**Tools**: Seq, Grafana Loki, jq (CLI), VS Code con JSON Lines extension
-
----
-
-#### Propiedades Clave de Correlación
-
-Cada log incluye propiedades estructuradas:
-
-```json
-{
-  "@t": "2026-03-03T19:35:00.1234567Z",     // Timestamp ISO 8601
-  "@mt": "User retrieved by email...",       // Message template
-  "@l": "Information",                       // Level (omitido si Information)
-  "@tr": "8d893c0f8c27dcf3...",             // Trace ID (correlación request)
-  "@sp": "a4346885f2a9dd0c",                 // Span ID (correlación operación)
-  "UserId": "663252fd-8c18-4585-...",       // User ID (correlación usuario)
-  "SourceContext": "ControlPeso.Application.Services.UserService",
-  "RequestId": "0HNJHF92ABAR2:00000005",    // ASP.NET Core Request ID
-  "RequestPath": "/dashboard",               // Request path
-  "ConnectionId": "0HNJHF92ABAR2",          // Connection ID
-  "service": "ControlPeso.Thiscloud",
-  "env": "Development",
-  "MachineName": "MDESANTIS",
-  "ProcessId": 53520,
-  "ThreadId": 15
-}
-```
-
----
-
-#### Queries con `jq` (Línea de Comandos)
-
-##### 1. Filtrar por nivel de log
+## 1. Diagnóstico rápido
 
 ```bash
-# Solo errores
-cat controlpeso-.ndjson | jq 'select(."@l" == "Error")'
+# ¿La aplicación responde? (liveness: no consulta la base de datos)
+curl -i https://controlpeso.thiscloud.com.ar/health
 
-# Errores + Warnings
-cat controlpeso-.ndjson | jq 'select(."@l" == "Error" or ."@l" == "Warning")'
+# ¿Puede hablar con PostgreSQL? (readiness: 503 si la base no responde)
+curl -i https://controlpeso.thiscloud.com.ar/health/ready
 
-# Fatal (crashes)
-cat controlpeso-.ndjson | jq 'select(."@l" == "Fatal")'
+# Estado del contenedor y últimos logs (en el host Docker, /opt/controlpeso)
+docker compose -f docker-compose.production.yml ps
+docker logs controlpeso-web --tail=100
 ```
 
-##### 2. Filtrar por usuario específico
-
-```bash
-# Logs de un usuario específico
-cat controlpeso-.ndjson | jq 'select(.UserId == "663252fd-8c18-4585-9a8f-295e59e6e72a")'
-
-# Contar logs por usuario
-cat controlpeso-.ndjson | jq -s 'group_by(.UserId) | map({UserId: .[0].UserId, Count: length})'
-```
-
-##### 3. Correlación por Trace ID (request completo)
-
-```bash
-# Todos los logs de un request específico
-TRACE_ID="8d893c0f8c27dcf3a497461ff8a87e7f"
-cat controlpeso-.ndjson | jq --arg trace "$TRACE_ID" 'select(."@tr" == $trace or .traceId == $trace)'
-
-# Ver flujo completo de un request ordenado por timestamp
-cat controlpeso-.ndjson | jq --arg trace "$TRACE_ID" 'select(."@tr" == $trace)' | jq -s 'sort_by(."@t")'
-```
-
-##### 4. Filtrar por operación de negocio
-
-```bash
-# Operaciones de WeightLog
-cat controlpeso-.ndjson | jq 'select(.SourceContext | contains("WeightLog"))'
-
-# Operaciones de autenticación
-cat controlpeso-.ndjson | jq 'select(.SourceContext | contains("Auth") or .SourceContext | contains("Claims"))'
-
-# Operaciones de Admin
-cat controlpeso-.ndjson | jq 'select(.SourceContext | contains("Admin"))'
-```
-
-##### 5. Filtrar con emojis
-
-```bash
-# Solo logs de robots.txt
-docker logs controlpeso-web | grep "🤖"
-
-# Solo logs de sitemap.xml
-docker logs controlpeso-web | grep "🗺️"
-
-# Todos los SEO endpoints
-docker logs controlpeso-web | grep -E "🤖|🗺️"
-
-# Solo errores
-docker logs controlpeso-web | grep "❌"
-
-# Flow completo con emojis
-docker logs controlpeso-web | grep -E "🚀|🤖|🗺️|✅|❌"
-```
+| Síntoma | Causa probable y qué revisar |
+|---------|------------------------------|
+| `/health` 200 y `/health/ready` 503 | Base de datos inaccesible o `CONTROLPESO_DB_CONNECTION` incorrecta; revisar el host de PostgreSQL y la red |
+| Error de "relation ... does not exist" | El esquema no está creado: ejecutar `scripts/migrate-postgres.sh` (la aplicación no migra al iniciar) |
+| 502 desde el proxy | Contenedor caído o puerto de NPMplus distinto de `APP_PORT` |
+| La página carga pero no responde a clics | WebSockets deshabilitados en NPMplus (Blazor Server usa SignalR) |
+| `redirect_uri_mismatch` al iniciar sesión | URI no registrada en Google Cloud ([GOOGLE_OAUTH_SETUP.md](GOOGLE_OAUTH_SETUP.md)) o cabeceras `X-Forwarded-*` no aceptadas ([DEPLOYMENT.md](DEPLOYMENT.md)) |
+| Los usuarios pierden la sesión en cada despliegue | `/app/keys` no es un volumen persistente |
+| Error 429 al iniciar sesión | Rate limiting del login (5 solicitudes por minuto por IP) |
+| El avatar no se guarda | El volumen `/app/wwwroot/uploads` no es escribible por el UID 1654 |
+| El contenedor reinicia al arrancar | `docker logs controlpeso-web`; revisar configuración y permisos de `/app/logs` y `/app/keys` |
+| Un usuario no ve el panel de administración | Su `"Users"."Role"` debe ser 1 (Administrator); ver [DATABASE.md](DATABASE.md) |
 
 ---
 
-#### Queries con Docker
+## 2. Logs
 
-##### Ver logs en tiempo real
+- **Producción**: `/app/logs/controlpeso-YYYYMMDD.ndjson` dentro del contenedor (volumen `controlpeso-logs`).
+- **Desarrollo con `dotnet run`**: `src/ControlPeso.Web/logs/controlpeso-YYYYMMDD.ndjson`.
+- **Docker local**: además de los archivos, la consola (`docker logs controlpeso-web`).
+- **Formato**: NDJSON compacto (una línea JSON por evento) con redacción de secretos y `X-Correlation-Id`.
+- En producción el nivel mínimo es `Warning` y no hay salida por consola: para investigar un incidente hay que mirar los archivos.
 
-```bash
-# Últimas 50 líneas + follow
-docker logs -f controlpeso-web --tail=50
-
-# Solo errores/warnings en tiempo real
-docker logs -f controlpeso-web 2>&1 | grep -E "Error|Warning"
-
-# Solo SEO endpoints
-docker logs -f controlpeso-web 2>&1 | grep -E "🤖|🗺️"
-```
-
-##### Búsqueda específica
+Campos principales de cada línea: `@t` (fecha UTC), `@mt` (plantilla del mensaje), `@l` (nivel; ausente si es `Information`), `@x` (excepción), `@tr` (trace id), `RequestPath`, `UserId`, `SourceContext`.
 
 ```bash
-# Buscar por usuario
-docker logs controlpeso-web | grep "UserId.*663252fd"
+# Listar los archivos y elegir el del día
+docker exec controlpeso-web sh -c 'ls -lh /app/logs'
 
-# Buscar por fecha
-docker logs controlpeso-web | grep "2026-03-03"
+# Errores y warnings del día
+docker exec controlpeso-web sh -c 'cat /app/logs/controlpeso-$(date +%Y%m%d).ndjson' \
+  | jq -c 'select(."@l" == "Error" or ."@l" == "Warning" or ."@l" == "Fatal")'
 
-# Buscar errores de DB
-docker logs controlpeso-web | grep -i "database.*error"
+# Un request completo (el trace id aparece en /error?traceId=... y en cada línea del request)
+docker exec controlpeso-web sh -c 'cat /app/logs/*.ndjson' | jq -c 'select(."@tr" == "<trace-id>")'
 
-# Últimas 100 líneas con filtro
-docker logs controlpeso-web --tail=100 | grep "Weight log"
+# Un usuario concreto
+docker exec controlpeso-web sh -c 'cat /app/logs/*.ndjson' | jq -c 'select(.UserId == "<user-id>")'
 ```
 
-##### Exportar logs
-
-```bash
-# Exportar logs a archivo
-docker logs controlpeso-web > logs_$(date +%Y%m%d_%H%M%S).txt
-
-# Exportar solo errores
-docker logs controlpeso-web 2>&1 | grep Error > errors_$(date +%Y%m%d_%H%M%S).txt
-```
+Más consultas (rendimiento, rangos de tiempo, Seq): [LOGGING_QUERY_GUIDE.md](LOGGING_QUERY_GUIDE.md). La integración con `ThisCloud.Framework.Loggings` está en [THISCLOUD_FRAMEWORK_INTEGRATION.md](THISCLOUD_FRAMEWORK_INTEGRATION.md).
 
 ---
 
-### 1.3. ThisCloud.Framework.Loggings
+## 3. Errores y alertas
 
-Control Peso Thiscloud usa **ThisCloud.Framework.Loggings.Serilog** para logging estructurado enterprise-grade.
+Los errores se registran únicamente en los logs estructurados; no existen alertas externas (el bot de Telegram se eliminó). Ante una excepción no controlada, `GlobalExceptionMiddleware` la registra y redirige al usuario a `/error?traceId=...`; el usuario puede informar ese identificador y con él se encuentra el detalle en los logs (`@tr`).
 
-#### Features
+Para enterarse de caídas conviene un monitor externo que consulte `/health` y `/health/ready`.
 
-- ✅ **Redaction automática** de secretos/PII
-- ✅ **Correlation ID** tracking out-of-the-box
-- ✅ **File rolling** configurado (10MB, NDJSON, 30 días retention)
-- ✅ **Fail-fast** en Production (config inválida detiene arranque)
-- ✅ **Zero boilerplate** (1 línea en Program.cs)
+---
 
-#### Configuración (appsettings.json)
+## 4. Blazor: notas técnicas
 
-```json
-{
-  "ThisCloud": {
-    "Loggings": {
-      "IsEnabled": true,
-      "MinimumLevel": "Information",
-      "Console": {
-        "Enabled": true
-      },
-      "File": {
-        "Enabled": true,
-        "Path": "logs/log-.ndjson",
-        "RollingFileSizeMB": 10,
-        "RetainedFileCountLimit": 30,
-        "UseCompactJson": true
-      },
-      "Redaction": {
-        "Enabled": true  // ← Auto-redact secretos
-      },
-      "Correlation": {
-        "HeaderName": "X-Correlation-Id",
-        "GenerateIfMissing": true
-      }
-    }
-  }
-}
-```
+### 4.1. Prerendering y JS interop
 
-#### Usage (Program.cs)
+Detalle ampliado en [technical/BLAZOR_PRERENDERING_JS_INTEROP.md](technical/BLAZOR_PRERENDERING_JS_INTEROP.md).
+
+Blazor Server prerenderiza los componentes antes de abrir el circuito SignalR; durante el prerender no hay JavaScript ni `IJSRuntime` operativo. Síntoma: `InvalidOperationException: JavaScript interop calls cannot be issued during server-side prerendering`.
 
 ```csharp
-// Setup Serilog
-builder.Host.UseThisCloudFrameworkSerilog(
-    builder.Configuration, 
-    serviceName: "controlpeso-web"
-);
-
-// Register logging services
-builder.Services.AddThisCloudFrameworkLoggings(
-    builder.Configuration, 
-    serviceName: "controlpeso-web"
-);
-```
-
-#### Redaction Automática
-
-```csharp
-// ❌ Sin framework - secretos expuestos
-_logger.LogInformation("User logged in with token {Token}", authToken);
-// Output: User logged in with token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-
-// ✅ Con ThisCloud.Framework.Loggings (auto-redacted)
-_logger.LogInformation("User logged in with token {Token}", authToken);
-// Output: User logged in with token [REDACTED]
-```
-
-**Palabras redactadas automáticamente**:
-- `password`, `secret`, `token`, `authorization`, `api-key`
-- `ClientSecret`, `ConnectionString` (si contiene password)
-- Cualquier propiedad con nombre terminando en `Password` o `Secret`
-
----
-
-## 2. Telegram Bot
-
-### 2.1. Quickstart (Setup en 5 minutos)
-
-#### Problema Actual
-
-Las credenciales de Telegram están configuradas con placeholders:
-
-```json
-"BotToken": "YOUR_TELEGRAM_BOT_TOKEN_HERE",  // ❌ Placeholder
-"ChatId": "YOUR_TELEGRAM_CHAT_ID_HERE"       // ❌ Placeholder
-```
-
----
-
-#### Solución Rápida: Script Automático (RECOMENDADO)
-
-```powershell
-# Ejecutar desde raíz del proyecto
-.\scripts\configure-telegram.ps1
-```
-
-El script:
-- ✅ Te guía para crear el bot
-- ✅ Obtiene el Chat ID automáticamente
-- ✅ Actualiza `appsettings.Development.json`
-- ✅ Envía mensaje de prueba
-
----
-
-#### Opción Manual: 5 Pasos
-
-##### 1️⃣ Crear Bot (2 minutos)
-
-```
-1. Abrir Telegram → Buscar: @BotFather
-2. Enviar: /newbot
-3. Nombre: Control Peso Thiscloud Bot
-4. Username: controlpeso_thiscloud_bot
-5. COPIAR el TOKEN (ejemplo: 1234567890:ABCdef...)
-```
-
-##### 2️⃣ Obtener Chat ID (2 minutos)
-
-```
-1. Buscar tu bot en Telegram (@controlpeso_thiscloud_bot)
-2. Enviar: /start
-3. Enviar: Hola
-4. Abrir en navegador:
-   https://api.telegram.org/bot<TU_TOKEN>/getUpdates
-   (Reemplazar <TU_TOKEN> con el token del paso 1)
-5. Buscar en el JSON: "chat":{"id": 123456789}
-6. COPIAR ese número (tu Chat ID)
-```
-
-##### 3️⃣ Editar appsettings.Development.json (1 minuto)
-
-```json
+protected override async Task OnAfterRenderAsync(bool firstRender)
 {
-  "Telegram": {
-    "Enabled": true,
-    "BotToken": "PEGAR_TU_TOKEN_AQUÍ",      // ← Paso 1
-    "ChatId": "PEGAR_TU_CHATID_AQUÍ",       // ← Paso 2
-    "Environment": "Development"
-  }
-}
-```
-
-**Ejemplo con valores reales**:
-
-```json
-{
-  "Telegram": {
-    "Enabled": true,
-    "BotToken": "CHANGE_ME",
-    "ChatId": "123456789",
-    "Environment": "Development"
-  }
-}
-```
-
-##### 4️⃣ Reiniciar Aplicación
-
-```powershell
-# Detener (Ctrl+C) y reiniciar
-dotnet run --project src\ControlPeso.Web
-```
-
-##### 5️⃣ Probar Notificaciones
-
-```
-1. Iniciar sesión en la app
-2. Guardar un peso
-3. Verificar mensaje en Telegram
-```
-
----
-
-### 2.2. Troubleshooting
-
-#### Problema: No recibo mensajes en Telegram
-
-**Posibles causas**:
-
-1. **Bot Token incorrecto**
-   - Verificar: `appsettings.Development.json` → `Telegram:BotToken`
-   - Test: https://api.telegram.org/bot<TU_TOKEN>/getMe
-   - Debe retornar JSON con info del bot
-
-2. **Chat ID incorrecto**
-   - Verificar: `appsettings.Development.json` → `Telegram:ChatId`
-   - Re-obtener: https://api.telegram.org/bot<TU_TOKEN>/getUpdates
-   - Debe coincidir con el ID del chat donde enviaste `/start`
-
-3. **Telegram service disabled**
-   - Verificar: `appsettings.Development.json` → `Telegram:Enabled`
-   - Debe ser `true`
-
-4. **Firewall bloqueando Telegram API**
-   - Test: `curl https://api.telegram.org`
-   - Debe retornar HTML
-
----
-
-#### Problema: Error 401 Unauthorized
-
-**Causa**: Bot Token inválido o revocado
-
-**Solución**:
-1. Ir a @BotFather en Telegram
-2. Enviar: `/mybots`
-3. Seleccionar: Control Peso Thiscloud Bot
-4. API Token → Copiar nuevo token
-5. Actualizar `appsettings.Development.json`
-
----
-
-#### Problema: Error 400 Chat not found
-
-**Causa**: Chat ID incorrecto o bot no iniciado
-
-**Solución**:
-1. Buscar bot en Telegram: `@controlpeso_thiscloud_bot`
-2. Enviar: `/start`
-3. Enviar cualquier mensaje
-4. Re-obtener Chat ID: https://api.telegram.org/bot<TOKEN>/getUpdates
-5. Actualizar `appsettings.Development.json`
-
----
-
-#### Logs de Diagnóstico
-
-```bash
-# Ver logs de Telegram service
-docker logs controlpeso-web | grep -i telegram
-
-# Ver errores de Telegram
-docker logs controlpeso-web | grep -i "telegram.*error"
-
-# Test manual con curl
-curl -X POST "https://api.telegram.org/bot<TOKEN>/sendMessage" \
-     -H "Content-Type: application/json" \
-     -d '{"chat_id":"<CHAT_ID>","text":"Test manual desde curl"}'
-```
-
----
-
-## 3. Blazor Técnico
-
-### 3.1. Prerendering & JS Interop
-
-#### Problema: JS Interop en Prerendering
-
-Blazor Server **prerenderiza** componentes en el servidor antes de establecer la conexión SignalR. Durante el prerendering:
-
-- ❌ **NO** hay JavaScript disponible
-- ❌ **NO** hay `IJSRuntime` funcional
-- ❌ **NO** hay localStorage/sessionStorage
-
-**Síntoma**: `InvalidOperationException: JavaScript interop calls cannot be issued during server-side prerendering.`
-
----
-
-#### Solución: OnAfterRender Lifecycle
-
-```csharp
-public partial class MyComponent : ComponentBase
-{
-    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
-    
-    private bool _isPrerendering = true;
-    
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    if (firstRender)
     {
-        if (firstRender)
-        {
-            _isPrerendering = false;
-            
-            // AHORA es seguro llamar JS interop
-            await JSRuntime.InvokeVoidAsync("console.log", "Component rendered");
-            
-            StateHasChanged(); // Re-render si necesario
-        }
-    }
-}
-```
-
----
-
-#### LocalStorage Access Pattern
-
-```csharp
-public partial class LanguageSelector : ComponentBase
-{
-    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
-    
-    private string? _selectedLanguage;
-    
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            // Leer de localStorage (solo después de render)
-            _selectedLanguage = await JSRuntime.InvokeAsync<string?>(
-                "localStorage.getItem", 
-                "SelectedLanguage"
-            );
-            
-            StateHasChanged();
-        }
-    }
-    
-    private async Task OnLanguageChanged(string newLanguage)
-    {
-        _selectedLanguage = newLanguage;
-        
-        // Guardar en localStorage
-        await JSRuntime.InvokeVoidAsync(
-            "localStorage.setItem", 
-            "SelectedLanguage", 
-            newLanguage
-        );
-        
-        // Reload page para aplicar cultura
-        await JSRuntime.InvokeVoidAsync("location.reload");
-    }
-}
-```
-
----
-
-#### Patrón Seguro: Check Prerendering
-
-```csharp
-private async Task<string?> GetFromLocalStorageAsync(string key)
-{
-    // Evitar JS interop durante prerendering
-    if (_isPrerendering) return null;
-    
-    try
-    {
-        return await JSRuntime.InvokeAsync<string?>("localStorage.getItem", key);
-    }
-    catch (InvalidOperationException)
-    {
-        // Prerendering aún activo
-        return null;
-    }
-}
-```
-
----
-
-### 3.2. Unit System Global State Management
-
-#### Problema: State Sincronizado entre Componentes
-
-Necesidad:
-- Usuario cambia sistema de unidades (Metric ↔ Imperial) en Profile
-- Dashboard, History, Trends deben actualizar INMEDIATAMENTE sin refresh
-- State debe persistir entre sesiones
-
----
-
-#### Solución: ProtectedBrowserStorage + Observer Pattern
-
-**Service Layer**:
-
-```csharp
-public class UnitSystemService
-{
-    private readonly ProtectedSessionStorage _sessionStorage;
-    
-    public event Action<UnitSystem>? OnUnitSystemChanged;
-    
-    private UnitSystem _currentSystem = UnitSystem.Metric;
-    
-    public UnitSystemService(ProtectedSessionStorage sessionStorage)
-    {
-        _sessionStorage = sessionStorage;
-    }
-    
-    public async Task<UnitSystem> GetCurrentSystemAsync()
-    {
-        var result = await _sessionStorage.GetAsync<int>("UnitSystem");
-        
-        if (result.Success)
-        {
-            _currentSystem = (UnitSystem)result.Value;
-        }
-        
-        return _currentSystem;
-    }
-    
-    public async Task SetCurrentSystemAsync(UnitSystem newSystem)
-    {
-        _currentSystem = newSystem;
-        
-        await _sessionStorage.SetAsync("UnitSystem", (int)newSystem);
-        
-        // Notificar a todos los componentes suscritos
-        OnUnitSystemChanged?.Invoke(newSystem);
-    }
-}
-```
-
-**Component Subscription**:
-
-```csharp
-public partial class Dashboard : ComponentBase, IDisposable
-{
-    [Inject] private UnitSystemService UnitSystemService { get; set; } = default!;
-    
-    private UnitSystem _currentSystem;
-    
-    protected override async Task OnInitializedAsync()
-    {
-        _currentSystem = await UnitSystemService.GetCurrentSystemAsync();
-        
-        // Suscribirse a cambios
-        UnitSystemService.OnUnitSystemChanged += OnUnitSystemChanged;
-    }
-    
-    private void OnUnitSystemChanged(UnitSystem newSystem)
-    {
-        _currentSystem = newSystem;
-        
-        // Re-render con nuevo sistema
+        // Aquí ya es seguro usar JS interop
+        var value = await JSRuntime.InvokeAsync<string?>("localStorage.getItem", "key");
         StateHasChanged();
     }
-    
-    public void Dispose()
-    {
-        // CRÍTICO: Desuscribirse para evitar memory leaks
-        UnitSystemService.OnUnitSystemChanged -= OnUnitSystemChanged;
-    }
 }
 ```
 
-**Profile Change**:
+Para leer o escribir en el navegador no se llama a `localStorage` directamente: se inyecta `IStorageService`, cuya implementación por defecto es `LocalStorageService` (ver `src/ControlPeso.Web/Services/Storage/README.md`).
 
-```csharp
-private async Task OnUnitSystemChangedAsync(UnitSystem newSystem)
-{
-    // Guardar en DB
-    await UserService.UpdateUnitSystemAsync(UserId, newSystem);
-    
-    // Actualizar state global (notifica a todos)
-    await UnitSystemService.SetCurrentSystemAsync(newSystem);
-    
-    // Mostrar confirmación
-    await NotificationService.ShowSuccessAsync("Sistema de unidades actualizado");
-}
-```
+### 4.2. Estado compartido entre componentes
 
----
+Detalle ampliado en [technical/UNIT_SYSTEM_GLOBAL_STATE_MANAGEMENT.md](technical/UNIT_SYSTEM_GLOBAL_STATE_MANAGEMENT.md).
 
-#### Ventajas de ProtectedBrowserStorage
+`UserStateService` (servicio con ámbito de circuito) publica eventos que los componentes suscriben: `UserProfileUpdated`, `UserThemeUpdated` y `UserUnitSystemUpdated`. Cuando el perfil cambia el sistema de unidades o el tema, Dashboard, Historial y Tendencias se actualizan sin recargar la página.
 
-- ✅ **Encrypted**: Datos cifrados en el navegador
-- ✅ **Per-circuit isolation**: Cada usuario tiene su storage aislado
-- ✅ **Session-based**: Se limpia al cerrar browser
-- ✅ **No cookies**: No ocupa espacio en headers HTTP
+- Suscribirse en `OnInitialized` y **desuscribirse en `Dispose`** para evitar fugas de memoria y llamadas a componentes ya descartados.
+- Llamar a `await InvokeAsync(StateHasChanged)` desde el manejador del evento, porque puede ejecutarse fuera del contexto de sincronización del componente.
+- El tema se guarda en la base de datos para usuarios autenticados y en `localStorage` para anónimos (`ThemeService`).
 
-**Limitaciones**:
-- ⚠️ Max ~5MB de storage total
-- ⚠️ Solo disponible después de `OnAfterRenderAsync` (no en prerendering)
-- ⚠️ No persiste entre sesiones diferentes (by design)
+### 4.3. Concurrencia y base de datos
+
+Blazor Server ejecuta varios componentes a la vez dentro de un circuito, por lo que un `DbContext` compartido no es seguro. Los servicios crean contextos de corta vida desde `IDbContextFactory` y usan `AsNoTracking()` en las lecturas.
 
 ---
 
-## 4. Comandos & Scripts de Referencia
+## 5. Comandos de referencia
 
-### 4.1. Docker Commands
+### 5.1. Docker
 
-#### Build & Deploy
-
-```powershell
-# Build image
+```bash
+# Construir la imagen y exportarla para el host de producción
 docker build -t controlpeso-web:latest -f Dockerfile .
-
-# Save image to tar
 docker save controlpeso-web:latest -o controlpeso-web_latest.tar
 
-# Transfer to server
-scp controlpeso-web_latest.tar root@10.0.0.100:/tmp/
+# Local
+docker compose up -d postgres        # solo la base de datos
+docker compose up -d                 # base de datos y aplicación
+docker compose down                  # detener (los volúmenes se conservan)
 
-# Load image on server (via SSH)
-ssh root@10.0.0.100 "cd /opt/controlpeso && docker load -i /tmp/controlpeso-web_latest.tar"
-
-# Deploy on server
-ssh root@10.0.0.100 "cd /opt/controlpeso && docker compose down && docker compose up -d"
-```
-
-#### Container Management
-
-```powershell
-# Start containers
-docker compose up -d
-
-# Stop containers
-docker compose down
-
-# Restart containers
-docker compose restart
-
-# View logs (last 50 lines + follow)
-docker logs -f controlpeso-web --tail=50
-
-# Exec into container
-docker exec -it controlpeso-web /bin/bash
-
-# Check container health
+# Estado, logs y salud
 docker compose ps
-docker inspect controlpeso-web | grep -A 10 Health
+docker logs -f controlpeso-web --tail=50
+docker inspect --format '{{json .State.Health}}' controlpeso-web
+
+# Shell dentro del contenedor (la imagen es aspnet:10.0, tiene sh)
+docker exec -it controlpeso-web sh
 ```
 
-#### Cleanup
+Limpieza: usar `docker image prune` y `docker container prune` solo después de confirmar qué se elimina; `docker volume prune` y `docker system prune --volumes` pueden borrar datos de PostgreSQL y las claves de Data Protection, por lo que no deben ejecutarse en producción.
 
-```powershell
-# Remove old images (older than 24h)
-docker image prune -a --filter "until=24h"
+### 5.2. Git (Git Flow simplificado)
 
-# Remove stopped containers
-docker container prune
+```bash
+# Rama de trabajo desde develop
+git switch develop && git pull
+git switch -c feature/<nombre>
 
-# Remove unused volumes
-docker volume prune
+# Trabajo y commits (Conventional Commits)
+git add <archivos> && git commit -m "feat(scope): descripción"
 
-# Full cleanup (⚠️ DANGEROUS)
-docker system prune -a --volumes
+# Subir la rama y abrir un pull request hacia develop
+git push -u origin feature/<nombre>
+
+# Resolver conflictos con develop
+git fetch origin && git merge origin/develop
 ```
+
+El workflow `release.yml` crea el tag `vX.Y.Z` en cada push a `main`; los tags no se crean a mano.
+
+### 5.3. Base de datos y migraciones
+
+```bash
+# Aplicar el esquema (genera el SQL idempotente de las migraciones y lo ejecuta con psql)
+export PGHOST=<host> PGDATABASE=controlpeso PGUSER=<rol> PGPASSWORD=<secreto>
+scripts/migrate-postgres.sh --dry-run
+scripts/migrate-postgres.sh
+
+# Crear una migración nueva (el esquema se define en código; ver DATABASE.md)
+dotnet ef migrations add <Nombre> --project src/ControlPeso.Infrastructure
+```
+
+Ver [DATABASE.md](DATABASE.md) para el procedimiento completo y [BACKUP_SYSTEM.md](BACKUP_SYSTEM.md) para copias y restauración.
 
 ---
 
-### 4.2. Git Commands (Git Flow)
+## 6. Scripts del repositorio
 
-#### Feature Branch Workflow
-
-```powershell
-# Create feature branch
-git checkout develop
-git pull origin develop
-git checkout -b feature/nombre-descriptivo
-
-# Work + commit
-git add .
-git commit -m "feat(scope): descripción del cambio"
-
-# Push to GitHub
-git push origin feature/nombre-descriptivo
-
-# Después del merge via PR:
-git checkout develop
-git pull origin develop
-
-# Cleanup local branch
-git branch -d feature/nombre-descriptivo
-
-# Cleanup remote branch
-git push origin --delete feature/nombre-descriptivo
-```
-
-#### Merge Conflicts
-
-```powershell
-# Pull latest develop
-git checkout develop
-git pull origin develop
-
-# Merge develop into feature (resolve conflicts)
-git checkout feature/mi-rama
-git merge develop
-
-# Resolve conflicts in VS Code
-# Después de resolver:
-git add .
-git commit -m "chore: resolve merge conflicts with develop"
-git push origin feature/mi-rama
-```
-
----
-
-### 4.3. EF Core Commands
-
-#### Scaffold (Database First)
-
-```powershell
-# Desde src/ControlPeso.Infrastructure
-dotnet ef dbcontext scaffold \
-  "Server=localhost;Database=ControlPeso;User=sa;Password=<your_password>;TrustServerCertificate=true" \
-  Microsoft.EntityFrameworkCore.SqlServer \
-  --context ControlPesoDbContext \
-  --output-dir ../ControlPeso.Domain/Entities \
-  --context-dir . \
-  --force \
-  --no-pluralize
-```
-
-**IMPORTANTE**:
-- ❌ **NO** usar migrations code-first
-- ✅ Cambios de schema → modificar `docs/schema/schema_v1.sql` → aplicar con sqlcmd → re-scaffold
-- ✅ Base de datos: **SQL Server Express (Linux)** en todos los entornos
-
----
-
-### 4.4. Scripts Preservados
-
-#### clearObjBinVs.ps1
-
-**Propósito**: Limpieza de directorios temporales de build
-
-```powershell
-.\clearObjBinVs.ps1
-```
-
-**Qué hace**:
-- Elimina `obj/` folders (compilación temporal)
-- Elimina `bin/` folders (output de build)
-- Elimina `.vs/` folders (Visual Studio cache)
-
-**Cuándo usar**:
-- Build corrupto
-- Errores raros de compilación
-- Cambio de branch con conflictos de build
-
----
-
-#### setup-config.ps1
-
-**Propósito**: Setup de configs desde templates
-
-```powershell
-.\setup-config.ps1
-```
-
-**Qué hace**:
-- Crea `appsettings.Development.json` desde `.template`
-- Crea `appsettings.Production.json` desde `.template`
-- Preserva configs existentes (no sobreescribe)
-
-**Cuándo usar**:
-- Primer clone del repo
-- Después de cambiar de branch (si perdiste configs)
-
----
-
-#### Deploy-Docker-Local.ps1
-
-**Propósito**: Deploy completo en Docker local
-
-```powershell
-.\scripts\Deploy-Docker-Local.ps1
-```
-
-**Qué hace**:
-- Build .NET Release
-- Build Docker image
-- Start container con docker-compose
-- Health check automático
-- Display logs
-
-**Cuándo usar**:
-- Test local antes de push
-- Verificar build Docker funcional
-
----
-
-#### deploy-docker.ps1
-
-**Propósito**: Deploy Docker producción con transfer a servidor
-
-```powershell
-.\scripts\deploy-docker.ps1
-```
-
-**Qué hace**:
-- Build image
-- Save to .tar
-- Transfer via SCP
-- Deploy remoto via SSH
-- Health verification
-
-**Cuándo usar**:
-- Deployment a producción (Proxmox VM)
-- SOLO después de verificar localmente
-
----
-
-#### migrate-to-sqlserver.ps1
-
-**Propósito**: Migración de SQLite (dev) a SQL Server (prod)
-
-```powershell
-.\scripts\migrate-to-sqlserver.ps1
-```
-
-**Qué hace**:
-- Export schema de SQLite
-- Convert a T-SQL
-- Create SQL Server database
-- Migrate data
-- Update connection strings
-
-**Cuándo usar**:
-- Migración a production SQL Server (Fase 11 planned)
+| Script | Para qué sirve | Estado |
+|--------|----------------|--------|
+| `scripts/migrate-postgres.sh` | Genera y aplica las migraciones en PostgreSQL | Vigente |
+| `scripts/setup-config.ps1` | Crea `appsettings.Development.json` y `appsettings.Production.json` desde las plantillas sin sobrescribir | Vigente |
+| `scripts/clearObjBinVs.ps1` | Elimina `bin/`, `obj/` y `.vs/` ante un build corrupto | Vigente |
+| `scripts/deploy-production.ps1`, `scripts/deploy-docker.ps1` | Despliegue con PowerShell | Anteriores a PostgreSQL y a la imagen no root; revisar antes de usar. Referencia actual: [DEPLOYMENT.md](DEPLOYMENT.md) |
 
 ---
 
 ## Referencias
 
-- **Infraestructura**: `infraestructura.md`
-- **Documentación Funcional**: `documentacionfuncional.md`
-- **Plan Maestro**: `Plan_ControlPeso_Thiscloud_v1_0.md` (histórico)
-- **Copilot Instructions**: `.github/copilot-instructions.md`
-
----
-
-## Changelog
-
-| Fecha | Cambios |
-|-------|---------|
-| 2026-03-03 | Documento creado - Consolidación de 6 archivos fuente |
-| 2026-03-03 | Agregado: Logging best practices, query guide, Telegram setup, Blazor técnico, Docker/Git/EF commands |
-
----
-
-**FIN DEL DOCUMENTO** ✅
+- [infraestructura.md](infraestructura.md), [DEPLOYMENT.md](DEPLOYMENT.md), [SECURITY.md](SECURITY.md)
+- [documentacionfuncional.md](documentacionfuncional.md)
+- [.github/copilot-instructions.md](../.github/copilot-instructions.md)

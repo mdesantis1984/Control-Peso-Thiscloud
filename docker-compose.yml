@@ -2,28 +2,29 @@ version: '3.8'
 
 services:
   # ============================================
-  # SQL Server Database
+  # PostgreSQL Database
   # ============================================
-  sqlserver:
-    container_name: controlpeso-sqlserver
-    image: mcr.microsoft.com/mssql/server:2022-latest
+  postgres:
+    container_name: controlpeso-postgres
+    image: postgres:15
     ports:
-      - "1433:1433"
+      - "5432:5432"
     environment:
-      - ACCEPT_EULA=Y
-      - MSSQL_PID=Express
-      # SA_PASSWORD debe configurarse en docker-compose.override.yml
+      - POSTGRES_DB=controlpeso
+      - POSTGRES_USER=controlpeso
+      # POSTGRES_PASSWORD comes from the environment or a gitignored .env / docker-compose.override.yml
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD (see docs/DEPLOYMENT.md)}
     volumes:
-      - controlpeso-sqldata:/var/opt/mssql
+      - controlpeso-pgdata:/var/lib/postgresql/data
     networks:
       - controlpeso-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$SA_PASSWORD\" -Q \"SELECT 1\" -C || exit 1"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD-SHELL", "pg_isready -U controlpeso -d controlpeso"]
+      interval: 10s
+      timeout: 5s
       retries: 5
-      start_period: 60s
+      start_period: 20s
     labels:
       com.controlpeso.service: "database"
       com.controlpeso.version: "1.0.0"
@@ -44,11 +45,11 @@ services:
       - ASPNETCORE_URLS=http://+:8080
 
       # Data Protection keys path (for antiforgery tokens and auth cookies persistence)
-      - ASPNETCORE_DataProtection__Path=/root/.aspnet/DataProtection-Keys
+      - DataProtection__Path=/app/keys
 
-      # Database Connection (SQL Server in Docker)
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=ControlPeso;User Id=sa;TrustServerCertificate=True;MultipleActiveResultSets=True;Encrypt=False
-      # SA_PASSWORD debe configurarse en docker-compose.override.yml
+      # Database Connection (PostgreSQL in Docker, Npgsql)
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=controlpeso;Username=controlpeso;Password=${POSTGRES_PASSWORD}
+      # POSTGRES_PASSWORD debe configurarse en el entorno o en un .env local (NOT in Git)
 
       # Logging Configuration (ThisCloud.Framework)
       - ThisCloud__Loggings__IsEnabled=true
@@ -74,13 +75,13 @@ services:
       - controlpeso-logs:/app/logs
 
       # Persist Data Protection keys (antiforgery tokens, authentication cookies)
-      - controlpeso-keys:/root/.aspnet/DataProtection-Keys
+      - controlpeso-keys:/app/keys
 
       # Persist user avatars (uploaded profile pictures)
-      - controlpeso-avatars:/app/wwwroot/uploads/avatars
+      - controlpeso-avatars:/app/wwwroot/uploads
 
     depends_on:
-      sqlserver:
+      postgres:
         condition: service_healthy
 
     networks:
@@ -89,7 +90,7 @@ services:
     restart: unless-stopped
     
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD-SHELL", "[ \"$$(curl -s -o /dev/null -w '%{http_code}' -H 'X-Forwarded-Proto: https' http://localhost:8080/health)\" = \"200\" ]"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -111,10 +112,10 @@ networks:
 # Volumes
 # ============================================
 volumes:
-  # SQL Server data persistence
-  controlpeso-sqldata:
+  # PostgreSQL data persistence
+  controlpeso-pgdata:
     driver: local
-    name: controlpeso-sqldata
+    name: controlpeso-pgdata
 
   # Logs persistence
   controlpeso-logs:

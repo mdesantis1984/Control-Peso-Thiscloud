@@ -1,91 +1,78 @@
-# Database Documentation - Control Peso Thiscloud
+# Database - Control Peso Thiscloud
 
-> **Last Updated**: 2026-02-19  
-> **OAuth Implementation**: ✅ GoogleId + LinkedInId (backend preservado, UI Google only)
+> Production and local development use **PostgreSQL 15** through Npgsql. There is no SQL Server and no SQLite at runtime (SQLite only exists inside some test projects).
 
 ## Overview
 
-- **Paradigm**: Database First (SQL schema is source of truth)
-- **Dev/MVP**: SQLite (`controlpeso.db`)
-- **Production**: SQL Server ready (swap connection string + provider)
-- **ORM**: Entity Framework Core 9.0.1
+| Item | Value |
+|------|-------|
+| Engine | PostgreSQL 15 (`postgres:15` in Docker Compose) |
+| Provider | `Npgsql.EntityFrameworkCore.PostgreSQL` 10.0.0 on Entity Framework Core 10 |
+| Schema source of truth | EF Core migrations in `src/ControlPeso.Infrastructure/Migrations` (initial migration `20261118214026_InitialPostgreSql`) |
+| Generated script | [`docs/schema/postgresql_schema_v1.sql`](schema/postgresql_schema_v1.sql) (idempotent) |
+| Applied by | [`scripts/migrate-postgres.sh`](../scripts/migrate-postgres.sh); **the application never migrates at startup** |
+| Connection string | `ConnectionStrings:DefaultConnection` (environment variable `ConnectionStrings__DefaultConnection`) |
+| DbContext | `ControlPesoDbContext` (Infrastructure), registered with `AddDbContextFactory` and `EnableRetryOnFailure()` |
 
-## Schema (docs/schema/schema_v1.sql)
+Connection string format (never commit a real password):
 
-### Tables
-
-#### Users
-- **Primary Key**: `Id` TEXT (GUID as string)
-- **Unique**: `GoogleId`, `LinkedInId`, `Email`
-- **Columns**: 
-  - `GoogleId` TEXT UNIQUE (nullable - OAuth sub claim from Google)
-  - `LinkedInId` TEXT UNIQUE (nullable - OAuth sub claim from LinkedIn, backend preservado)
-  - `Name`, `Email` (unique), `Role` (0=User, 1=Administrator), `AvatarUrl`, `MemberSince`, `Height`, `UnitSystem` (0=Metric, 1=Imperial), `DateOfBirth`, `Language` (es/en), `Status` (0=Active, 1=Inactive, 2=Pending), `GoalWeight`, `StartingWeight`, `CreatedAt`, `UpdatedAt`
-- **Constraints**: 
-  - Height CHECK (50-300cm)
-  - Role/UnitSystem/Status CHECK (valid enum values)
-  - Email format CHECK (5-320 characters)
-  - GoalWeight/StartingWeight CHECK (20-500kg if not NULL)
-- **OAuth Status**: 
-  - ✅ GoogleId: Activo (UI login button visible)
-  - ⚠️ LinkedInId: Backend preservado, UI removida (botón eliminado de Login.razor)
-
-#### WeightLogs
-- **Primary Key**: `Id` TEXT (GUID)
-- **Foreign Key**: `UserId` → Users(Id) ON DELETE CASCADE
-- **Columns**: UserId, Date (YYYY-MM-DD), Time (HH:MM), Weight REAL (kg), DisplayUnit (0=Kg, 1=Lb), Note, Trend (0=Up, 1=Down, 2=Neutral), CreatedAt
-- **Constraints**: 
-  - Weight CHECK (20-500kg)
-  - Unique(UserId, Date, Time) - prevents duplicate entries
-
-#### UserPreferences
-- **Primary Key**: `Id` TEXT
-- **Foreign Key**: `UserId` UNIQUE → Users(Id) ON DELETE CASCADE
-- **Columns**: UserId, DarkMode INTEGER (bool), NotificationsEnabled INTEGER, TimeZone, UpdatedAt
-
-#### AuditLog
-- **Primary Key**: `Id` TEXT
-- **Foreign Key**: `UserId` → Users(Id) ON DELETE CASCADE
-- **Columns**: UserId, Action, EntityType, EntityId, OldValue (JSON), NewValue (JSON), CreatedAt
-
-## Database First Workflow
-
-### Modify Schema
-
-```bash
-# 1. Edit SQL file
-vim docs/schema/schema_v1.sql
-
-# 2. Apply to SQLite
-sqlite3 controlpeso.db < docs/schema/schema_v1.sql
-
-# 3. Scaffold entities
-cd src/ControlPeso.Infrastructure
-dotnet ef dbcontext scaffold \
-  "Data Source=../../controlpeso.db" \
-  Microsoft.EntityFrameworkCore.Sqlite \
-  --context ControlPesoDbContext \
-  --output-dir ../ControlPeso.Domain/Entities \
-  --context-dir . \
-  --force
+```
+Host=<host>;Port=5432;Database=controlpeso;Username=<role>;Password=<secret>
 ```
 
-**DO NOT** modify scaffolded entities manually. All changes in SQL → re-scaffold.
+In production the value comes from `CONTROLPESO_DB_CONNECTION` in `docker-compose.production.yml`.
 
-### Type Conversions
+## Tables
 
-SQLite stores:
-- **TEXT**: GUIDs, DateTimes, Dates, Times
-- **INTEGER**: Enums, Booleans (0/1)
-- **REAL**: Decimals, Doubles
+All ids are `uuid` (default `gen_random_uuid()`); all timestamps are `timestamp without time zone` holding UTC (default `now() at time zone 'utc'`). Enums are stored as `integer`.
 
-Application Layer converts:
-- `string` → `Guid` (Parse)
-- `string` → `DateTime/DateOnly/TimeOnly` (Parse)
-- `int` → `enum` (Cast)
-- `long` → `bool` (Convert)
+### Users
 
-## Enums (Domain/Enums/)
+| Column | Type | Notes |
+|--------|------|-------|
+| `Id` | uuid | PK |
+| `GoogleId`, `LinkedInId` | text, nullable | OAuth subject ids (LinkedIn login is disabled in the UI) |
+| `Name` | text | |
+| `Email` | **citext**, unique | Case-insensitive; requires the `citext` extension |
+| `Role` | integer | 0 = User, 1 = Administrator |
+| `AvatarUrl` | text, nullable | |
+| `MemberSince`, `CreatedAt`, `UpdatedAt` | timestamp | UTC |
+| `Height` | numeric | cm, default 170 |
+| `UnitSystem` | integer | 0 = Metric, 1 = Imperial |
+| `DateOfBirth` | date, nullable | |
+| `Language` | text | `es` (default) or `en` |
+| `Status` | integer | 0 = Active, 1 = Inactive, 2 = Pending |
+| `GoalWeight`, `StartingWeight` | numeric, nullable | kg |
+
+### WeightLogs
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `Id` | uuid | PK |
+| `UserId` | uuid | FK → `Users(Id)` `ON DELETE CASCADE` |
+| `Date` | date | |
+| `Time` | time | |
+| `Weight` | numeric | Always kg; pounds are display-only |
+| `DisplayUnit` | integer | 0 = Kg, 1 = Lb |
+| `Note` | text, nullable | |
+| `Trend` | integer | 0 = Up, 1 = Down, 2 = Neutral (default) |
+| `CreatedAt` | timestamp | UTC |
+
+Unique index `IX_WeightLogs_UserId_Date_Time` on `(UserId, Date, Time)`.
+
+### UserPreferences
+
+`Id`, `UserId` (unique FK, cascade), `DarkMode` (default true), `NotificationsEnabled` (default true), `TimeZone` (default `America/Argentina/Buenos_Aires`), `UpdatedAt`.
+
+### UserNotifications
+
+`Id`, `UserId` (FK, cascade), `Type`, `Title`, `Message`, `IsRead`, `CreatedAt`.
+
+### AuditLog
+
+`Id`, `UserId` (FK, cascade), `Action`, `EntityType`, `EntityId`, `OldValue`, `NewValue` (JSON text), `CreatedAt`.
+
+### Enums (`src/ControlPeso.Domain/Enums`)
 
 ```csharp
 public enum UserRole { User = 0, Administrator = 1 }
@@ -95,59 +82,61 @@ public enum WeightUnit { Kg = 0, Lb = 1 }
 public enum WeightTrend { Up = 0, Down = 1, Neutral = 2 }
 ```
 
-## Migration to SQL Server
+## Changing the schema
 
-```csharp
-// appsettings.Production.json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=tcp:controlpeso.database.windows.net,1433;Database=ControlPeso;User Id=admin;Password=***;Encrypt=true;"
-  }
-}
+The schema is **code first with migrations**. Domain entities live in `src/ControlPeso.Domain/Entities` and the mapping in `ControlPesoDbContext`.
 
-// Infrastructure/Extensions/ServiceCollectionExtensions.cs
-services.AddDbContext<ControlPesoDbContext>(options =>
-{
-    if (environment.IsDevelopment())
-        options.UseSqlite(connectionString);
-    else
-        options.UseSqlServer(connectionString);
-});
-```
-
-**Steps**:
-1. Create SQL Server database
-2. Run `schema_v1.sql` (convert SQLite→SQL Server syntax)
-3. Update connection string
-4. Deploy
-5. Re-scaffold entities if needed
-
-## Backup & Restore
-
-### SQLite Backup
 ```bash
-# Backup
-sqlite3 controlpeso.db ".backup backup_$(date +%Y%m%d).db"
+# Install dotnet-ef outside the repo (once)
+dotnet tool install dotnet-ef --version 10.0.3 --tool-path "$TMPDIR/tools"
 
-# Restore
-cp backup_20260218.db controlpeso.db
+# 1. Change entities / ControlPesoDbContext, then create the migration.
+#    The design-time factory (ControlPesoDbContextFactory) needs no database connection.
+"$TMPDIR/tools/dotnet-ef" migrations add <Name> --project src/ControlPeso.Infrastructure
+
+# 2. Regenerate the idempotent script kept in the repository
+"$TMPDIR/tools/dotnet-ef" migrations script --idempotent \
+  --project src/ControlPeso.Infrastructure -o docs/schema/postgresql_schema_v1.sql
+
+# 3. Update DTOs, services and tests, then run the tests
+dotnet test -c Release
 ```
 
-### SQL Server Backup
-```sql
-BACKUP DATABASE ControlPeso 
-TO DISK = 'C:\Backups\ControlPeso_20260218.bak'
-WITH COMPRESSION;
+Rules: never edit an applied migration; keep the application free of startup migrations; changes must be additive and safe to run on a database with data. Set `CONTROLPESO_DESIGN_CONNECTION` only if you need a non-default design-time connection string.
+
+## Applying the schema
+
+```bash
+export PGHOST=<host> PGDATABASE=controlpeso PGUSER=<role> PGPASSWORD=<secret>
+scripts/migrate-postgres.sh --dry-run   # print the idempotent SQL only
+scripts/migrate-postgres.sh             # generate and apply it with psql
 ```
 
-## Query Performance
+The role must be able to create tables and the `citext` extension. A manual alternative is running the checked-in script, which is also safe to repeat:
 
-- **Indexes**: Add to `schema_v1.sql` for frequently queried columns (UserId, Date, etc.)
-- **AsNoTracking()**: Use for read-only queries
-- **Projections**: `.Select()` only needed columns (avoid over-fetching)
+```bash
+psql "host=<host> dbname=controlpeso user=<role>" -f docs/schema/postgresql_schema_v1.sql
+```
+
+See [DEPLOYMENT.md](DEPLOYMENT.md#database-migrations-postgresql) for where this fits in a release.
+
+## Tests
+
+`tests/ControlPeso.Infrastructure.Tests/Postgres` starts a `postgres:15` container with Testcontainers, applies every migration and runs the services against it. Without Docker those tests are reported as skipped. Other test projects use in-memory or SQLite test doubles.
+
+## Backup and restore
+
+Daily `pg_dump` backups run on the database host; see [BACKUP_SYSTEM.md](BACKUP_SYSTEM.md).
+
+## Query guidelines
+
+- Use `AsNoTracking()` for read-only queries and `.Select()` projections instead of loading whole entities.
+- Services create short-lived contexts from `IDbContextFactory` (Blazor Server runs components concurrently; a shared scoped context is not safe).
+- Avoid raw SQL (`FromSqlRaw`); input is validated with FluentValidation in the Application layer.
+- Weight is stored in kg; convert to pounds only for display.
 
 ## References
 
-- [EF Core Database First](https://docs.microsoft.com/en-us/ef/core/managing-schemas/scaffolding)
-- [SQLite Syntax](https://www.sqlite.org/lang.html)
-- [SQL Server Migration](https://docs.microsoft.com/en-us/sql/database-engine/install-windows/upgrade-sql-server)
+- [Npgsql EF Core provider](https://www.npgsql.org/efcore/)
+- [EF Core migrations](https://learn.microsoft.com/en-us/ef/core/managing-schemas/migrations/)
+- [PostgreSQL `citext`](https://www.postgresql.org/docs/15/citext.html)

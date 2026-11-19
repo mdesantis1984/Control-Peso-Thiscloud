@@ -550,3 +550,8 @@ button.mud-fab.mud-fab-size-large {
     }
 }
 
+
+/* Blazor FocusOnNavigate moves focus to the page h1 for screen readers; it is not interactive, so hide the focus ring. */
+h1:focus {
+    outline: none;
+}

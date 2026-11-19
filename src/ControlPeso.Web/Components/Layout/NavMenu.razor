@@ -37,7 +37,11 @@
                             IconColor="Color.Warning">
                     @AdminPanel
                 </MudNavLink>
+            }
 
+            @* Diagnostics: administrators only, and only in the Development environment *@
+            @if (_isAdmin && _showDiagnostics)
+            {
                 <MudDivider Class="my-4" />
                 <MudText Typo="Typo.caption" Class="px-4 mud-text-secondary">@DiagnosticsSection</MudText>
 
@@ -49,24 +53,6 @@
                                 Icon="@Icons.Material.Filled.Security"
                                 IconColor="Color.Success">
                         @DiagAuth
-                    </MudNavLink>
-
-                    <MudNavLink Href="/diagnostics/telegram" 
-                                Icon="@Icons.Custom.Brands.Telegram"
-                                IconColor="Color.Info">
-                        @TelegramDiagnostics
-                    </MudNavLink>
-
-                    <MudNavLink Href="/test-badges" 
-                                Icon="@Icons.Material.Filled.Style"
-                                IconColor="Color.Secondary">
-                        @TestBadges
-                    </MudNavLink>
-
-                    <MudNavLink Href="/test-flags" 
-                                Icon="@Icons.Material.Filled.Flag"
-                                IconColor="Color.Primary">
-                        @TestFlags
                     </MudNavLink>
                 </MudNavGroup>
             }

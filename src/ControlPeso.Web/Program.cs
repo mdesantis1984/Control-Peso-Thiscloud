@@ -73,7 +73,10 @@ builder.Services.Configure<Microsoft.AspNetCore.Builder.RequestLocalizationOptio
 // ============================================================================
 
 // 3. Configure Forwarded Headers for production (NPM Plus reverse proxy)
-builder.Services.AddForwardedHeadersConfiguration(builder.Environment);
+builder.Services.AddForwardedHeadersConfiguration(builder.Environment, builder.Configuration);
+
+// 3.2. Persist Data Protection keys when DataProtection:Path is configured (mounted volume)
+builder.Services.AddConfiguredDataProtection(builder.Configuration);
 
 // 3.5. Configure Production Security Policies (HSTS, HTTPS redirection)
 builder.Services.AddProductionHsts(builder.Environment);
@@ -98,7 +101,10 @@ builder.Services.AddApplicationServices();
 
 // 5. Add Blazor services with SignalR configuration for debugging
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+    .AddInteractiveServerComponents()
+    // The cropped avatar travels browser -> server as a base64 data URL in one SignalR message.
+    // Default is 32 KB; keep an explicit, bounded limit that fits the largest accepted avatar (S25).
+    .AddHubOptions(options => options.MaximumReceiveMessageSize = ControlPeso.Web.Services.AvatarUploadService.MaxHubMessageBytes);
 
 // 5.0.5. Configure Blazor Server options for large payloads (image cropping)
 builder.Services.AddServerSideBlazor(options =>
@@ -134,13 +140,12 @@ builder.Services.AddHttpContextAccessor();
 // 6. Add MudBlazor services
 builder.Services.AddMudServices();
 
-// 6.3. Add Storage Services (unified interface for localStorage, sessionStorage, cookies)
+// 6.3. Add Storage Services (unified interface for localStorage, sessionStorage)
 // IMPORTANTE: LocalStorageService es el predeterminado (IStorageService → LocalStorageService)
 // Para usar otro storage, inyectar explícitamente (ej: IEnumerable<IStorageService> y resolver por tipo)
 builder.Services.AddScoped<ControlPeso.Web.Services.Storage.IStorageService, ControlPeso.Web.Services.Storage.LocalStorageService>();
 builder.Services.AddScoped<ControlPeso.Web.Services.Storage.LocalStorageService>();
 builder.Services.AddScoped<ControlPeso.Web.Services.Storage.SessionStorageService>();
-builder.Services.AddScoped<ControlPeso.Web.Services.Storage.CookieStorageService>();
 
 // 6.5. Add Theme Service (gestión de tema con persistencia en localStorage/DB)
 builder.Services.AddScoped<ControlPeso.Web.Services.ThemeService>();
@@ -148,16 +153,17 @@ builder.Services.AddScoped<ControlPeso.Web.Services.ThemeService>();
 // 6.5.5. Add User Notification Service (wrapper para Snackbar con verificación de preferencias)
 builder.Services.AddScoped<ControlPeso.Web.Services.NotificationService>();
 
-// 6.6. Add Notification Services (Telegram)
-builder.Services.AddHttpClient<ControlPeso.Web.Services.INotificationService, ControlPeso.Web.Services.TelegramNotificationService>();
-builder.Services.Configure<ControlPeso.Web.Services.TelegramOptions>(
-    builder.Configuration.GetSection(ControlPeso.Web.Services.TelegramOptions.ConfigSection));
-
 // 6.7. Add User State Service (shared state across components)
 builder.Services.AddScoped<ControlPeso.Web.Services.UserStateService>();
 
 // 6.8. Add SEO Services (Sitemap & Robots.txt generation via Minimal APIs)
 builder.Services.AddScoped<ControlPeso.Web.Services.SitemapService>();
+
+// Avatar uploads: server-side validation + SkiaSharp re-encode (S25)
+builder.Services.AddScoped<ControlPeso.Web.Services.IAvatarUploadService, ControlPeso.Web.Services.AvatarUploadService>();
+
+// 6.9. Add health checks (database readiness)
+builder.Services.AddApplicationHealthChecks();
 
 // 7. Add Authentication & Authorization (Google OAuth + LinkedIn OAuth)
 builder.Services.AddOAuthAuthentication(builder.Configuration);
@@ -206,7 +212,7 @@ if (!app.Environment.IsDevelopment())
     app.UseForwardedHeaders();
 }
 
-// 1. Global exception handler - catches unhandled exceptions and sends to Telegram
+// 1. Global exception handler - catches unhandled exceptions, logs them and redirects to /error
 app.UseGlobalExceptionHandler();
 app.Logger.LogInformation("=== APP BUILT SUCCESSFULLY ===");
 
@@ -269,16 +275,8 @@ app.MapSeoEndpoints();
 // Register authentication endpoints (OAuth Challenge + Logout)
 app.MapAuthenticationEndpoints();
 
-// Health check endpoint for Docker/Kubernetes
-app.MapGet("/health", () => Results.Ok(new
-{
-    status = "healthy",
-    timestamp = DateTime.UtcNow,
-    version = "1.0.0"
-}))
-.WithName("HealthCheck")
-.WithTags("Health")
-.ExcludeFromDescription(); // No mostrar en Swagger si se agrega
+// Health endpoints: /health (liveness, no DB) and /health/ready (readiness, checks the DB)
+app.MapApplicationHealthEndpoints();
 
 // Static files AFTER SEO endpoints (MapStaticAssets handles optimization)
 app.MapStaticAssets();

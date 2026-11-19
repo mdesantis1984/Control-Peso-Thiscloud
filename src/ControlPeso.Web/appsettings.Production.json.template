@@ -1,6 +1,6 @@
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=controlpeso-sqlserver,1433;Database=ControlPeso;User Id=sa;Password=YOUR_SQL_PASSWORD_HERE;TrustServerCertificate=True;MultipleActiveResultSets=True"
+    "DefaultConnection": "Host=CHANGE_ME_HOST;Port=5432;Database=controlpeso;Username=controlpeso;Password=CHANGE_ME"
   },
   "Authentication": {
     "Google": {
@@ -11,12 +11,6 @@
       "ClientId": "YOUR_LINKEDIN_CLIENT_ID_HERE",
       "ClientSecret": "YOUR_LINKEDIN_CLIENT_SECRET_HERE"
     }
-  },
-  "Telegram": {
-    "Enabled": true,
-    "BotToken": "YOUR_TELEGRAM_BOT_TOKEN_HERE",
-    "ChatId": "YOUR_TELEGRAM_CHAT_ID_HERE",
-    "Environment": "Production"
   },
   "GoogleAnalytics": {
     "MeasurementId": "YOUR_GA_MEASUREMENT_ID_HERE"

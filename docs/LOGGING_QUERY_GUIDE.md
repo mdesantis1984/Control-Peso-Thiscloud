@@ -1,8 +1,20 @@
 # Guía de Consulta de Logs - Control Peso Thiscloud
 
-**Archivo de logs**: `src/ControlPeso.Web/logs/controlpeso-.ndjson`  
-**Formato**: NDJSON (Newline Delimited JSON)  
-**Herramientas recomendadas**: Seq, Grafana Loki, jq (CLI), VS Code con extensión JSON Lines
+**Archivo de logs**: `logs/controlpeso-<fecha>.ndjson` (la plantilla `controlpeso-.ndjson` de la configuración se expande con la fecha de rotación). En desarrollo: `src/ControlPeso.Web/logs/`. En producción: `/app/logs/` dentro del contenedor `controlpeso-web`, respaldado por el volumen Docker `controlpeso-logs`.  
+**Formato**: NDJSON (Newline Delimited JSON), rotación a 10 MB; archivos retenidos: 30 por defecto (`appsettings.json`), 60 en `docker-compose.production.yml`  
+**Nivel en producción**: `ThisCloud__Loggings__MinimumLevel=Warning` y consola desactivada, así que el archivo contiene Warning, Error y Fatal (los ejemplos con mensajes `Information` aplican a desarrollo o si se baja el nivel)  
+**Fuente única de errores**: no hay canal de alertas externo; los errores de la aplicación se registran **solo** en estos archivos.  
+**Herramientas recomendadas**: jq (CLI) y grep; opcionalmente Seq o Grafana Loki si se envían los archivos allí
+
+### Acceso en producción
+
+```bash
+# Desde el host Docker (CT 100)
+docker exec controlpeso-web sh -c 'ls -la /app/logs | tail -5'
+docker exec controlpeso-web sh -c 'cat /app/logs/controlpeso-*.ndjson' | jq 'select(."@l" == "Error")'
+```
+
+En los ejemplos siguientes, `controlpeso-.ndjson` representa el archivo (o `controlpeso-*.ndjson` para todos).
 
 ---
 
@@ -24,7 +36,7 @@ Cada log incluye propiedades estructuradas para correlación:
   "ConnectionId": "0HNJHF92ABAR2",          // Connection ID
   "service": "ControlPeso.Thiscloud",
   "env": "Development",
-  "MachineName": "MDESANTIS",
+  "MachineName": "controlpeso-web",
   "ProcessId": 53520,
   "ThreadId": 15,
   "traceId": "8d893c0f8c27dcf3..."          // Duplicate trace (framework)
@@ -268,9 +280,6 @@ cat controlpeso-.ndjson | jq -r 'select(."@l" == "Error") | [."@t", .UserId, .So
 ### Filtrado y pipe a otros tools
 
 ```bash
-# Enviar a clipboard (Windows)
-cat controlpeso-.ndjson | jq 'select(."@l" == "Error")' | clip
-
 # Grep tradicional para búsqueda rápida
 grep -i "exception" controlpeso-.ndjson
 ```
@@ -298,5 +307,5 @@ grep -i "exception" controlpeso-.ndjson
 
 ---
 
-**Última actualización**: 2026-02-21  
-**Versión de logging framework**: ThisCloud.Framework.Loggings.Serilog 1.0.86
+**Última verificación**: 2026-11-19  
+**Versión de logging framework**: ThisCloud.Framework.Loggings.Serilog 1.0.94

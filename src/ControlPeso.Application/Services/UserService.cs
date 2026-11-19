@@ -320,7 +320,7 @@ public sealed class UserService : IUserService
         {
             await using var context = await _contextFactory.CreateDbContextAsync(ct);
 
-            // Query by provider-specific ID
+            // 1. Match by provider-specific ID (the only identity that is always trusted)
             Users? existingUser = oauthInfo.Provider switch
             {
                 "Google" => await context.Set<Users>()
@@ -332,8 +332,73 @@ public sealed class UserService : IUserService
                 _ => throw new NotSupportedException($"OAuth provider '{oauthInfo.Provider}' is not supported. Supported providers: Google, LinkedIn")
             };
 
+            var normalizedEmail = oauthInfo.Email.Trim().ToLowerInvariant();
+            var cachedEmails = new List<string> { oauthInfo.Email };
+
+            if (existingUser is null)
+            {
+                // 2. Not found by provider ID: an account with the same email may exist.
+                var sameEmailUser = await context.Set<Users>()
+                    .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail, ct);
+
+                if (sameEmailUser is not null)
+                {
+                    if (!oauthInfo.EmailVerified)
+                    {
+                        _logger.LogWarning(
+                            "OAuth login rejected: {Provider} did not verify the email of an existing account - UserId: {UserId}",
+                            oauthInfo.Provider, sameEmailUser.Id);
+                        throw new OAuthLoginException(
+                            $"The email is already registered and {oauthInfo.Provider} did not verify it.");
+                    }
+
+                    var linkedProviderId = oauthInfo.Provider == "Google" ? sameEmailUser.GoogleId : sameEmailUser.LinkedInId;
+                    if (!string.IsNullOrEmpty(linkedProviderId))
+                    {
+                        _logger.LogWarning(
+                            "OAuth login rejected: account already linked to another {Provider} identity - UserId: {UserId}",
+                            oauthInfo.Provider, sameEmailUser.Id);
+                        throw new OAuthLoginException(
+                            $"The account is already linked to a different {oauthInfo.Provider} identity.");
+                    }
+
+                    if (oauthInfo.Provider == "Google")
+                    {
+                        sameEmailUser.GoogleId = oauthInfo.ExternalId;
+                    }
+                    else
+                    {
+                        sameEmailUser.LinkedInId = oauthInfo.ExternalId;
+                    }
+
+                    _logger.LogInformation(
+                        "Linking {Provider} identity to existing user by verified email: {UserId}",
+                        oauthInfo.Provider, sameEmailUser.Id);
+
+                    cachedEmails.Add(sameEmailUser.Email);
+                    existingUser = sameEmailUser;
+                }
+            }
+
             if (existingUser is not null)
             {
+                // Email changes are accepted only when the provider verified the address and nobody else owns it
+                var emailToStore = existingUser.Email;
+                if (oauthInfo.EmailVerified
+                    && !string.Equals(existingUser.Email, oauthInfo.Email, StringComparison.OrdinalIgnoreCase))
+                {
+                    var emailTaken = await context.Set<Users>()
+                        .AnyAsync(u => u.Id != existingUser.Id && u.Email.ToLower() == normalizedEmail, ct);
+
+                    if (!emailTaken)
+                    {
+                        emailToStore = oauthInfo.Email;
+                    }
+                }
+
+                cachedEmails.Add(existingUser.Email);
+                oauthInfo = oauthInfo with { Email = emailToStore };
+
                 // Update existing user
                 var previousAvatarUrl = existingUser.AvatarUrl;
                 var isCustomAvatar = previousAvatarUrl?.StartsWith("/uploads/avatars/") == true;
@@ -345,6 +410,7 @@ public sealed class UserService : IUserService
                 UserMapper.UpdateFromOAuth(existingUser, oauthInfo);
 
                 await context.SaveChangesAsync(ct);
+                cachedEmails.ForEach(email => InvalidateCache(existingUser.Id, email));
 
                 var updatedDto = UserMapper.ToDto(existingUser);
 
@@ -470,6 +536,17 @@ public sealed class UserService : IUserService
         {
             _logger.LogError(ex, "Unexpected error updating user profile: {UserId}", id);
             throw;
+        }
+    }
+
+    /// <inheritdoc />
+    public void InvalidateCache(Guid userId, string? email = null)
+    {
+        _cache.Remove($"{CacheKeyPrefixById}{userId}");
+
+        if (!string.IsNullOrWhiteSpace(email))
+        {
+            _cache.Remove($"{CacheKeyPrefixByEmail}{email.ToLowerInvariant()}");
         }
     }
 

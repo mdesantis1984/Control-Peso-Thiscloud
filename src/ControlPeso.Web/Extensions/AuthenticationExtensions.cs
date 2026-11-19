@@ -1,6 +1,3 @@
-using System.Security.Claims;
-using ControlPeso.Application.DTOs;
-using ControlPeso.Application.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
 
@@ -92,46 +89,11 @@ public static class AuthenticationExtensions
         options.Scope.Add("profile");
         options.Scope.Add("email");
 
-        // Event handler: callback después de autenticación exitosa
+        // Callback after the provider authenticated the user; any failure ends in OnRemoteFailure
         options.Events = new OAuthEvents
         {
-            OnCreatingTicket = async context =>
-            {
-                // Obtener servicio de usuario desde DI
-                var userService = context.HttpContext.RequestServices
-                    .GetRequiredService<IUserService>();
-
-                // Extraer claims del proveedor OAuth (Google)
-                // Google mapea 'sub' a ClaimTypes.NameIdentifier automáticamente
-                var externalId = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                    ?? context.Principal?.FindFirst("sub")?.Value
-                    ?? throw new InvalidOperationException("Google 'sub' claim is missing");
-
-                var name = context.Principal?.FindFirst(ClaimTypes.Name)?.Value
-                    ?? context.Principal?.FindFirst("name")?.Value
-                    ?? string.Empty;
-
-                var email = context.Principal?.FindFirst(ClaimTypes.Email)?.Value
-                    ?? context.Principal?.FindFirst("email")?.Value
-                    ?? throw new InvalidOperationException("Google 'email' claim is missing");
-
-                var avatarUrl = context.Principal?.FindFirst("picture")?.Value;
-
-                // Crear DTO genérico de OAuth
-                var oauthInfo = new OAuthUserInfo
-                {
-                    Provider = "Google",
-                    ExternalId = externalId,
-                    Name = name,
-                    Email = email,
-                    AvatarUrl = avatarUrl
-                };
-
-                // Crear o actualizar usuario en DB
-                // NOTA: Los claims personalizados (UserId, Role) se agregan en UserClaimsTransformation
-                // para evitar duplicación y asegurar timing correcto con Blazor Server
-                await userService.CreateOrUpdateFromOAuthAsync(oauthInfo);
-            }
+            OnCreatingTicket = context => OAuthLoginHandlers.OnCreatingTicketAsync(context, "Google"),
+            OnRemoteFailure = OAuthLoginHandlers.OnRemoteFailureAsync
         };
     }
 
@@ -157,42 +119,11 @@ public static class AuthenticationExtensions
         options.Scope.Add("profile");
         options.Scope.Add("email");
 
-        // Event handler: callback después de autenticación exitosa
+        // Callback after the provider authenticated the user; any failure ends in OnRemoteFailure
         options.Events = new OAuthEvents
         {
-            OnCreatingTicket = async context =>
-            {
-                // Obtener servicio de usuario desde DI
-                var userService = context.HttpContext.RequestServices
-                    .GetRequiredService<IUserService>();
-
-                // Extraer claims del proveedor OAuth (LinkedIn)
-                var externalId = context.Principal?.FindFirst("sub")?.Value
-                    ?? throw new InvalidOperationException("LinkedIn 'sub' claim is missing");
-
-                var name = context.Principal?.FindFirst("name")?.Value
-                    ?? string.Empty;
-
-                var email = context.Principal?.FindFirst("email")?.Value
-                    ?? throw new InvalidOperationException("LinkedIn 'email' claim is missing");
-
-                var avatarUrl = context.Principal?.FindFirst("picture")?.Value;
-
-                // Crear DTO genérico de OAuth
-                var oauthInfo = new OAuthUserInfo
-                {
-                    Provider = "LinkedIn",
-                    ExternalId = externalId,
-                    Name = name,
-                    Email = email,
-                    AvatarUrl = avatarUrl
-                };
-
-                // Crear o actualizar usuario en DB
-                // NOTA: Los claims personalizados (UserId, Role) se agregan en UserClaimsTransformation
-                // para evitar duplicación y asegurar timing correcto con Blazor Server
-                await userService.CreateOrUpdateFromOAuthAsync(oauthInfo);
-            }
+            OnCreatingTicket = context => OAuthLoginHandlers.OnCreatingTicketAsync(context, "LinkedIn"),
+            OnRemoteFailure = OAuthLoginHandlers.OnRemoteFailureAsync
         };
     }
 }

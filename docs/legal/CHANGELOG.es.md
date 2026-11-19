@@ -24,7 +24,35 @@ y este proyecto se adhiere al [Versionado Semántico](https://semver.org/lang/es
 
 ---
 
-## [1.3.0] - 2026-02-25
+## [1.3.0] - 2026-11-19
+
+### Cambiado
+
+- 🗄️ **Base de Datos**: Migrada a PostgreSQL 15 (Npgsql). El esquema se aplica desde `docs/schema/postgresql_schema_v1.sql` (migración EF Core `InitialPostgreSql`) con `scripts/migrate-postgres.sh`; la aplicación ya no migra la base de datos al iniciar.
+- 🖼️ **Imágenes**: El procesamiento de imágenes de perfil usa SkiaSharp (MIT) en lugar de ImageSharp.
+- 📦 **Dependencias**: Actualizadas a MudBlazor 9 y FluentValidation 12; lista de licencias de terceros actualizada.
+
+### Agregado
+
+- 🔐 **Sesión persistente**: La cookie de inicio de sesión con Google dura 30 días con expiración deslizante.
+- ❤️ **Health checks**: `/health` (vivacidad) y `/health/ready` (disponibilidad de la base de datos).
+- 💾 **Backups**: Respaldos diarios con `pg_dump` y retención de 14 días.
+- 🧪 **CI**: Build, tests, verificación de paquetes vulnerables, escaneo de secretos (gitleaks) en pull requests y smoke test de Docker.
+
+### Seguridad
+
+- 🐳 El contenedor ahora se ejecuta con un usuario sin privilegios de root; las claves de Data Protection se persisten en un volumen dedicado.
+- 🔒 Revisión de endurecimiento de cabeceras de seguridad, configuración y manejo de secretos.
+
+### Eliminado
+
+- 🚫 **Notificaciones de errores por Telegram**: los errores se registran únicamente en los logs estructurados de la aplicación (NDJSON).
+- 🧹 Páginas de demostración (Counter, Weather, páginas de prueba) y los proveedores de runtime SQL Server y SQLite.
+- 📈 Google Analytics solo se carga cuando está configurado.
+
+---
+
+## [1.3.0-initial] - 2026-02-25
 
 ### Agregado
 

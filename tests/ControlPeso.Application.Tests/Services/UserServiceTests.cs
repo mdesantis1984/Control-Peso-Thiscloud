@@ -818,6 +818,7 @@ public sealed class UserServiceTests : IDisposable
             ExternalId = googleId,
             Name = "Updated Name",
             Email = "updated@example.com",
+            EmailVerified = true, // email changes are only accepted when the provider verified them
             AvatarUrl = "https://new-avatar.com/pic.jpg"
         };
 
@@ -851,6 +852,7 @@ public sealed class UserServiceTests : IDisposable
             ExternalId = linkedInId,
             Name = "Updated LinkedIn Name",
             Email = $"updatedlinkedin{Guid.NewGuid()}@example.com",
+            EmailVerified = true, // email changes are only accepted when the provider verified them
             AvatarUrl = "https://new-linkedin-avatar.com/pic.jpg"
         };
 
