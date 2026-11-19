@@ -133,7 +133,7 @@ curl -I https://controlpeso.thiscloud.com.ar/robots.txt
 
 Checklist after the deploy: container `healthy`, `/health` and `/health/ready` answer 200, logs without errors, `robots.txt` and `sitemap.xml` respond, Google login works.
 
-> The PowerShell scripts under `scripts/` (`deploy-production.ps1`, `deploy-docker.ps1`, `Deploy-Docker-Local.ps1`) predate the PostgreSQL migration and the non-root image. Review them before use; the commands above are the reference procedure.
+> The PowerShell scripts under `scripts/` (`deploy-production.ps1`, `deploy-docker.ps1`) predate the PostgreSQL migration and the non-root image. Review them before use; the commands above are the reference procedure.
 
 ### Reverse proxy (Cloudflare + NPMplus)
 

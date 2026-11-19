@@ -99,5 +99,4 @@ Los errores se registran únicamente en los logs estructurados (Serilog, NDJSON)
 | `scripts/migrate-postgres.sh` | Vigente: genera y aplica el SQL idempotente de las migraciones |
 | `scripts/setup-config.ps1` | Vigente: crea los `appsettings.*.json` locales desde las plantillas |
 | `scripts/clearObjBinVs.ps1` | Vigente: limpia `bin/`, `obj/` y `.vs/` |
-| `scripts/deploy-production.ps1`, `scripts/deploy-docker.ps1`, `scripts/Deploy-Docker-Local.ps1` | Anteriores a PostgreSQL y a la imagen no root: revisar antes de usarlos; el procedimiento de referencia está en [DEPLOYMENT.md](DEPLOYMENT.md) |
-| `scripts/init-database.sql`, `scripts/fix-database.sql`, `scripts/init-sqlserver.sql`, `scripts/migrate-to-sqlserver.ps1` | Heredados de SQL Server/SQLite; no se usan |
+| `scripts/deploy-production.ps1`, `scripts/deploy-docker.ps1` | Anteriores a PostgreSQL y a la imagen no root: revisar antes de usarlos; el procedimiento de referencia está en [DEPLOYMENT.md](DEPLOYMENT.md) |

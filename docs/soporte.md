@@ -184,8 +184,7 @@ Ver [DATABASE.md](DATABASE.md) para el procedimiento completo y [BACKUP_SYSTEM.m
 | `scripts/migrate-postgres.sh` | Genera y aplica las migraciones en PostgreSQL | Vigente |
 | `scripts/setup-config.ps1` | Crea `appsettings.Development.json` y `appsettings.Production.json` desde las plantillas sin sobrescribir | Vigente |
 | `scripts/clearObjBinVs.ps1` | Elimina `bin/`, `obj/` y `.vs/` ante un build corrupto | Vigente |
-| `scripts/deploy-production.ps1`, `scripts/deploy-docker.ps1`, `scripts/Deploy-Docker-Local.ps1` | Despliegue con PowerShell | Anteriores a PostgreSQL y a la imagen no root; revisar antes de usar. Referencia actual: [DEPLOYMENT.md](DEPLOYMENT.md) |
-| `scripts/init-database.sql`, `scripts/fix-database.sql`, `scripts/init-sqlserver.sql`, `scripts/migrate-to-sqlserver.ps1` | Heredados de SQL Server/SQLite | Obsoletos, no usar |
+| `scripts/deploy-production.ps1`, `scripts/deploy-docker.ps1` | Despliegue con PowerShell | Anteriores a PostgreSQL y a la imagen no root; revisar antes de usar. Referencia actual: [DEPLOYMENT.md](DEPLOYMENT.md) |
 
 ---
 
