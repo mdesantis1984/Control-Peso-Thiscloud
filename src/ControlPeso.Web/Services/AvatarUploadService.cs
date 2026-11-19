@@ -47,8 +47,8 @@ public interface IAvatarUploadService
 
 public sealed partial class AvatarUploadService : IAvatarUploadService
 {
-    /// <summary>Largest accepted image once decoded from base64 (5 MB).</summary>
-    public const int MaxImageBytes = 5 * 1024 * 1024;
+    /// <summary>Largest accepted image once decoded from base64 (1 MB; the cropper sends a 256x256 image).</summary>
+    public const int MaxImageBytes = 1024 * 1024;
 
     /// <summary>Largest base64 payload (without a data URL prefix) that can decode to <see cref="MaxImageBytes"/>.</summary>
     public const int MaxEncodedLength = (MaxImageBytes + 2) / 3 * 4;
@@ -57,9 +57,9 @@ public sealed partial class AvatarUploadService : IAvatarUploadService
     /// SignalR hub receive limit: the biggest accepted payload plus room for the data URL prefix
     /// and the message envelope.
     /// </summary>
-    public const int MaxHubMessageBytes = 8 * 1024 * 1024;
+    public const int MaxHubMessageBytes = 2 * 1024 * 1024;
 
-    private const int TargetSize = 512;
+    private const int TargetSize = 256; // matches the cropper output, so nothing is upscaled
     private const int Quality = 85;
     private const string UrlPrefix = "/uploads/avatars/";
 

@@ -68,8 +68,8 @@ public sealed class AvatarUploadServiceTests : IDisposable
         var bytes = await File.ReadAllBytesAsync(file);
         using var codec = SKCodec.Create(SKData.CreateCopy(bytes));
         codec.EncodedFormat.Should().Be(SKEncodedImageFormat.Webp);
-        codec.Info.Width.Should().Be(512);
-        codec.Info.Height.Should().Be(512);
+        codec.Info.Width.Should().Be(256);
+        codec.Info.Height.Should().Be(256);
     }
 
     [Fact]
