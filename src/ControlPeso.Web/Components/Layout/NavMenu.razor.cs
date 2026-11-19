@@ -31,7 +31,6 @@ public partial class NavMenu
     private string DiagnosticsSection => Localizer[nameof(DiagnosticsSection)];
     private string Tests => Localizer[nameof(Tests)];
     private string DiagAuth => Localizer[nameof(DiagAuth)];
-    private string TelegramDiagnostics => Localizer[nameof(TelegramDiagnostics)];
     private string Home => Localizer[nameof(Home)];
     private string Login => Localizer[nameof(Login)];
     private string AppVersion => Localizer[nameof(AppVersion), AppVersionInfo.Current];

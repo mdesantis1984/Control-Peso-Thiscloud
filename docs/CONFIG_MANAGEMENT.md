@@ -51,10 +51,6 @@ Busca y reemplaza TODOS los valores `YOUR_*_HERE` con tus valores reales:
       "ClientId": "YOUR_GOOGLE_CLIENT_ID_HERE",      // ← REEMPLAZAR
       "ClientSecret": "YOUR_GOOGLE_CLIENT_SECRET_HERE" // ← REEMPLAZAR
     }
-  },
-  "Telegram": {
-    "BotToken": "YOUR_TELEGRAM_BOT_TOKEN_HERE",     // ← REEMPLAZAR
-    "ChatId": "YOUR_TELEGRAM_CHAT_ID_HERE"          // ← REEMPLAZAR
   }
 }
 ```
@@ -241,7 +237,6 @@ Si commiteaste secretos por error:
 
 ### 1. Rotar secretos INMEDIATAMENTE:
 - Regenerar Google OAuth Client Secret
-- Regenerar Telegram Bot Token
 - Cambiar SQL Server password
 - Regenerar API keys
 

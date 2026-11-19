@@ -107,8 +107,6 @@ docker exec controlpeso-web env | grep "Authentication__Google__ClientId"
 - [ ] `Authentication__LinkedIn__ClientId` - LinkedIn OAuth (if using)
 - [ ] `Authentication__LinkedIn__ClientSecret` - LinkedIn OAuth (if using)
 - [ ] `GoogleAnalytics__MeasurementId` - Google Analytics 4 (not in this deployment)
-- [ ] `Telegram__BotToken` - Telegram notifications
-- [ ] `Telegram__ChatId` - Telegram chat ID
 - [ ] `CloudflareAnalytics__Token` - Cloudflare Analytics (optional)
 
 ## Secret Rotation

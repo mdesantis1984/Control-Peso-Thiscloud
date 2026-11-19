@@ -62,7 +62,6 @@ ControlPeso.Thiscloud.sln
 
 0.3. ✅ **Rotación de secretos expuestos** (hacer inmediatamente post-merge)
    - Google OAuth: console.cloud.google.com → Delete old ClientID → Create new
-   - Telegram Bot: @BotFather → `/revoke` → `/token`
    - SQL SA: `docker exec` → `ALTER LOGIN sa WITH PASSWORD = 'new'`
    - Actualizar `.secrets.local` local + producción
 
@@ -438,7 +437,7 @@ public static WeightLogDto MapToDto(WeightLog entity) => new()
 **ANTES de hacer `git add` / `git commit`, verificar**:
 
 ### Archivos con Secretos
-- [ ] NO commitear `appsettings.Development.json` (contiene OAuth, Telegram)
+- [ ] NO commitear `appsettings.Development.json` (contiene OAuth)
 - [ ] NO commitear `appsettings.Production.json` (contiene DB password, OAuth)
 - [ ] NO commitear `docker-compose.override.yml` (contiene passwords)
 - [ ] NO commitear `.env` o `.env.local`

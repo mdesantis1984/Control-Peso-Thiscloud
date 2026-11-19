@@ -66,7 +66,7 @@ public sealed class NavMenuTests : TestContext
         var cut = Render(environment, isAdmin);
 
         cut.Markup.Should().NotContain("/diag-auth");
-        cut.Markup.Should().NotContain("/diagnostics/telegram");
+        cut.Markup.Should().NotContainEquivalentOf("telegram");
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public sealed class NavMenuTests : TestContext
         cut.WaitForAssertion(() =>
         {
             cut.Markup.Should().Contain("/diag-auth");
-            cut.Markup.Should().Contain("/diagnostics/telegram");
+            cut.Markup.Should().NotContainEquivalentOf("telegram");
         });
     }
 

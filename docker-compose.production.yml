@@ -44,8 +44,6 @@ services:
       #   - CONTROLPESO_DB_CONNECTION: Npgsql connection string (Host=...;Database=...;Username=...;Password=...)
       #   - GOOGLE_CLIENT_ID: Google OAuth Client ID
       #   - GOOGLE_CLIENT_SECRET: Google OAuth Client Secret
-      #   - TELEGRAM_BOT_TOKEN: Telegram Bot Token (if notifications enabled)
-      #   - TELEGRAM_CHAT_ID: Telegram Chat ID (if notifications enabled)
       # DO NOT add sensitive values here - this file is tracked by Git
     
     volumes:

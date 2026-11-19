@@ -1,10 +1,8 @@
-using ControlPeso.Web.Services;
-
 namespace ControlPeso.Web.Middleware;
 
 /// <summary>
 /// Middleware global para captura y manejo de excepciones no controladas.
-/// Loguea excepciones, envía notificaciones y redirige a página de error amigable.
+/// Loguea excepciones y redirige a página de error amigable.
 /// </summary>
 public sealed class GlobalExceptionMiddleware
 {
@@ -26,12 +24,9 @@ public sealed class GlobalExceptionMiddleware
         _environment = environment;
     }
 
-    public async Task InvokeAsync(
-        HttpContext context,
-        INotificationService notificationService)
+    public async Task InvokeAsync(HttpContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        ArgumentNullException.ThrowIfNull(notificationService);
 
         try
         {
@@ -48,35 +43,7 @@ public sealed class GlobalExceptionMiddleware
                 context.TraceIdentifier
             );
 
-            // Send critical error notification (fire and forget - don't wait)
-            _ = SendNotificationAsync(notificationService, context, ex);
-
             await HandleExceptionAsync(context, ex);
-        }
-    }
-
-    private async Task SendNotificationAsync(
-        INotificationService notificationService,
-        HttpContext context,
-        Exception exception)
-    {
-        try
-        {
-            var errorMessage = $"Path: {context.Request.Method} {context.Request.Path}\n" +
-                               $"User: {context.User?.Identity?.Name ?? "Anonymous"}";
-
-            await notificationService.SendCriticalErrorAsync(
-                errorMessage,
-                context.TraceIdentifier,
-                exception,
-                CancellationToken.None);
-        }
-        catch (Exception ex)
-        {
-            // Log failure but don't throw - notification failure should not crash the app
-            _logger.LogError(ex,
-                "Failed to send error notification - TraceId: {TraceId}",
-                context.TraceIdentifier);
         }
     }
 

@@ -19,7 +19,6 @@
   <data name="DiagnosticsSection" xml:space="preserve"><value>Diagnostics</value><comment>Diagnostics section title</comment></data>
   <data name="Tests" xml:space="preserve"><value>Tests</value><comment>Tests group title</comment></data>
   <data name="DiagAuth" xml:space="preserve"><value>Auth Diagnostics</value><comment>Auth diagnostics link</comment></data>
-  <data name="TelegramDiagnostics" xml:space="preserve"><value>Telegram Diagnostics</value><comment>Telegram diagnostics link</comment></data>
   <data name="Home" xml:space="preserve"><value>Home</value><comment>Home link for unauthenticated users</comment></data>
   <data name="Login" xml:space="preserve"><value>Sign In</value><comment>Login link for unauthenticated users</comment></data>
   <data name="AppVersion" xml:space="preserve"><value>Control Peso Thiscloud v{0}</value><comment>App version footer. Placeholder {0} = assembly informational version</comment></data>

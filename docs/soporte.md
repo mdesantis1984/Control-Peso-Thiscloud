@@ -10,7 +10,7 @@
 ## Tabla de Contenido
 
 1. [Logging & Diagnóstico](#1-logging--diagnóstico)
-2. [Telegram Bot](#2-telegram-bot)
+2. [Alertas de errores críticos](#2-alertas-de-errores-críticos)
 3. [Blazor Técnico](#3-blazor-técnico)
 4. [Comandos & Scripts de Referencia](#4-comandos--scripts-de-referencia)
 
@@ -424,170 +424,9 @@ _logger.LogInformation("User logged in with token {Token}", authToken);
 
 ---
 
-## 2. Telegram Bot
+## 2. Alertas de errores críticos
 
-### 2.1. Quickstart (Setup en 5 minutos)
-
-#### Problema Actual
-
-Las credenciales de Telegram están configuradas con placeholders:
-
-```json
-"BotToken": "YOUR_TELEGRAM_BOT_TOKEN_HERE",  // ❌ Placeholder
-"ChatId": "YOUR_TELEGRAM_CHAT_ID_HERE"       // ❌ Placeholder
-```
-
----
-
-#### Solución Rápida: Script Automático (RECOMENDADO)
-
-```powershell
-# Ejecutar desde raíz del proyecto
-.\scripts\configure-telegram.ps1
-```
-
-El script:
-- ✅ Te guía para crear el bot
-- ✅ Obtiene el Chat ID automáticamente
-- ✅ Actualiza `appsettings.Development.json`
-- ✅ Envía mensaje de prueba
-
----
-
-#### Opción Manual: 5 Pasos
-
-##### 1️⃣ Crear Bot (2 minutos)
-
-```
-1. Abrir Telegram → Buscar: @BotFather
-2. Enviar: /newbot
-3. Nombre: Control Peso Thiscloud Bot
-4. Username: controlpeso_thiscloud_bot
-5. COPIAR el TOKEN (ejemplo: 1234567890:ABCdef...)
-```
-
-##### 2️⃣ Obtener Chat ID (2 minutos)
-
-```
-1. Buscar tu bot en Telegram (@controlpeso_thiscloud_bot)
-2. Enviar: /start
-3. Enviar: Hola
-4. Abrir en navegador:
-   https://api.telegram.org/bot<TU_TOKEN>/getUpdates
-   (Reemplazar <TU_TOKEN> con el token del paso 1)
-5. Buscar en el JSON: "chat":{"id": 123456789}
-6. COPIAR ese número (tu Chat ID)
-```
-
-##### 3️⃣ Editar appsettings.Development.json (1 minuto)
-
-```json
-{
-  "Telegram": {
-    "Enabled": true,
-    "BotToken": "PEGAR_TU_TOKEN_AQUÍ",      // ← Paso 1
-    "ChatId": "PEGAR_TU_CHATID_AQUÍ",       // ← Paso 2
-    "Environment": "Development"
-  }
-}
-```
-
-**Ejemplo con valores reales**:
-
-```json
-{
-  "Telegram": {
-    "Enabled": true,
-    "BotToken": "CHANGE_ME",
-    "ChatId": "123456789",
-    "Environment": "Development"
-  }
-}
-```
-
-##### 4️⃣ Reiniciar Aplicación
-
-```powershell
-# Detener (Ctrl+C) y reiniciar
-dotnet run --project src\ControlPeso.Web
-```
-
-##### 5️⃣ Probar Notificaciones
-
-```
-1. Iniciar sesión en la app
-2. Guardar un peso
-3. Verificar mensaje en Telegram
-```
-
----
-
-### 2.2. Troubleshooting
-
-#### Problema: No recibo mensajes en Telegram
-
-**Posibles causas**:
-
-1. **Bot Token incorrecto**
-   - Verificar: `appsettings.Development.json` → `Telegram:BotToken`
-   - Test: https://api.telegram.org/bot<TU_TOKEN>/getMe
-   - Debe retornar JSON con info del bot
-
-2. **Chat ID incorrecto**
-   - Verificar: `appsettings.Development.json` → `Telegram:ChatId`
-   - Re-obtener: https://api.telegram.org/bot<TU_TOKEN>/getUpdates
-   - Debe coincidir con el ID del chat donde enviaste `/start`
-
-3. **Telegram service disabled**
-   - Verificar: `appsettings.Development.json` → `Telegram:Enabled`
-   - Debe ser `true`
-
-4. **Firewall bloqueando Telegram API**
-   - Test: `curl https://api.telegram.org`
-   - Debe retornar HTML
-
----
-
-#### Problema: Error 401 Unauthorized
-
-**Causa**: Bot Token inválido o revocado
-
-**Solución**:
-1. Ir a @BotFather en Telegram
-2. Enviar: `/mybots`
-3. Seleccionar: Control Peso Thiscloud Bot
-4. API Token → Copiar nuevo token
-5. Actualizar `appsettings.Development.json`
-
----
-
-#### Problema: Error 400 Chat not found
-
-**Causa**: Chat ID incorrecto o bot no iniciado
-
-**Solución**:
-1. Buscar bot en Telegram: `@controlpeso_thiscloud_bot`
-2. Enviar: `/start`
-3. Enviar cualquier mensaje
-4. Re-obtener Chat ID: https://api.telegram.org/bot<TOKEN>/getUpdates
-5. Actualizar `appsettings.Development.json`
-
----
-
-#### Logs de Diagnóstico
-
-```bash
-# Ver logs de Telegram service
-docker logs controlpeso-web | grep -i telegram
-
-# Ver errores de Telegram
-docker logs controlpeso-web | grep -i "telegram.*error"
-
-# Test manual con curl
-curl -X POST "https://api.telegram.org/bot<TOKEN>/sendMessage" \
-     -H "Content-Type: application/json" \
-     -d '{"chat_id":"<CHAT_ID>","text":"Test manual desde curl"}'
-```
+Los errores críticos se registran en `/app/logs` (Serilog, NDJSON); no hay alertas externas. Para consultarlos, ver la sección 1.
 
 ---
 
@@ -1067,7 +906,7 @@ dotnet ef dbcontext scaffold \
 | Fecha | Cambios |
 |-------|---------|
 | 2026-03-03 | Documento creado - Consolidación de 6 archivos fuente |
-| 2026-03-03 | Agregado: Logging best practices, query guide, Telegram setup, Blazor técnico, Docker/Git/EF commands |
+| 2026-03-03 | Agregado: Logging best practices, query guide, Blazor técnico, Docker/Git/EF commands |
 
 ---
 
