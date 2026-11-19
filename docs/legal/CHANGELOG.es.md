@@ -24,6 +24,16 @@ y este proyecto se adhiere al [Versionado Semántico](https://semver.org/lang/es
 
 ---
 
+## [9.0.2] - 2026-11-19
+
+### Corregido
+
+- 🔒 **Política de privacidad**: ya no afirma que la base de datos está cifrada en reposo, porque no lo está; describe los controles de acceso reales.
+- 🏠 **Página de inicio**: ya no promete cifrado end-to-end; describe las conexiones cifradas con HTTPS.
+- 📄 El proyecto se publica bajo la licencia MIT (`LICENSE`).
+
+---
+
 ## [9.0.1] - 2026-11-19
 
 ### Corregido

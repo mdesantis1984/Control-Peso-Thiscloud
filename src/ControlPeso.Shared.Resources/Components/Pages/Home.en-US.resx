@@ -36,7 +36,7 @@
   <data name="FeatureAdvancedAnalysisTitle" xml:space="preserve"><value>Advanced Analysis</value></data>
   <data name="FeatureAdvancedAnalysisDescription" xml:space="preserve"><value>Interactive charts and detailed statistics of your evolution</value></data>
   <data name="FeatureMaxPrivacyTitle" xml:space="preserve"><value>Maximum Privacy</value></data>
-  <data name="FeatureMaxPrivacyDescription" xml:space="preserve"><value>Secure OAuth authentication and end-to-end data encryption</value></data>
+  <data name="FeatureMaxPrivacyDescription" xml:space="preserve"><value>Secure OAuth sign-in and HTTPS-encrypted connections</value></data>
   <data name="FeatureAiPredictionsTitle" xml:space="preserve"><value>AI Predictions</value></data>
   <data name="FeatureAiPredictionsDescription" xml:space="preserve"><value>Smart projections based on your historical patterns</value></data>
   <data name="FeatureMultiDeviceTitle" xml:space="preserve"><value>Multi-device</value></data>
