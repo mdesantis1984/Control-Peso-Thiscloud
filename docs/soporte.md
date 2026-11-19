@@ -896,7 +896,6 @@ dotnet ef dbcontext scaffold \
 
 - **Infraestructura**: `infraestructura.md`
 - **Documentación Funcional**: `documentacionfuncional.md`
-- **Plan Maestro**: `Plan_ControlPeso_Thiscloud_v1_0.md` (histórico)
 - **Copilot Instructions**: `.github/copilot-instructions.md`
 
 ---

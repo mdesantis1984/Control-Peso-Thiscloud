@@ -25,7 +25,7 @@ Este documento enumera todas las dependencias de terceros, sus licencias y nuest
 ### MudBlazor
 
 - **Proyecto**: [MudBlazor](https://github.com/MudBlazor/MudBlazor)
-- **Versión**: 8.0.0
+- **Versión**: 9.0.0
 - **Licencia**: MIT License
 - **Copyright**: © MudBlazor Contributors
 - **Propósito**: Biblioteca de Componentes Blazor (Material Design)
@@ -48,23 +48,42 @@ Este documento enumera todas las dependencias de terceros, sus licencias y nuest
 
 **Texto de Licencia**: https://github.com/dotnet/efcore/blob/main/LICENSE.txt
 
-### Microsoft.EntityFrameworkCore.Sqlite
+### Npgsql.EntityFrameworkCore.PostgreSQL
 
-- **Proyecto**: Proveedor EF Core SQLite
-- **Versión**: 10.0.3
+- **Proyecto**: [Proveedor Npgsql para EF Core](https://github.com/npgsql/efcore.pg)
+- **Versión**: 10.0.0
+- **Licencia**: PostgreSQL License
+- **Copyright**: © Npgsql Contributors
+- **Propósito**: Proveedor de base de datos PostgreSQL para Entity Framework Core (desarrollo y producción)
+- **Agradecimiento**: Gracias al equipo de Npgsql por ofrecer un controlador y proveedor EF Core para PostgreSQL rápidos y confiables.
+
+**Texto de Licencia**: https://github.com/npgsql/efcore.pg/blob/main/LICENSE
+
+---
+
+## 🖼️ Imágenes y Exportación de Datos
+
+### SkiaSharp
+
+- **Proyecto**: [SkiaSharp](https://github.com/mono/SkiaSharp)
+- **Versión**: 4.157.0
 - **Licencia**: MIT License
-- **Copyright**: © Microsoft Corporation
-- **Propósito**: Proveedor de base de datos SQLite para desarrollo y prototipado
-- **Agradecimiento**: Gracias por permitir un desarrollo rápido con una base de datos embebida ligera.
+- **Copyright**: © Microsoft Corporation y Contribuidores
+- **Propósito**: Biblioteca gráfica 2D multiplataforma usada para procesar imágenes de perfil (redimensionado y codificación WebP)
+- **Agradecimiento**: Gracias al equipo de SkiaSharp por una biblioteca de imágenes con licencia permisiva.
 
-### Microsoft.EntityFrameworkCore.SqlServer
+**Texto de Licencia**: https://github.com/mono/SkiaSharp/blob/main/LICENSE.md
 
-- **Proyecto**: Proveedor EF Core SQL Server
-- **Versión**: 10.0.3
-- **Licencia**: MIT License
-- **Copyright**: © Microsoft Corporation
-- **Propósito**: Proveedor de base de datos SQL Server para producción
-- **Agradecimiento**: Gracias por proporcionar conectividad de base de datos de nivel empresarial para despliegues en producción.
+### CsvHelper
+
+- **Proyecto**: [CsvHelper](https://github.com/JoshClose/CsvHelper)
+- **Versión**: 33.1.0
+- **Licencia**: Microsoft Public License (MS-PL) o Apache License 2.0 (doble licencia)
+- **Copyright**: © Josh Close
+- **Propósito**: Exportación CSV de datos de peso en el área de administración
+- **Agradecimiento**: Gracias por una biblioteca CSV simple y rápida.
+
+**Texto de Licencia**: https://github.com/JoshClose/CsvHelper/blob/master/LICENSE.txt
 
 ---
 
@@ -77,6 +96,15 @@ Este documento enumera todas las dependencias de terceros, sus licencias y nuest
 - **Copyright**: © Microsoft Corporation
 - **Propósito**: Integración de autenticación Google OAuth 2.0
 - **Agradecimiento**: Gracias por simplificar la autenticación segura con cuentas de Google.
+
+### AspNet.Security.OAuth.LinkedIn
+
+- **Proyecto**: [AspNet.Security.OAuth.Providers](https://github.com/aspnet-contrib/AspNet.Security.OAuth.Providers)
+- **Versión**: 10.0.0
+- **Licencia**: Apache License 2.0
+- **Copyright**: © .NET Foundation y Contribuidores
+- **Propósito**: Proveedor OAuth de LinkedIn (se registra solo si está configurado; Google es el inicio de sesión principal)
+- **Agradecimiento**: Gracias a la comunidad aspnet-contrib por los proveedores OAuth.
 
 ### Google Identity Platform
 
@@ -94,7 +122,7 @@ Este documento enumera todas las dependencias de terceros, sus licencias y nuest
 ### ThisCloud.Framework.Loggings
 
 - **Paquete**: ThisCloud.Framework.Loggings
-- **Versión**: 1.0.86
+- **Versión**: 1.0.94
 - **Licencia**: Propietaria (framework interno)
 - **Copyright**: © ThisCloud
 - **Propósito**: Logging empresarial con Serilog, redacción y correlación
@@ -117,7 +145,7 @@ Este documento enumera todas las dependencias de terceros, sus licencias y nuest
 ### FluentValidation
 
 - **Proyecto**: [FluentValidation](https://github.com/FluentValidation/FluentValidation)
-- **Versión**: 11.11.0
+- **Versión**: 12.1.1
 - **Licencia**: Apache License 2.0
 - **Copyright**: © Jeremy Skinner and Contributors
 - **Propósito**: Interfaz fluida para construir reglas de validación
@@ -175,6 +203,36 @@ Este documento enumera todas las dependencias de terceros, sus licencias y nuest
 
 **Texto de Licencia**: https://github.com/bUnit-dev/bUnit/blob/main/LICENSE
 
+### NSubstitute
+
+- **Proyecto**: [NSubstitute](https://github.com/nsubstitute/NSubstitute)
+- **Versión**: 5.3.0
+- **Licencia**: BSD 3-Clause License
+- **Copyright**: © Contribuidores de NSubstitute
+- **Propósito**: Biblioteca de mocking para pruebas unitarias
+
+### FluentAssertions
+
+- **Proyecto**: [FluentAssertions](https://github.com/fluentassertions/fluentassertions)
+- **Versión**: 7.0.0
+- **Licencia**: Apache License 2.0
+- **Copyright**: © Dennis Doomen y Contribuidores
+- **Propósito**: Biblioteca de aserciones para pruebas
+
+### Testcontainers for .NET
+
+- **Proyecto**: [Testcontainers](https://github.com/testcontainers/testcontainers-dotnet)
+- **Versión**: 4.17.0
+- **Licencia**: MIT License
+- **Copyright**: © Contribuidores de Testcontainers
+- **Propósito**: Contenedores PostgreSQL descartables para pruebas de integración
+
+### Microsoft.EntityFrameworkCore.Sqlite / InMemory
+
+- **Licencia**: MIT License (parte de Entity Framework Core)
+- **Copyright**: © Microsoft Corporation
+- **Propósito**: Bases de datos en memoria y SQLite usadas solo por los proyectos de pruebas automatizadas (no forman parte del runtime de producción)
+
 ---
 
 ## 🐳 Infraestructura y Despliegue
@@ -189,15 +247,15 @@ Este documento enumera todas las dependencias de terceros, sus licencias y nuest
 
 **Texto de Licencia**: https://github.com/moby/moby/blob/master/LICENSE
 
-### Microsoft SQL Server Express
+### PostgreSQL
 
-- **Producto**: [SQL Server Express 2022](https://www.microsoft.com/es-es/sql-server/sql-server-downloads)
-- **Licencia**: Términos de Licencia de Software de Microsoft
-- **Copyright**: © Microsoft Corporation
-- **Propósito**: Base de datos de producción
-- **Agradecimiento**: Gracias a Microsoft por proporcionar una solución de base de datos gratuita y potente para despliegues en producción.
+- **Producto**: [PostgreSQL 15](https://www.postgresql.org/)
+- **Licencia**: PostgreSQL License
+- **Copyright**: © PostgreSQL Global Development Group
+- **Propósito**: Base de datos de producción y desarrollo
+- **Agradecimiento**: Gracias a la comunidad de PostgreSQL por una base de datos relacional robusta y de código abierto.
 
-**Términos de Licencia**: https://www.microsoft.com/useterms
+**Texto de Licencia**: https://www.postgresql.org/about/licence/
 
 ---
 
@@ -266,7 +324,7 @@ Este documento enumera todas las dependencias de terceros, sus licencias y nuest
 
 ### MIT License (Permisiva)
 
-Usada por: .NET, EF Core, MudBlazor, xUnit, bUnit, github-tag-action, NPM
+Usada por: .NET, EF Core, MudBlazor, SkiaSharp, Testcontainers, xUnit, bUnit, github-tag-action, NPM
 
 **Resumen**: Permite libertad casi sin restricciones para usar, copiar, modificar, fusionar, publicar, distribuir, sublicenciar y vender copias. Requiere preservación del aviso de copyright y texto de licencia.
 
@@ -274,7 +332,7 @@ Usada por: .NET, EF Core, MudBlazor, xUnit, bUnit, github-tag-action, NPM
 
 ### Apache License 2.0 (Permisiva)
 
-Usada por: FluentValidation, Serilog, xUnit (licencia dual), Docker
+Usada por: FluentValidation, FluentAssertions, Serilog, AspNet.Security.OAuth.LinkedIn, CsvHelper (licencia dual), xUnit (licencia dual), Docker
 
 **Resumen**: Similar a MIT pero incluye concesiones explícitas de patentes. Requiere preservación del aviso de copyright, descargo de responsabilidad y avisos de atribución.
 
@@ -282,11 +340,19 @@ Usada por: FluentValidation, Serilog, xUnit (licencia dual), Docker
 
 ### BSD 3-Clause License (Permisiva)
 
-Usada por: Moq
+Usada por: Moq, NSubstitute
 
 **Resumen**: Licencia permisiva similar a MIT, con una cláusula adicional que prohíbe el uso del nombre del proyecto o de los contribuyentes para respaldo sin permiso.
 
 **Texto Completo**: https://opensource.org/licenses/BSD-3-Clause
+
+### PostgreSQL License (Permisiva)
+
+Usada por: PostgreSQL, proveedor Npgsql para EF Core
+
+**Resumen**: Licencia de código abierto liberal, similar a BSD/MIT. Permite usar, copiar, modificar y distribuir, siempre que se conserven el aviso de copyright y el texto de la licencia.
+
+**Texto Completo**: https://www.postgresql.org/about/licence/
 
 ---
 
@@ -328,6 +394,6 @@ Tomamos el cumplimiento de licencias en serio y abordaremos cualquier problema d
 
 ---
 
-**Última Actualización:** 25 de febrero de 2026
+**Última Actualización:** 19 de noviembre de 2026
 
 **Gracias a todos los que contribuyen al código abierto. Hacen del mundo un lugar mejor. 💙**

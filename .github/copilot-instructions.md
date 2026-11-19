@@ -742,7 +742,7 @@ foreach ($item in $templates) {
 ### Docs Maestros (Consolidados)
 
 - **Infraestructura**: `docs/infraestructura.md` (Arquitectura, Deployment, SEO, Seguridad, DB)
-- **Funcional**: `docs/documentacionfuncional.md` (Planes, Sistemas, WCAG, Tests)
+- **Funcional**: `docs/documentacionfuncional.md` (Funcionalidades, reglas de negocio, sistemas transversales, accesibilidad, tests)
 - **Soporte**: `docs/soporte.md` (Logging, Troubleshooting, Comandos)
 
 ### Otros

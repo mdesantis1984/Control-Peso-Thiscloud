@@ -90,7 +90,7 @@ We use the collected information for the following purposes:
 Your data is stored on our secure servers. We use industry-standard security measures to protect your information:
 
 - **Encryption**: Data transmitted between your device and our servers is encrypted using HTTPS/TLS.
-- **Database Security**: Your data is stored in a secure SQL Server database with access controls and encryption at rest.
+- **Database Security**: Your data is stored in a secure PostgreSQL database with access controls and encryption at rest.
 - **Authentication**: We use Google OAuth 2.0 for secure authentication. We do NOT store passwords.
 - **Access Control**: Only authorized personnel have access to the infrastructure, and access is logged and monitored.
 
