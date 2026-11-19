@@ -82,6 +82,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Full history and tags: MinVer derives the app version from the release tags
+          fetch-depth: 0
 
       - name: Build image
         run: docker build -t controlpeso-web:ci .

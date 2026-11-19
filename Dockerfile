@@ -27,7 +27,13 @@ WORKDIR "/src/src/ControlPeso.Web"
 # Stage 2: Publish (publish compiles the project; no separate build step)
 # ============================================
 FROM build AS publish
-RUN dotnet publish "ControlPeso.Web.csproj" -c Release -o /app/publish /p:UseAppHost=false
+# The app version is derived from the git release tags by MinVer, which reads the .git folder
+# of the build context (kept out of the final image: only /app/publish is copied below).
+# When the context has no tag history (shallow clone, archive export, git worktree), pass the
+# version explicitly: docker build --build-arg APP_VERSION=9.0.0 .
+ARG APP_VERSION=""
+RUN dotnet publish "ControlPeso.Web.csproj" -c Release -o /app/publish /p:UseAppHost=false \
+    ${APP_VERSION:+/p:MinVerVersionOverride=$APP_VERSION}
 
 # ============================================
 # Stage 3: Runtime

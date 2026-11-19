@@ -13,9 +13,6 @@
     <Company>Thiscloud Services</Company>
     <Authors>Thiscloud Team</Authors>
     <Copyright>© 2026 Thiscloud Services. All rights reserved.</Copyright>
-    <Version>1.3.0</Version>
-    <AssemblyVersion>1.3.0.0</AssemblyVersion>
-    <FileVersion>1.3.0.0</FileVersion>
     <Description>Aplicación web de control de peso corporal con Blazor Server y MudBlazor</Description>
 
     <!-- Análisis de código -->
@@ -23,6 +20,19 @@
     <AnalysisLevel>latest</AnalysisLevel>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
   </PropertyGroup>
+
+  <!-- Versioning: the version comes from the git release tags (vMAJOR.MINOR.PATCH, created by
+       .github/workflows/ci.yml's release job). MinVer sets Version, AssemblyVersion (major only),
+       FileVersion and InformationalVersion at build time; never hand-edit a version here.
+       A commit exactly at tag v9.0.0 builds as 9.0.0; commits after it build as 9.0.1-alpha.0.N.
+       Without tags (shallow clone) pass -p:MinVerVersionOverride=<x.y.z> (see docs/DEPLOYMENT.md). -->
+  <PropertyGroup>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <MinVerDefaultPreReleaseIdentifiers>alpha.0</MinVerDefaultPreReleaseIdentifiers>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MinVer" PrivateAssets="all" />
+  </ItemGroup>
 
   <!-- Configuración para proyectos de test -->
   <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('.Tests'))">
