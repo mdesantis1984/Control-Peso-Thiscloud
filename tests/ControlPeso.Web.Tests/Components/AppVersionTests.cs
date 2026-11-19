@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Reflection;
 using Bunit;
 using Bunit.TestDoubles;
@@ -49,6 +50,22 @@ public sealed class AppVersionTests : TestContext
 
     [Fact]
     public void Sidebar_ShouldShowTheSameVersionAsTheFooter()
+    {
+        // The sidebar text comes from culture-specific resources only (es-AR, en-US);
+        // pin the culture so the test does not depend on the machine locale.
+        var previousUiCulture = CultureInfo.CurrentUICulture;
+        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("es-AR");
+        try
+        {
+            RenderSidebarAndAssertVersion();
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = previousUiCulture;
+        }
+    }
+
+    private void RenderSidebarAndAssertVersion()
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
         var env = Substitute.For<IWebHostEnvironment>();
