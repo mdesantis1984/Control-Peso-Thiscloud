@@ -30,10 +30,23 @@ public partial class Changelog
     private string InitialReleaseLabel => _isEnglish ? "Initial Release" : "Lanzamiento Inicial";
 
     private string AddedLabel => _isEnglish ? "Added" : "Agregado";
+    private string FixedLabel => _isEnglish ? "Fixed" : "Corregido";
     private string ChangedLabel => _isEnglish ? "Changed" : "Cambiado";
     private string SecurityLabel => _isEnglish ? "Security" : "Seguridad";
     private string RemovedLabel => _isEnglish ? "Removed" : "Eliminado";
     private string CoreFeaturesLabel => _isEnglish ? "Core Features" : "Funciones Principales";
+
+    // v9.0.1 (2026-11-19)
+    private string V901_Date => LegalDateFormatter.Format(new DateOnly(2026, 11, 19), _isEnglish);
+    private string V901_Fixed1 => _isEnglish
+        ? "Application version: the application now shows the release version derived from the git tags (it showed a hardcoded 1.3.0)"
+        : "Versión de la aplicación: la aplicación ahora muestra la versión del release derivada de los tags de git (mostraba 1.3.0 de forma fija)";
+    private string V901_Changed1 => _isEnglish
+        ? "Releases: a release is cut only when feat, fix or breaking commits are merged; docs, build, ci, chore and test no longer cut versions"
+        : "Releases: solo se genera un release cuando se integran commits feat, fix o con cambios incompatibles; docs, build, ci, chore y test ya no generan versiones";
+    private string V901_Changed2 => _isEnglish
+        ? "The 2026-11-19 changelog entry was renumbered as 9.0.0"
+        : "La entrada del changelog del 2026-11-19 se renumeró como 9.0.0";
 
     // v9.0.0 (2026-11-19)
     private string V900_Date => LegalDateFormatter.Format(new DateOnly(2026, 11, 19), _isEnglish);

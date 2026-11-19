@@ -33,7 +33,7 @@ docker build -t controlpeso-web:latest -f Dockerfile .
 
 The application version is never edited by hand: it comes from the git release tags.
 
-- **Tags**: [`release.yml`](../.github/workflows/release.yml) creates the tag `vMAJOR.MINOR.PATCH` and the GitHub release when a change is merged to `main`; the bump follows Conventional Commits (`feat` = minor, `fix` = patch, a breaking change = major).
+- **Tags**: [`release.yml`](../.github/workflows/release.yml) creates the tag `vMAJOR.MINOR.PATCH` and the GitHub release when a change is merged to `main`; the bump follows Conventional Commits (`feat` = minor, `fix`, `perf` and `revert` = patch, a breaking change = major). It runs with `default_bump: false`: if only `docs`, `build`, `ci`, `chore`, `test`, `refactor` or `style` commits were merged, no tag and no release are created. Write the commit type of a user-visible bug fix as `fix`.
 - **MinVer** (`Directory.Build.props`, tag prefix `v`) turns the nearest tag into the assembly version at build time. A commit exactly at `v9.0.0` builds as `9.0.0`; commits after it build as a SemVer pre-release such as `9.0.1-alpha.0.3`. The footer and sidebar show the informational version without the `+<commit>` metadata (`AppVersionInfo.Current`).
 - **Docker**: `docker build` reads the tags from the `.git` folder of the build context (it is not copied into the final image), so build from a full clone: `git fetch --tags --unshallow` if needed. CI uses `fetch-depth: 0` for the same reason.
 - **Without tag history** (shallow clone, source archive, git worktree) pass the version explicitly; it overrides MinVer:

@@ -24,6 +24,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [9.0.1] - 2026-11-19
+
+### Fixed
+
+- 🏷️ **Application version**: the application now shows the release version derived from the git tags (it showed a hardcoded 1.3.0).
+
+### Changed
+
+- 🚀 **Releases**: a release is cut only when `feat`, `fix` or breaking commits are merged; `docs`, `build`, `ci`, `chore` and `test` no longer cut versions.
+- 📝 The 2026-11-19 changelog entry was renumbered as 9.0.0.
+
+---
+
 ## [9.0.0] - 2026-11-19
 
 > **Note**: from this version on the application version follows the release tags (`v9.0.0`); the earlier app-internal numbering was 1.x.
