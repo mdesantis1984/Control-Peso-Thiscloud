@@ -3,6 +3,7 @@ using ControlPeso.Application.DTOs;
 using ControlPeso.Application.Interfaces;
 using ControlPeso.Domain.Enums;
 using ControlPeso.Web.Models;
+using ControlPeso.Web.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
@@ -34,7 +35,7 @@ public partial class Profile : IDisposable
     [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
     [Inject] private Services.UserStateService UserStateService { get; set; } = null!;
     [Inject] private Services.ThemeService ThemeService { get; set; } = null!;
-    [Inject] private IWebHostEnvironment WebHostEnvironment { get; set; } = null!;
+    [Inject] private IAvatarUploadService AvatarUploadService { get; set; } = null!;
 
     // ========================================================================
     // STATE
@@ -762,43 +763,9 @@ public partial class Profile : IDisposable
 
         try
         {
-            // Extract Base64 data
-            var base64Data = base64Image.Contains(",") ? base64Image.Split(',')[1] : base64Image;
-            var imageBytes = Convert.FromBase64String(base64Data);
-
-            // Generate unique filename
-            var fileName = $"{Guid.NewGuid()}.webp";
-            var uploadsFolder = Path.Combine(WebHostEnvironment.WebRootPath, "uploads", "avatars");
-            var filePath = Path.Combine(uploadsFolder, fileName);
-
-            // Ensure directory exists
-            Directory.CreateDirectory(uploadsFolder);
-
-            // Save file to disk
-            await File.WriteAllBytesAsync(filePath, imageBytes);
-            Logger.LogInformation("Profile: Avatar saved to disk - Path: {Path}, Size: {Size} bytes", 
-                filePath, imageBytes.Length);
-
-            // Generate relative URL
-            var avatarUrl = $"/uploads/avatars/{fileName}";
-
-            // Delete old avatar file if exists
-            if (!string.IsNullOrWhiteSpace(_user.AvatarUrl) && _user.AvatarUrl.StartsWith("/uploads/avatars/"))
-            {
-                var oldFilePath = Path.Combine(WebHostEnvironment.WebRootPath, _user.AvatarUrl.TrimStart('/'));
-                if (File.Exists(oldFilePath))
-                {
-                    try
-                    {
-                        File.Delete(oldFilePath);
-                        Logger.LogDebug("Profile: Old avatar deleted - Path: {Path}", oldFilePath);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.LogWarning(ex, "Profile: Could not delete old avatar - Path: {Path}", oldFilePath);
-                    }
-                }
-            }
+            // Validate by content, enforce the size limit and re-encode to WebP on the server
+            var avatarUrl = await AvatarUploadService.SaveAsync(base64Image);
+            Logger.LogInformation("Profile: Avatar stored - UserId: {UserId}, URL: {AvatarUrl}", _user.Id, avatarUrl);
 
             // Update user profile with new avatar URL
             var updateDto = new UpdateUserProfileDto
@@ -814,8 +781,24 @@ public partial class Profile : IDisposable
                 AvatarUrl = avatarUrl
             };
 
-            var updatedUser = await UserService.UpdateProfileAsync(_user.Id, updateDto);
+            var previousAvatarUrl = _user.AvatarUrl;
+            UserDto updatedUser;
+            try
+            {
+                updatedUser = await UserService.UpdateProfileAsync(_user.Id, updateDto);
+            }
+            catch
+            {
+                // The new file is orphaned if the profile was not updated
+                AvatarUploadService.TryDeleteLocalAvatar(avatarUrl);
+                throw;
+            }
+
             _user = updatedUser;
+
+            // The old avatar is only removed once the profile points at the new one
+            // (local /uploads/avatars/*.webp files only; external URLs are ignored)
+            AvatarUploadService.TryDeleteLocalAvatar(previousAvatarUrl);
 
             // Update avatar version for cache busting
             _avatarVersion = DateTime.UtcNow.Ticks;
@@ -831,6 +814,11 @@ public partial class Profile : IDisposable
             _cropperDialog?.Close(DialogResult.Ok(true));
 
             StateHasChanged();
+        }
+        catch (AvatarRejectedException ex)
+        {
+            Logger.LogWarning("Profile: Avatar rejected - UserId: {UserId}, Reason: {Reason}", _user.Id, ex.Reason);
+            Snackbar.Add(ex.Reason == AvatarRejectionReason.TooLarge ? PhotoSizeTooLarge : PhotoInvalidFormat, Severity.Warning);
         }
         catch (Exception ex)
         {

@@ -101,7 +101,10 @@ builder.Services.AddApplicationServices();
 
 // 5. Add Blazor services with SignalR configuration for debugging
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+    .AddInteractiveServerComponents()
+    // The cropped avatar travels browser -> server as a base64 data URL in one SignalR message.
+    // Default is 32 KB; keep an explicit, bounded limit that fits the largest accepted avatar (S25).
+    .AddHubOptions(options => options.MaximumReceiveMessageSize = ControlPeso.Web.Services.AvatarUploadService.MaxHubMessageBytes);
 
 // 5.0.5. Configure Blazor Server options for large payloads (image cropping)
 builder.Services.AddServerSideBlazor(options =>
@@ -155,6 +158,9 @@ builder.Services.AddScoped<ControlPeso.Web.Services.UserStateService>();
 
 // 6.8. Add SEO Services (Sitemap & Robots.txt generation via Minimal APIs)
 builder.Services.AddScoped<ControlPeso.Web.Services.SitemapService>();
+
+// Avatar uploads: server-side validation + SkiaSharp re-encode (S25)
+builder.Services.AddScoped<ControlPeso.Web.Services.IAvatarUploadService, ControlPeso.Web.Services.AvatarUploadService>();
 
 // 6.9. Add health checks (database readiness)
 builder.Services.AddApplicationHealthChecks();

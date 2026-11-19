@@ -12,6 +12,10 @@ public sealed class ImageProcessingService : IImageProcessingService
 {
     private const int MinSourceDimension = 32;
 
+    // Decoded bitmaps take 4 bytes per pixel: 25 MP is ~100 MB, enough for any camera photo
+    // a user would crop an avatar from, and a hard stop for decompression bombs.
+    private const long MaxSourcePixels = 25_000_000;
+
     private readonly ILogger<ImageProcessingService> _logger;
 
     private static readonly HashSet<SKEncodedImageFormat> SupportedFormats =
@@ -85,6 +89,12 @@ public sealed class ImageProcessingService : IImageProcessingService
                 {
                     throw new InvalidOperationException(
                         $"Image too small (min 32x32px). Actual: {width}x{height}");
+                }
+
+                if ((long)width * height > MaxSourcePixels)
+                {
+                    throw new InvalidOperationException(
+                        $"Image too large (max {MaxSourcePixels} pixels). Actual: {width}x{height}");
                 }
 
                 ct.ThrowIfCancellationRequested();

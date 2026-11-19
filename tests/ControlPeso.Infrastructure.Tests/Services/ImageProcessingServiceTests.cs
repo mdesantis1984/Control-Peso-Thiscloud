@@ -739,4 +739,25 @@ public class ImageProcessingServiceTests
     }
 
     #endregion
+
+    [Fact]
+    public async Task ProcessAvatarImageAsync_WithTooManyPixels_ShouldRejectBeforeDecoding()
+    {
+        // Arrange: 6000x6000 = 36 MP, a small PNG that would decode into a ~144 MB bitmap
+        var service = CreateService();
+        using var bitmap = new SKBitmap(6000, 6000, SKColorType.Rgba8888, SKAlphaType.Opaque);
+        bitmap.Erase(SKColors.Red);
+        using var inputStream = ToStream(bitmap, SKEncodedImageFormat.Png);
+        using var outputStream = new MemoryStream();
+
+        // Act
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.ProcessAvatarImageAsync(inputStream, outputStream));
+
+        // Assert
+        ex.Message.Should().Be("Failed to process avatar image");
+        ex.InnerException.Should().BeOfType<InvalidOperationException>()
+            .Which.Message.Should().Be("Image too large (max 25000000 pixels). Actual: 6000x6000");
+        outputStream.Length.Should().Be(0);
+    }
 }
