@@ -35,42 +35,45 @@ public partial class Changelog
     private string RemovedLabel => _isEnglish ? "Removed" : "Eliminado";
     private string CoreFeaturesLabel => _isEnglish ? "Core Features" : "Funciones Principales";
 
-    // v1.3.0 (2026-11-19)
-    private string V130_Date => LegalDateFormatter.Format(new DateOnly(2026, 11, 19), _isEnglish);
-    private string V130_Changed1 => _isEnglish
+    // v9.0.0 (2026-11-19)
+    private string V900_Date => LegalDateFormatter.Format(new DateOnly(2026, 11, 19), _isEnglish);
+    private string V900_Note => _isEnglish
+        ? "From this version on the application version follows the release tags (v9.0.0); the earlier app-internal numbering was 1.x."
+        : "Desde esta versión el número de versión de la aplicación sigue los tags de release (v9.0.0); la numeración interna anterior de la aplicación era 1.x.";
+    private string V900_Changed1 => _isEnglish
         ? "Database: migrated to PostgreSQL 15 (Npgsql); the schema is applied with scripts/migrate-postgres.sh and the application no longer migrates the database on startup"
         : "Base de datos: migrada a PostgreSQL 15 (Npgsql); el esquema se aplica con scripts/migrate-postgres.sh y la aplicación ya no migra la base de datos al iniciar";
-    private string V130_Changed2 => _isEnglish
+    private string V900_Changed2 => _isEnglish
         ? "Imaging: profile image processing uses SkiaSharp (MIT) instead of ImageSharp"
         : "Imágenes: el procesamiento de imágenes de perfil usa SkiaSharp (MIT) en lugar de ImageSharp";
-    private string V130_Changed3 => _isEnglish
+    private string V900_Changed3 => _isEnglish
         ? "Dependencies: updated to MudBlazor 9 and FluentValidation 12; third-party license list refreshed"
         : "Dependencias: actualizadas a MudBlazor 9 y FluentValidation 12; lista de licencias de terceros actualizada";
-    private string V130_Added1 => _isEnglish
+    private string V900_Added1 => _isEnglish
         ? "Persistent sign-in: the Google sign-in cookie lasts 30 days with sliding expiration"
         : "Sesión persistente: la cookie de inicio de sesión con Google dura 30 días con expiración deslizante";
-    private string V130_Added2 => _isEnglish
+    private string V900_Added2 => _isEnglish
         ? "Health checks: /health (liveness) and /health/ready (database readiness)"
         : "Health checks: /health (vivacidad) y /health/ready (disponibilidad de la base de datos)";
-    private string V130_Added3 => _isEnglish
+    private string V900_Added3 => _isEnglish
         ? "Backups: daily pg_dump backups with 14-day retention"
         : "Backups: respaldos diarios con pg_dump y retención de 14 días";
-    private string V130_Added4 => _isEnglish
+    private string V900_Added4 => _isEnglish
         ? "CI: build, tests, vulnerable-package check, secret scanning (gitleaks) on pull requests and a Docker smoke test"
         : "CI: build, tests, verificación de paquetes vulnerables, escaneo de secretos (gitleaks) en pull requests y smoke test de Docker";
-    private string V130_Security1 => _isEnglish
+    private string V900_Security1 => _isEnglish
         ? "The container now runs as a non-root user; Data Protection keys are persisted in a dedicated volume"
         : "El contenedor ahora se ejecuta con un usuario sin privilegios de root; las claves de Data Protection se persisten en un volumen dedicado";
-    private string V130_Security2 => _isEnglish
+    private string V900_Security2 => _isEnglish
         ? "Hardening pass over security headers, configuration and secrets handling"
         : "Revisión de endurecimiento de cabeceras de seguridad, configuración y manejo de secretos";
-    private string V130_Removed1 => _isEnglish
+    private string V900_Removed1 => _isEnglish
         ? "Telegram error notifications: errors are now recorded only in the structured application logs (NDJSON)"
         : "Notificaciones de errores por Telegram: los errores se registran únicamente en los logs estructurados de la aplicación (NDJSON)";
-    private string V130_Removed2 => _isEnglish
+    private string V900_Removed2 => _isEnglish
         ? "Demo pages (Counter, Weather, test pages) and the SQL Server and SQLite runtime providers"
         : "Páginas de demostración (Counter, Weather, páginas de prueba) y los proveedores de runtime SQL Server y SQLite";
-    private string V130_Removed3 => _isEnglish
+    private string V900_Removed3 => _isEnglish
         ? "Google Analytics is only loaded when it is configured"
         : "Google Analytics solo se carga cuando está configurado";
 

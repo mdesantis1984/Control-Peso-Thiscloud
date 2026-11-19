@@ -24,7 +24,9 @@ y este proyecto se adhiere al [Versionado Semántico](https://semver.org/lang/es
 
 ---
 
-## [1.3.0] - 2026-11-19
+## [9.0.0] - 2026-11-19
+
+> **Nota**: desde esta versión el número de versión de la aplicación sigue los tags de release (`v9.0.0`); la numeración interna anterior de la aplicación era 1.x.
 
 ### Cambiado
 

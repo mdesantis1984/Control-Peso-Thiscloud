@@ -70,7 +70,7 @@ services:
     
     labels:
       com.controlpeso.service: "web"
-      com.controlpeso.version: "1.3.0"
+      # No static version label: the app version comes from the release tag (MinVer), see docs/DEPLOYMENT.md "Versioning"
       com.controlpeso.domain: "controlpeso.thiscloud.com.ar"
 
 # ============================================

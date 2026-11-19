@@ -1,6 +1,6 @@
 # Sistema de Notificaciones Históricas
 
-> **Verificado contra el código**: 2026-11-19 (versión 1.3.0)
+> **Verificado contra el código**: 2026-11-19 (versión 9.0.0)
 
 Cada mensaje que la aplicación muestra como Snackbar a un usuario autenticado se guarda además en la tabla `UserNotifications`, y el usuario puede consultarlo desde la campanita de la barra superior.
 

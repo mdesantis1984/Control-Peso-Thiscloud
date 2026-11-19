@@ -1,6 +1,6 @@
 # Integración de ThisCloud.Framework - ControlPeso.Thiscloud
 
-> **Verificado contra el código**: 2026-11-19 (versión 1.3.0)  
+> **Verificado contra el código**: 2026-11-19 (versión 9.0.0)  
 > **Framework**: https://github.com/mdesantis1984/ThisCloud.Framework (licencia ISC)
 
 ControlPeso usa **solo** los paquetes de logging del framework. El resto de sus componentes (`Contracts`, `Web`, `Loggings.Admin`) no se usan: la aplicación es Blazor Server y no expone una API REST propia, y los endpoints de administración de logs en runtime no están habilitados.

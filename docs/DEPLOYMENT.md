@@ -29,6 +29,22 @@ Both compose files use `image: controlpeso-web:latest`: **they never build**. Bu
 docker build -t controlpeso-web:latest -f Dockerfile .
 ```
 
+## Versioning
+
+The application version is never edited by hand: it comes from the git release tags.
+
+- **Tags**: [`release.yml`](../.github/workflows/release.yml) creates the tag `vMAJOR.MINOR.PATCH` and the GitHub release when a change is merged to `main`; the bump follows Conventional Commits (`feat` = minor, `fix` = patch, a breaking change = major).
+- **MinVer** (`Directory.Build.props`, tag prefix `v`) turns the nearest tag into the assembly version at build time. A commit exactly at `v9.0.0` builds as `9.0.0`; commits after it build as a SemVer pre-release such as `9.0.1-alpha.0.3`. The footer and sidebar show the informational version without the `+<commit>` metadata (`AppVersionInfo.Current`).
+- **Docker**: `docker build` reads the tags from the `.git` folder of the build context (it is not copied into the final image), so build from a full clone: `git fetch --tags --unshallow` if needed. CI uses `fetch-depth: 0` for the same reason.
+- **Without tag history** (shallow clone, source archive, git worktree) pass the version explicitly; it overrides MinVer:
+
+```bash
+docker build --build-arg APP_VERSION=9.0.0 -t controlpeso-web:9.0.0 -f Dockerfile .
+dotnet build -p:MinVerVersionOverride=9.0.0
+```
+
+Without tags and without the override MinVer reports `0.0.0-alpha.0.N`.
+
 ## Local run (Docker Compose + PostgreSQL)
 
 ```bash

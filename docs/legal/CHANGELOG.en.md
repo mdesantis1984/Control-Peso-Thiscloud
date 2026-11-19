@@ -24,7 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.3.0] - 2026-11-19
+## [9.0.0] - 2026-11-19
+
+> **Note**: from this version on the application version follows the release tags (`v9.0.0`); the earlier app-internal numbering was 1.x.
 
 ### Changed
 
