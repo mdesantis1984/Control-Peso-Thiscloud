@@ -24,6 +24,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [9.0.2] - 2026-11-19
+
+### Fixed
+
+- 🔒 **Privacy policy**: it no longer claims the database is encrypted at rest, because it is not; it describes the actual access controls.
+- 🏠 **Home page**: it no longer promises end-to-end encryption; it describes HTTPS-encrypted connections.
+- 📄 The project is published under the MIT License (`LICENSE`).
+
+---
+
 ## [9.0.1] - 2026-11-19
 
 ### Fixed
