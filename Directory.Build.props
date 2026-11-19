@@ -22,7 +22,7 @@
   </PropertyGroup>
 
   <!-- Versioning: the version comes from the git release tags (vMAJOR.MINOR.PATCH, created by
-       .github/workflows/ci.yml's release job). MinVer sets Version, AssemblyVersion (major only),
+       .github/workflows/release.yml). MinVer sets Version, AssemblyVersion (major only),
        FileVersion and InformationalVersion at build time; never hand-edit a version here.
        A commit exactly at tag v9.0.0 builds as 9.0.0; commits after it build as 9.0.1-alpha.0.N.
        Without tags (shallow clone) pass -p:MinVerVersionOverride=<x.y.z> (see docs/DEPLOYMENT.md). -->
