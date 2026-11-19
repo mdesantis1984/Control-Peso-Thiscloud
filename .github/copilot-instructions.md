@@ -460,7 +460,7 @@ git reset HEAD archivo_con_secreto
 ### Connection Strings
 - [ ] ✅ Usar placeholders: `Password=YOUR_SQL_PASSWORD_HERE`
 - [ ] ✅ Usar variables entorno: `${SQLSERVER_SA_PASSWORD:?Error required}`
-- [ ] ❌ NUNCA hardcodear: `Password=CHANGE_ME` ← PROHIBIDO
+- [ ] ❌ NUNCA hardcodear: `Password=CHANGE_ME ← PROHIBIDO
 
 ### Docker Compose
 - [ ] `docker-compose.yml` → Config base, SIN secretos

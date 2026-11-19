@@ -1150,11 +1150,11 @@ dotnet user-secrets remove "Authentication:Google:ClientId" --project src/Contro
 
 ```bash
 # 1. Cambiar password en SQL Server
-ALTER LOGIN [controlpeso_user] WITH PASSWORD = 'NEW_STRONG_PASSWORD';
+ALTER LOGIN [controlpeso_user] WITH PASSWORD = 'CHANGE_ME';
 
 # 2. Actualizar connection string (Production)
 nano /opt/controlpeso/docker-compose.override.yml
-# ConnectionStrings__DefaultConnection=Server=...;Password=NEW_STRONG_PASSWORD;
+# ConnectionStrings__DefaultConnection=Server=...;Password=CHANGE_ME;
 
 # 3. Restart container
 docker compose down
