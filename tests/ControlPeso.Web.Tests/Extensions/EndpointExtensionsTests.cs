@@ -1,5 +1,8 @@
 using ControlPeso.Web.Extensions;
 using FluentAssertions;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Configuration;
 
 namespace ControlPeso.Web.Tests.Extensions;
 
@@ -35,5 +38,28 @@ public sealed class EndpointExtensionsTests
     public void ToLocalUrl_FallsBackForExternalUrls(string? returnUrl, string expected)
     {
         EndpointExtensions.ToLocalUrl(returnUrl, "/login").Should().Be(expected);
+    }
+
+    [Fact]
+    public async Task MapAuthenticationEndpoints_MapsGoogleAndLogout_ButNotLinkedIn_EvenWhenLinkedInIsConfigured()
+    {
+        var builder = WebApplication.CreateBuilder();
+        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Authentication:Google:ClientId"] = "google-id",
+            ["Authentication:Google:ClientSecret"] = "google-secret",
+            ["Authentication:LinkedIn:ClientId"] = "linkedin-id",
+            ["Authentication:LinkedIn:ClientSecret"] = "linkedin-secret"
+        });
+        await using var app = builder.Build();
+
+        app.MapAuthenticationEndpoints();
+
+        var routes = ((IEndpointRouteBuilder)app).DataSources
+            .SelectMany(d => d.Endpoints)
+            .OfType<RouteEndpoint>()
+            .Select(e => e.RoutePattern.RawText)
+            .ToList();
+        routes.Should().BeEquivalentTo(["/api/auth/login/google", "/api/auth/logout"]);
     }
 }

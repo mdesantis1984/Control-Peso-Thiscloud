@@ -126,41 +126,6 @@ public sealed class UserService : IUserService
     }
 
     /// <summary>
-    /// Obtiene un usuario por su LinkedIn ID.
-    /// Crea una instancia de DbContext por operación para evitar problemas de concurrencia.
-    /// </summary>
-    public async Task<UserDto?> GetByLinkedInIdAsync(string linkedInId, CancellationToken ct = default)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(linkedInId);
-
-        _logger.LogInformation("Getting user by LinkedIn ID: {LinkedInId}", linkedInId);
-
-        try
-        {
-            await using var context = await _contextFactory.CreateDbContextAsync(ct);
-
-            var user = await context.Set<Users>()
-                .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.LinkedInId == linkedInId, ct);
-
-            if (user is null)
-            {
-                _logger.LogWarning("User not found with LinkedIn ID: {LinkedInId}", linkedInId);
-                return null;
-            }
-
-            var dto = UserMapper.ToDto(user);
-            _logger.LogInformation("User retrieved by LinkedIn ID: {UserId}, Email: {Email}", dto.Id, dto.Email);
-            return dto;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting user by LinkedIn ID: {LinkedInId}", linkedInId);
-            throw;
-        }
-    }
-
-    /// <summary>
     /// Obtiene un usuario por su email.
     /// Implementa caching para evitar queries repetidas del mismo usuario.
     /// TTL: 5 minutos.
@@ -299,8 +264,8 @@ public sealed class UserService : IUserService
     }
 
     /// <summary>
-    /// Crea o actualiza un usuario desde información de OAuth genérico (Google o LinkedIn).
-    /// Query por provider-specific ID (GoogleId o LinkedInId).
+    /// Crea o actualiza un usuario desde información de OAuth genérico (hoy solo Google).
+    /// Query por provider-specific ID (GoogleId).
     /// Si existe, actualiza Name, Email, AvatarUrl.
     /// Si no existe, crea uno nuevo con status Active y role User.
     /// </summary>
@@ -326,10 +291,7 @@ public sealed class UserService : IUserService
                 "Google" => await context.Set<Users>()
                     .FirstOrDefaultAsync(u => u.GoogleId == oauthInfo.ExternalId, ct),
 
-                "LinkedIn" => await context.Set<Users>()
-                    .FirstOrDefaultAsync(u => u.LinkedInId == oauthInfo.ExternalId, ct),
-
-                _ => throw new NotSupportedException($"OAuth provider '{oauthInfo.Provider}' is not supported. Supported providers: Google, LinkedIn")
+                _ => throw new NotSupportedException($"OAuth provider '{oauthInfo.Provider}' is not supported. Supported providers: Google")
             };
 
             var normalizedEmail = oauthInfo.Email.Trim().ToLowerInvariant();
@@ -352,8 +314,7 @@ public sealed class UserService : IUserService
                             $"The email is already registered and {oauthInfo.Provider} did not verify it.");
                     }
 
-                    var linkedProviderId = oauthInfo.Provider == "Google" ? sameEmailUser.GoogleId : sameEmailUser.LinkedInId;
-                    if (!string.IsNullOrEmpty(linkedProviderId))
+                    if (!string.IsNullOrEmpty(sameEmailUser.GoogleId))
                     {
                         _logger.LogWarning(
                             "OAuth login rejected: account already linked to another {Provider} identity - UserId: {UserId}",
@@ -362,14 +323,7 @@ public sealed class UserService : IUserService
                             $"The account is already linked to a different {oauthInfo.Provider} identity.");
                     }
 
-                    if (oauthInfo.Provider == "Google")
-                    {
-                        sameEmailUser.GoogleId = oauthInfo.ExternalId;
-                    }
-                    else
-                    {
-                        sameEmailUser.LinkedInId = oauthInfo.ExternalId;
-                    }
+                    sameEmailUser.GoogleId = oauthInfo.ExternalId;
 
                     _logger.LogInformation(
                         "Linking {Provider} identity to existing user by verified email: {UserId}",

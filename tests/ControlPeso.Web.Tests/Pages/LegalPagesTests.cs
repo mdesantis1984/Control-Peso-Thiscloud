@@ -97,6 +97,7 @@ public sealed class LegalPagesTests : TestContext
     {
         var cut = Render<Changelog>(culture);
 
+        cut.Markup.Should().Contain("v9.0.3 - ");
         cut.Markup.Should().Contain("v9.0.2 - ");
         cut.Markup.Should().Contain("v9.0.1 - ");
         cut.Markup.Should().Contain("v9.0.0 - ");
@@ -120,6 +121,7 @@ public sealed class LegalPagesTests : TestContext
         cut.Markup.Should().NotContain("SQL Server");
         cut.Markup.Should().NotContain("SQLite");
         cut.Markup.Should().NotContain("Telegram");
+        cut.Markup.Should().NotContain("LinkedIn");
     }
 
     [Theory]

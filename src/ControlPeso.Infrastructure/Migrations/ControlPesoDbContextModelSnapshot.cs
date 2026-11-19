@@ -178,9 +178,6 @@ namespace ControlPeso.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasDefaultValue("es");
 
-                    b.Property<string>("LinkedInId")
-                        .HasColumnType("text");
-
                     b.Property<DateTime>("MemberSince")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp without time zone")

@@ -11,7 +11,6 @@ public interface IUserService
     // GET operations
     Task<UserDto?> GetByIdAsync(Guid id, CancellationToken ct = default);
     Task<UserDto?> GetByGoogleIdAsync(string googleId, CancellationToken ct = default);
-    Task<UserDto?> GetByLinkedInIdAsync(string linkedInId, CancellationToken ct = default);
     Task<UserDto?> GetByEmailAsync(string email, CancellationToken ct = default);
     Task<PagedResult<UserDto>> GetAllAsync(UserFilter filter, CancellationToken ct = default);
 

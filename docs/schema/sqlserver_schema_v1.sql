@@ -29,7 +29,6 @@ GO
 CREATE TABLE Users (
     Id                  UNIQUEIDENTIFIER    NOT NULL    PRIMARY KEY DEFAULT NEWID(),
     GoogleId            NVARCHAR(200)       NULL        UNIQUE,
-    LinkedInId          NVARCHAR(200)       NULL        UNIQUE,
     Name                NVARCHAR(200)       NOT NULL    CHECK(LEN(Name) >= 1 AND LEN(Name) <= 200),
     Email               NVARCHAR(320)       NOT NULL    UNIQUE CHECK(LEN(Email) >= 5 AND LEN(Email) <= 320),
     Role                INT                 NOT NULL    DEFAULT 0 CHECK(Role IN (0, 1)),
@@ -48,7 +47,6 @@ CREATE TABLE Users (
 GO
 
 CREATE INDEX IX_Users_GoogleId ON Users(GoogleId) WHERE GoogleId IS NOT NULL;
-CREATE INDEX IX_Users_LinkedInId ON Users(LinkedInId) WHERE LinkedInId IS NOT NULL;
 CREATE INDEX IX_Users_Email ON Users(Email);
 CREATE INDEX IX_Users_Status ON Users(Status);
 GO

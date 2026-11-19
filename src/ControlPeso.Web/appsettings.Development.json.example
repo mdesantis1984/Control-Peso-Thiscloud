@@ -3,10 +3,6 @@
     "Google": {
       "ClientId": "YOUR_GOOGLE_CLIENT_ID_HERE",
       "ClientSecret": "YOUR_GOOGLE_CLIENT_SECRET_HERE"
-    },
-    "LinkedIn": {
-      "ClientId": "YOUR_LINKEDIN_CLIENT_ID_HERE",
-      "ClientSecret": "YOUR_LINKEDIN_CLIENT_SECRET_HERE"
     }
   },
   "Logging": {

@@ -663,83 +663,6 @@ public sealed class UserServiceTests : IDisposable
 
     #endregion
 
-    #region GetByLinkedInIdAsync Tests
-
-    [Fact]
-    public async Task GetByLinkedInIdAsync_WhenUserExists_ShouldReturnDto()
-    {
-        // Arrange
-        var userId = Guid.NewGuid();
-        var linkedInId = "linkedin_12345";
-        var user = CreateUserEntity(userId, $"google_{Guid.NewGuid()}", "LinkedIn User", $"linkedin{Guid.NewGuid()}@example.com");
-        user.LinkedInId = linkedInId;
-        _context.Set<Users>().Add(user);
-        await _context.SaveChangesAsync();
-
-        // Act
-        var result = await _service.GetByLinkedInIdAsync(linkedInId);
-
-        // Assert
-        result.Should().NotBeNull();
-        result!.Name.Should().Be("LinkedIn User");
-        var savedUser = await _context.Set<Users>().FirstAsync(u => u.Id == result.Id);
-        savedUser.LinkedInId.Should().Be(linkedInId);
-    }
-
-    [Fact]
-    public async Task GetByLinkedInIdAsync_WhenUserDoesNotExist_ShouldReturnNull()
-    {
-        // Arrange
-        var nonExistentLinkedInId = "linkedin_nonexistent";
-
-        // Act
-        var result = await _service.GetByLinkedInIdAsync(nonExistentLinkedInId);
-
-        // Assert
-        result.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task GetByLinkedInIdAsync_WithNullLinkedInId_ShouldThrowException()
-    {
-        // Arrange
-        string? linkedInId = null;
-
-        // Act
-        var act = async () => await _service.GetByLinkedInIdAsync(linkedInId!);
-
-        // Assert
-        await act.Should().ThrowAsync<ArgumentException>();
-    }
-
-    [Fact]
-    public async Task GetByLinkedInIdAsync_WithEmptyLinkedInId_ShouldThrowException()
-    {
-        // Arrange
-        var linkedInId = "";
-
-        // Act
-        var act = async () => await _service.GetByLinkedInIdAsync(linkedInId);
-
-        // Assert
-        await act.Should().ThrowAsync<ArgumentException>();
-    }
-
-    [Fact]
-    public async Task GetByLinkedInIdAsync_WithWhitespaceLinkedInId_ShouldThrowException()
-    {
-        // Arrange
-        var linkedInId = "   ";
-
-        // Act
-        var act = async () => await _service.GetByLinkedInIdAsync(linkedInId);
-
-        // Assert
-        await act.Should().ThrowAsync<ArgumentException>();
-    }
-
-    #endregion
-
     #region CreateOrUpdateFromOAuthAsync Tests
 
     [Fact]
@@ -766,39 +689,8 @@ public sealed class UserServiceTests : IDisposable
         result.AvatarUrl.Should().Be("https://google.com/avatar.jpg");
         result.Role.Should().Be(UserRole.User);
         result.Status.Should().Be(UserStatus.Active);
-        // Verify LinkedIn not set
         var savedUser = await _context.Set<Users>().FirstAsync(u => u.Id == result.Id);
-        savedUser.LinkedInId.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task CreateOrUpdateFromOAuthAsync_WithLinkedInProvider_WhenUserDoesNotExist_ShouldCreateNewUser()
-    {
-        // Arrange
-        var oauthInfo = new OAuthUserInfo
-        {
-            Provider = "LinkedIn",
-            ExternalId = "linkedin_new_123",
-            Name = "New LinkedIn User",
-            Email = $"newlinkedin{Guid.NewGuid()}@example.com",
-            AvatarUrl = "https://linkedin.com/avatar.jpg"
-        };
-
-        // Act
-        var result = await _service.CreateOrUpdateFromOAuthAsync(oauthInfo);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.GoogleId.Should().BeNullOrEmpty(); // GoogleId is required string, so it's "" for LinkedIn users
-        result.Name.Should().Be("New LinkedIn User");
-        result.Email.Should().Contain("newlinkedin");
-        result.AvatarUrl.Should().Be("https://linkedin.com/avatar.jpg");
-        result.Role.Should().Be(UserRole.User);
-        result.Status.Should().Be(UserStatus.Active);
-        // Verify LinkedInId in entity
-        var savedUser = await _context.Set<Users>().FirstAsync(u => u.Id == result.Id);
-        savedUser.LinkedInId.Should().Be("linkedin_new_123");
-        savedUser.GoogleId.Should().BeNull();
+        savedUser.GoogleId.Should().Be("google_new_123");
     }
 
     [Fact]
@@ -832,42 +724,6 @@ public sealed class UserServiceTests : IDisposable
         result.Name.Should().Be("Updated Name");
         result.Email.Should().Be("updated@example.com");
         result.AvatarUrl.Should().Be("https://new-avatar.com/pic.jpg");
-    }
-
-    [Fact]
-    public async Task CreateOrUpdateFromOAuthAsync_WithLinkedInProvider_WhenUserExists_ShouldUpdateExistingUser()
-    {
-        // Arrange
-        var userId = Guid.NewGuid();
-        var linkedInId = "linkedin_existing_123";
-        var existingUser = CreateUserEntity(userId, $"google_{Guid.NewGuid()}", "Old LinkedIn Name", $"oldlinkedin{Guid.NewGuid()}@example.com");
-        existingUser.LinkedInId = linkedInId;
-        existingUser.AvatarUrl = "https://old-linkedin-avatar.com/pic.jpg";
-        _context.Set<Users>().Add(existingUser);
-        await _context.SaveChangesAsync();
-
-        var oauthInfo = new OAuthUserInfo
-        {
-            Provider = "LinkedIn",
-            ExternalId = linkedInId,
-            Name = "Updated LinkedIn Name",
-            Email = $"updatedlinkedin{Guid.NewGuid()}@example.com",
-            EmailVerified = true, // email changes are only accepted when the provider verified them
-            AvatarUrl = "https://new-linkedin-avatar.com/pic.jpg"
-        };
-
-        // Act
-        var result = await _service.CreateOrUpdateFromOAuthAsync(oauthInfo);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.Id.Should().Be(userId);
-        result.Name.Should().Be("Updated LinkedIn Name");
-        result.Email.Should().Contain("updatedlinkedin");
-        result.AvatarUrl.Should().Be("https://new-linkedin-avatar.com/pic.jpg");
-        // Verify LinkedInId in entity
-        var savedUser = await _context.Set<Users>().FirstAsync(u => u.Id == userId);
-        savedUser.LinkedInId.Should().Be(linkedInId);
     }
 
     [Fact]
@@ -1222,28 +1078,6 @@ public sealed class UserServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetByLinkedInIdAsync_WhenDatabaseError_ShouldThrowException()
-    {
-        // Arrange
-        var linkedInId = "linkedin_123";
-
-        // Create a factory that throws on CreateDbContextAsync
-        var factoryMock = new Mock<IDbContextFactory<DbContext>>();
-        factoryMock
-            .Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("Database connection failed"));
-
-        var service = new UserService(factoryMock.Object, _memoryCache, _loggerMock.Object);
-
-        // Act
-        var act = async () => await service.GetByLinkedInIdAsync(linkedInId);
-
-        // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Database connection failed");
-    }
-
-    [Fact]
     public async Task GetByEmailAsync_WhenDatabaseError_ShouldThrowException()
     {
         // Arrange
@@ -1314,7 +1148,7 @@ public sealed class UserServiceTests : IDisposable
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Id).IsRequired();
-                entity.Property(e => e.GoogleId).IsRequired(false); // Nullable para LinkedIn users
+                entity.Property(e => e.GoogleId).IsRequired(false); // Nullable: the id is linked after the first sign-in
                 entity.Property(e => e.Name).IsRequired();
                 entity.Property(e => e.Email).IsRequired();
                 entity.Property(e => e.Role).IsRequired();

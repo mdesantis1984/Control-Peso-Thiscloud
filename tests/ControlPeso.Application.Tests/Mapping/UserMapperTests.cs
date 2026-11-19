@@ -464,7 +464,6 @@ public sealed class UserMapperTests
         // Assert
         entity.Id.Should().NotBeEmpty();
         entity.GoogleId.Should().Be("google123");
-        entity.LinkedInId.Should().BeNull();
         entity.Name.Should().Be("New User");
         entity.Email.Should().Be("newuser@example.com");
         entity.Role.Should().Be((int)UserRole.User);
@@ -479,31 +478,6 @@ public sealed class UserMapperTests
         entity.MemberSince.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromHours(2));
         entity.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromHours(2));
         entity.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromHours(2));
-    }
-
-    [Fact]
-    public void ToEntity_WithValidOAuthLinkedInInfo_ShouldCreateEntityWithLinkedInId()
-    {
-        // Arrange
-        var info = new OAuthUserInfo
-        {
-            Provider = "LinkedIn",
-            ExternalId = "linkedin123",
-            Name = "LinkedIn User",
-            Email = "linkedin@example.com",
-            AvatarUrl = "https://linkedin.com/avatar.jpg"
-        };
-
-        // Act
-        var entity = UserMapper.ToEntity(info);
-
-        // Assert
-        entity.Id.Should().NotBeEmpty();
-        entity.GoogleId.Should().BeNull();
-        entity.LinkedInId.Should().Be("linkedin123");
-        entity.Name.Should().Be("LinkedIn User");
-        entity.Email.Should().Be("linkedin@example.com");
-        entity.AvatarUrl.Should().Be("https://linkedin.com/avatar.jpg");
     }
 
     [Fact]
@@ -754,8 +728,8 @@ public sealed class UserMapperTests
 
         var info = new OAuthUserInfo
         {
-            Provider = "LinkedIn",
-            ExternalId = "linkedin123",
+            Provider = "Google",
+            ExternalId = "google123",
             Name = "Test User",
             Email = "test@example.com",
             AvatarUrl = "https://example.com/new-avatar.jpg"
@@ -840,11 +814,11 @@ public sealed class UserMapperTests
 
         var info = new OAuthUserInfo
         {
-            Provider = "LinkedIn",
-            ExternalId = "linkedin123",
+            Provider = "Google",
+            ExternalId = "google123",
             Name = "New Name",
             Email = "test@example.com",
-            AvatarUrl = "https://linkedin.com/new-avatar.jpg"
+            AvatarUrl = "https://example.com/new-avatar.jpg"
         };
 
         // Act

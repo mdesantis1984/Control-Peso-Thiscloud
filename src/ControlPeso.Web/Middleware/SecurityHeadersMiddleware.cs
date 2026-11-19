@@ -122,10 +122,9 @@ public sealed class SecurityHeadersMiddleware
             // 'self': Imágenes del mismo origen
             // data: Data URIs (usado por MudBlazor para iconos)
             // https://*.googleusercontent.com: Avatares de Google OAuth
-            // https://*.licdn.com: Avatares de LinkedIn OAuth
             // https://flagcdn.com: Banderas de países (Flagpedia API - w40, w20, etc)
             // Google Analytics beacons are allowed only when Google Analytics is configured
-            "img-src 'self' data: https://*.googleusercontent.com https://*.licdn.com https://flagcdn.com"
+            "img-src 'self' data: https://*.googleusercontent.com https://flagcdn.com"
                 + (analyticsEnabled ? " https://www.googletagmanager.com https://*.google-analytics.com" : string.Empty),
 
             // connect-src: Conexiones AJAX/WebSocket permitidas

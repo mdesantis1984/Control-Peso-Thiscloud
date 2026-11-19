@@ -36,6 +36,12 @@ public partial class Changelog
     private string RemovedLabel => _isEnglish ? "Removed" : "Eliminado";
     private string CoreFeaturesLabel => _isEnglish ? "Core Features" : "Funciones Principales";
 
+    // v9.0.3 (2026-11-19)
+    private string V903_Date => LegalDateFormatter.Format(new DateOnly(2026, 11, 19), _isEnglish);
+    private string V903_Removed1 => _isEnglish
+        ? "LinkedIn sign-in, which was never enabled; its database column and dependency were removed"
+        : "Inicio de sesión con LinkedIn, que nunca estuvo habilitado; se eliminaron su columna en la base de datos y su dependencia";
+
     // v9.0.2 (2026-11-19)
     private string V902_Date => LegalDateFormatter.Format(new DateOnly(2026, 11, 19), _isEnglish);
     private string V902_Fixed1 => _isEnglish

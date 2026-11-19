@@ -3,8 +3,11 @@ using ControlPeso.Application.Services;
 using ControlPeso.Domain.Entities;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
+using Npgsql;
 
 namespace ControlPeso.Infrastructure.Tests.Postgres;
 
@@ -77,13 +80,54 @@ public sealed class PostgresUserServiceTests : IClassFixture<PostgresFixture>, I
     }
 
     [PostgresFact]
+    public async Task MigratedUsersTable_ShouldNotHaveLinkedInIdColumn()
+    {
+        var (_, connectionString) = await CreateServiceAsync();
+
+        var columns = await GetUsersColumnsAsync(connectionString);
+
+        columns.Should().NotContain("LinkedInId");
+        columns.Should().Contain("GoogleId");
+    }
+
+    [PostgresFact]
+    public async Task RemoveLinkedInIdMigration_DownReaddsNullableColumn_AndUpDropsItAgain()
+    {
+        var (_, connectionString) = await CreateServiceAsync();
+        await using var context = PostgresFixture.CreateContext(connectionString);
+        var migrator = context.GetService<IMigrator>();
+
+        await migrator.MigrateAsync("20261118214026_InitialPostgreSql");
+        (await GetUsersColumnsAsync(connectionString)).Should().Contain("LinkedInId");
+
+        await migrator.MigrateAsync();
+        (await GetUsersColumnsAsync(connectionString)).Should().NotContain("LinkedInId");
+    }
+
+    private static async Task<List<string>> GetUsersColumnsAsync(string connectionString)
+    {
+        var columns = new List<string>();
+        await using var connection = new NpgsqlConnection(connectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand(
+            "SELECT column_name FROM information_schema.columns WHERE table_name = 'Users'", connection);
+        await using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            columns.Add(reader.GetString(0));
+        }
+
+        return columns;
+    }
+
+    [PostgresFact]
     public async Task GetByEmailAsync_WithEmailInDifferentCase_ShouldReturnSameUser()
     {
         var (service, _) = await CreateServiceAsync();
         var created = await service.CreateOrUpdateFromOAuthAsync(new OAuthUserInfo
         {
-            Provider = "LinkedIn",
-            ExternalId = "linkedin-1",
+            Provider = "Google",
+            ExternalId = "google-linus-1",
             Name = "Linus Torvalds",
             Email = "Linus@Example.com"
         });

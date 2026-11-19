@@ -138,9 +138,8 @@ public static class UserMapper
     }
 
     /// <summary>
-    /// Crea entidad Users nueva desde OAuthUserInfo genérico (Google o LinkedIn).
-    /// Establece el campo GoogleId o LinkedInId según el provider.
-    /// Nota: LinkedInId requiere P4.8 (columna DB) para funcionar.
+    /// Crea entidad Users nueva desde OAuthUserInfo genérico (hoy solo Google).
+    /// Establece el campo GoogleId según el provider.
     /// </summary>
     public static Users ToEntity(OAuthUserInfo info)
     {
@@ -154,7 +153,6 @@ public static class UserMapper
         {
             Id = Guid.NewGuid(),
             GoogleId = info.Provider == "Google" ? info.ExternalId : null,
-            LinkedInId = info.Provider == "LinkedIn" ? info.ExternalId : null,
             Name = info.Name,
             Email = info.Email,
             Role = (int)UserRole.User,
@@ -176,7 +174,7 @@ public static class UserMapper
 
     /// <summary>
     /// Actualiza campos sincronizables desde OAuth genérico (nombre, email, avatar) si han cambiado.
-    /// Funciona con cualquier provider (Google, LinkedIn, etc.).
+    /// Funciona con cualquier provider soportado.
     /// IMPORTANTE: Preserva avatares personalizados (subidos localmente) y solo actualiza
     /// con el avatar del proveedor OAuth si el usuario no tiene un avatar personalizado.
     /// </summary>
