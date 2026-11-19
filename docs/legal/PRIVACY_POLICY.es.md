@@ -90,7 +90,7 @@ Utilizamos la información recopilada para los siguientes propósitos:
 Sus datos se almacenan en nuestros servidores seguros. Utilizamos medidas de seguridad estándar de la industria para proteger su información:
 
 - **Cifrado**: Los datos transmitidos entre su dispositivo y nuestros servidores están cifrados mediante HTTPS/TLS.
-- **Seguridad de Base de Datos**: Sus datos se almacenan en una base de datos PostgreSQL segura con controles de acceso y cifrado en reposo.
+- **Seguridad de Base de Datos**: Sus datos se almacenan en una base de datos PostgreSQL con controles de acceso; solo la cuenta de base de datos dedicada de la aplicación puede acceder a ella.
 - **Autenticación**: Utilizamos Google OAuth 2.0 para autenticación segura. NO almacenamos contraseñas.
 - **Control de Acceso**: Solo el personal autorizado tiene acceso a la infraestructura, y el acceso se registra y monitorea.
 

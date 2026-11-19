@@ -36,6 +36,18 @@ public partial class Changelog
     private string RemovedLabel => _isEnglish ? "Removed" : "Eliminado";
     private string CoreFeaturesLabel => _isEnglish ? "Core Features" : "Funciones Principales";
 
+    // v9.0.2 (2026-11-19)
+    private string V902_Date => LegalDateFormatter.Format(new DateOnly(2026, 11, 19), _isEnglish);
+    private string V902_Fixed1 => _isEnglish
+        ? "Privacy policy: it no longer claims the database is encrypted at rest, because it is not; it describes the actual access controls"
+        : "Política de privacidad: ya no afirma que la base de datos está cifrada en reposo, porque no lo está; describe los controles de acceso reales";
+    private string V902_Fixed2 => _isEnglish
+        ? "Home page: it no longer promises end-to-end encryption; it describes HTTPS-encrypted connections"
+        : "Página de inicio: ya no promete cifrado end-to-end; describe las conexiones cifradas con HTTPS";
+    private string V902_Fixed3 => _isEnglish
+        ? "The project is published under the MIT License"
+        : "El proyecto se publica bajo la licencia MIT";
+
     // v9.0.1 (2026-11-19)
     private string V901_Date => LegalDateFormatter.Format(new DateOnly(2026, 11, 19), _isEnglish);
     private string V901_Fixed1 => _isEnglish

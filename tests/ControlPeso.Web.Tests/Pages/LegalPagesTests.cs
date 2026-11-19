@@ -97,6 +97,7 @@ public sealed class LegalPagesTests : TestContext
     {
         var cut = Render<Changelog>(culture);
 
+        cut.Markup.Should().Contain("v9.0.2 - ");
         cut.Markup.Should().Contain("v9.0.1 - ");
         cut.Markup.Should().Contain("v9.0.0 - ");
         cut.Markup.Should().NotContain("v1.3.0 - ");
@@ -130,6 +131,9 @@ public sealed class LegalPagesTests : TestContext
 
         cut.Markup.Should().Contain(expected);
         cut.Markup.Should().NotContain("SQL Server");
+        // The database disk is not encrypted; the policy must not claim it.
+        cut.Markup.Should().NotContain("encryption at rest");
+        cut.Markup.Should().NotContain("cifrado en reposo");
     }
 
     [Theory]
