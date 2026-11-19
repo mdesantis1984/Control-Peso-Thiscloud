@@ -803,7 +803,7 @@ public partial class Profile : IDisposable
             // Update avatar version for cache busting
             _avatarVersion = DateTime.UtcNow.Ticks;
 
-            // Notify other components (MainLayout will handle localStorage sync)
+            // Notify other components (MainLayout refreshes the header avatar)
             UserStateService.NotifyUserProfileUpdated(_user);
 
             Logger.LogInformation("Profile: Avatar updated successfully - UserId: {UserId}, URL: {AvatarUrl}", 
