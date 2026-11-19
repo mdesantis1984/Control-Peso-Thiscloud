@@ -1,266 +1,111 @@
-# Production Secrets Management Guide
+# Secrets Management - Control Peso Thiscloud
 
-## Overview
+Secrets never go into Git. Tracked files only contain placeholders (`CHANGE_ME`, `YOUR_*_HERE`); real values live in the environment of the machine that runs the application. Non-secret configuration is described in [CONFIG_MANAGEMENT.md](CONFIG_MANAGEMENT.md).
 
-Control Peso Thiscloud usa **docker-compose.override.yml** para gestión de secretos en producción.
+## What counts as a secret
 
-## Security Model
+| Secret | Variable | Required |
+|--------|----------|----------|
+| PostgreSQL password (local compose) | `POSTGRES_PASSWORD` | Local Docker |
+| Npgsql connection string, includes the password (production) | `CONTROLPESO_DB_CONNECTION` | Production |
+| Google OAuth client id | `Authentication__Google__ClientId` | Yes |
+| Google OAuth client secret | `Authentication__Google__ClientSecret` | Yes |
+| LinkedIn OAuth client id / secret | `Authentication__LinkedIn__ClientId` / `ClientSecret` | No (disabled in the UI) |
+| Google Analytics measurement id | `GoogleAnalytics__MeasurementId` | No (not a secret, but environment specific) |
+
+## Model
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│  Git Repository (PUBLIC)                                │
-│  ✅ docker-compose.production.yml (base config)         │
-│  ✅ docker-compose.override.yml.production.example      │
-│  ❌ docker-compose.override.yml (NEVER commit)          │
-└─────────────────────────────────────────────────────────┘
-                           ↓
-┌─────────────────────────────────────────────────────────┐
-│  Production Server                                      │
-│  📁 docker-compose.production.yml (pulled from Git)     │
-│  📁 docker-compose.override.yml (MANUAL creation)       │
-│  🔒 Contains REAL secrets (SQL password, OAuth)         │
-└─────────────────────────────────────────────────────────┘
-                           ↓
-                 Docker Compose merges automatically
+Git (public)                           Docker host (/opt/controlpeso)
+├─ docker-compose.yml                  ├─ docker-compose.production.yml   (copied from Git)
+├─ docker-compose.production.yml       ├─ .env                            (CONTROLPESO_DB_CONNECTION, APP_PORT)
+├─ appsettings*.json.template          └─ docker-compose.override.yml     (OAuth secrets, mode 600)
+└─ .gitignore: .env*, docker-compose.override.yml,
+   appsettings.Development.json, appsettings.Production.json, .secrets.local
 ```
 
-## Setup on Production Server
+The tracked compose files deliberately omit every secret. Compose reads `.env` for `${...}` substitution and only merges the override file when it is passed explicitly in production.
 
-### Step 1: Copy Template
+## Production setup
 
 ```bash
-# SSH to production server
-ssh user@YOUR_SERVER_IP
+cd /opt/controlpeso
 
-# Navigate to project directory
-cd /path/to/app
+# 1. .env (database connection string, optional APP_PORT)
+cat > .env <<'EOF'
+CONTROLPESO_DB_CONNECTION=Host=<db-host>;Port=5432;Database=controlpeso;Username=<role>;Password=<secret>
+EOF
 
-# Copy template
-cp docker-compose.override.yml.production.example docker-compose.override.yml
-```
-
-### Step 2: Edit with Real Secrets
-
-```bash
-# Edit file (use nano, vim, or vi)
-nano docker-compose.override.yml
-```
-
-**Required secrets:**
-
-```yaml
+# 2. docker-compose.override.yml (OAuth secrets)
+cat > docker-compose.override.yml <<'EOF'
 services:
-  controlpeso-sqlserver:
-    environment:
-      # Strong password: 8+ chars, mixed case, digits, special chars
-      - MSSQL_SA_PASSWORD=YourRealProductionPassword@2026!
-  
   controlpeso-web:
     environment:
-      # Google OAuth (from console.cloud.google.com)
-      - Authentication__Google__ClientId=123456789-abc.apps.googleusercontent.com
-      - Authentication__Google__ClientSecret=CHANGE_ME
+      - Authentication__Google__ClientId=<client-id>.apps.googleusercontent.com
+      - Authentication__Google__ClientSecret=<client-secret>
+EOF
+
+# 3. Owner-only permissions
+chmod 600 .env docker-compose.override.yml
+
+# 4. Both files must be ignored by Git (run in a checkout)
+git check-ignore .env docker-compose.override.yml
+
+# 5. Start, passing the override explicitly (with -f it is not loaded automatically)
+docker compose -f docker-compose.production.yml -f docker-compose.override.yml up -d
+
+# 6. Verify that the variables reached the container (prints names only, not values)
+docker exec controlpeso-web env | grep -c '^Authentication__Google__'
 ```
 
-### Step 3: Verify File is Gitignored
+A `$` inside a value must be written `$$` in `.env` and compose files.
+
+## Local development
+
+Pick one:
+
+- `docker-compose.override.yml` (gitignored) next to `docker-compose.yml`, plus `POSTGRES_PASSWORD` in the environment or in a local `.env`. See [DEPLOYMENT.md](DEPLOYMENT.md).
+- `appsettings.Development.json` created from the template (`pwsh scripts/setup-config.ps1`) or `dotnet user-secrets`. See [CONFIG_MANAGEMENT.md](CONFIG_MANAGEMENT.md).
+- `.secrets.local` for the PowerShell deploy scripts (created from `.secrets.local.example`, gitignored).
+
+Use different credentials per environment (a separate Google OAuth client for local and production).
+
+## Rotation
+
+The step-by-step procedure for every credential is in [CREDENTIAL_ROTATION_GUIDE.md](CREDENTIAL_ROTATION_GUIDE.md). Short version for the web container:
 
 ```bash
-# Should output: docker-compose.override.yml
-git check-ignore docker-compose.override.yml
-
-# If not ignored, add to .gitignore immediately!
-echo "docker-compose.override.yml" >> .gitignore
-```
-
-### Step 4: Set Secure Permissions
-
-```bash
-# Only owner can read/write
-chmod 600 docker-compose.override.yml
-
-# Verify permissions
-ls -l docker-compose.override.yml
-# Expected: -rw------- 1 user user 1234 Feb 25 10:00 docker-compose.override.yml
-```
-
-### Step 5: Deploy
-
-```bash
-# Docker Compose automatically merges files
-docker-compose -f docker-compose.production.yml up -d
-
-# Verify secrets are loaded
-docker exec controlpeso-web env | grep "Authentication__Google__ClientId"
-# Should output: Authentication__Google__ClientId=123456789-abc.apps.googleusercontent.com
-```
-
-## Secrets Checklist
-
-### Required (MUST configure)
-
-- [x] `MSSQL_SA_PASSWORD` - SQL Server SA password
-- [x] `Authentication__Google__ClientId` - Google OAuth Client ID
-- [x] `Authentication__Google__ClientSecret` - Google OAuth Client Secret
-
-### Optional (can be configured later)
-
-- [ ] `Authentication__LinkedIn__ClientId` - LinkedIn OAuth (if using)
-- [ ] `Authentication__LinkedIn__ClientSecret` - LinkedIn OAuth (if using)
-- [ ] `GoogleAnalytics__MeasurementId` - Google Analytics 4 (not in this deployment)
-- [ ] `CloudflareAnalytics__Token` - Cloudflare Analytics (optional)
-
-## Secret Rotation
-
-### Change SQL Server Password
-
-```bash
-# 1. Stop services
-docker-compose -f docker-compose.production.yml down
-
-# 2. Edit docker-compose.override.yml with new password
-nano docker-compose.override.yml
-
-# 3. Remove old SQL Server volume (WARNING: data loss if no backup!)
-docker volume rm controlpeso-sqlserver-data
-
-# 4. Start services (will create new DB with new password)
-docker-compose -f docker-compose.production.yml up -d
-
-# 5. Restore from backup
-./scripts/restore-backup.sh ControlPeso_YYYYMMDD_HHMMSS.bak
-```
-
-### Change Google OAuth Credentials
-
-```bash
-# 1. Generate new ClientId + ClientSecret in Google Cloud Console
-# 2. Edit docker-compose.override.yml
-nano docker-compose.override.yml
-
-# 3. Restart only web container (no downtime for DB)
-docker-compose -f docker-compose.production.yml restart controlpeso-web
-
-# 4. Verify users can login
+# After editing .env or docker-compose.override.yml
+docker compose -f docker-compose.production.yml -f docker-compose.override.yml up -d --force-recreate controlpeso-web
 curl -I https://controlpeso.thiscloud.com.ar/login
 ```
 
-## Security Best Practices
+## Best practices
 
-### DO
-
-✅ Use strong passwords (8+ chars, mixed case, digits, special chars)
-✅ Rotate secrets every 90 days
-✅ Limit access to server (SSH key auth, no password)
-✅ Use firewall to block SQL Server port (1433) from external access
-✅ Keep backups encrypted (future enhancement)
-✅ Use different passwords for dev/staging/production
-✅ Store backup of secrets in password manager (1Password, LastPass, Bitwarden)
-
-### DON'T
-
-❌ Commit docker-compose.override.yml to Git
-❌ Share secrets via email, Slack, WhatsApp
-❌ Use default passwords (YourStrong@Passw0rd)
-❌ Reuse passwords across environments
-❌ Store secrets in plain text files on desktop
-❌ Take screenshots of secrets
-❌ Use weak passwords (password123, admin)
+- Strong, unique passwords; rotate at least every 90 days and whenever someone with access leaves.
+- Restrict the PostgreSQL port to the Docker host (firewall); SSH with keys only.
+- Share secrets only through a password manager, never through chat, email or screenshots.
+- Keep a record of every secret in a password manager so the host can be rebuilt.
+- CI runs gitleaks on every pull request diff, and `.gitignore` covers the local files, but check `git diff --staged` before each commit anyway.
 
 ## Troubleshooting
 
-### Secret Not Loaded
+| Symptom | Check |
+|---------|-------|
+| Google login fails or the provider is missing | `docker exec controlpeso-web env \| grep -c '^Authentication__Google__'` must print 2; recreate the container after editing the override |
+| `/health/ready` returns 503 | `CONTROLPESO_DB_CONNECTION` (host, role, password) and network access to the database |
+| `Set POSTGRES_PASSWORD` when running local compose | Export `POSTGRES_PASSWORD` or create a local `.env` |
+| Password containing `$` is cut | Escape as `$$` |
 
-**Symptom:** Google OAuth fails with "ClientId not configured"
+## Accidental commit of a secret
 
-**Solution:**
-```bash
-# Check environment variables inside container
-docker exec controlpeso-web env | grep Authentication
-
-# If empty, verify docker-compose.override.yml exists
-ls -la docker-compose.override.yml
-
-# Recreate container to reload environment
-docker-compose -f docker-compose.production.yml up -d --force-recreate
-```
-
-### SQL Server Authentication Failed
-
-**Symptom:** Web app can't connect to SQL Server
-
-**Solution:**
-```bash
-# 1. Check SQL Server logs
-docker logs controlpeso-sqlserver
-
-# 2. Verify password matches in both services
-docker exec controlpeso-sqlserver env | grep MSSQL_SA_PASSWORD
-docker exec controlpeso-web env | grep ConnectionStrings__DefaultConnection
-
-# 3. Test SQL Server connection manually
-docker exec controlpeso-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -Q "SELECT 1"
-```
-
-### Accidental Commit of Secrets
-
-**If you accidentally committed secrets to Git:**
-
-1. **Immediately revoke compromised secrets** (Google OAuth, SQL password, etc.)
-2. **Remove from Git history:**
-   ```bash
-   git filter-branch --force --index-filter \
-     'git rm --cached --ignore-unmatch docker-compose.override.yml' \
-     --prune-empty --tag-name-filter cat -- --all
-   
-   git push origin --force --all
-   git push origin --force --tags
-   ```
-3. **Generate new secrets** and deploy
-4. **Force users to re-login** (invalidate session cookies)
-
-## Backup of Secrets
-
-Store secrets backup in secure location:
-
-### Option 1: Password Manager (Recommended)
-
-- Use 1Password, LastPass, or Bitwarden
-- Create secure note: "Control Peso Production Secrets"
-- Store each secret as key-value pair
-- Share with authorized team members only
-
-### Option 2: Encrypted File
-
-```bash
-# Encrypt secrets file
-gpg --symmetric --cipher-algo AES256 docker-compose.override.yml
-# Creates: docker-compose.override.yml.gpg
-
-# Store .gpg file in secure backup location
-# Decrypt when needed:
-gpg --decrypt docker-compose.override.yml.gpg > docker-compose.override.yml
-```
-
-### Option 3: Azure Key Vault / AWS Secrets Manager (Future)
-
-For enterprise deployments, consider cloud secret management:
-- Azure Key Vault
-- AWS Secrets Manager
-- HashiCorp Vault
-
-## Environment-Specific Secrets
-
-| Environment | SQL Password | OAuth ClientId | OAuth ClientSecret |
-|-------------|--------------|----------------|---------------------|
-| Development | `DevPassword123!` | Dev ClientId | Dev Secret |
-| Staging | `StagingPassword456!` | Staging ClientId | Staging Secret |
-| Production | `ProductionPassword789!` | **PRODUCTION ClientId** | **PRODUCTION Secret** |
-
-**CRITICAL:** Use different secrets for each environment!
+1. **Revoke or rotate the secret immediately** ([CREDENTIAL_ROTATION_GUIDE.md](CREDENTIAL_ROTATION_GUIDE.md)). Treat it as compromised even if the commit is removed.
+2. Remove it from the history (for example with `git filter-repo`), coordinating with the repository owner because shared branches get rewritten, and ask everyone to re-clone.
+3. Invalidating sessions requires rotating the Data Protection keys (stop the container, empty the `controlpeso-keys` volume, start again); all users must sign in again.
 
 ## References
 
-- Docker Compose override docs: https://docs.docker.com/compose/multiple-compose-files/merge/
-- Google OAuth setup: `docs/GOOGLE_OAUTH_PRODUCTION.md`
-- Backup system: `docs/BACKUP_SYSTEM.md`
-- 12-Factor App (Config): https://12factor.net/config
+- [Docker Compose: merge files](https://docs.docker.com/compose/multiple-compose-files/merge/)
+- [Docker Compose: environment variables](https://docs.docker.com/compose/how-tos/environment-variables/)
+- [12-Factor App: Config](https://12factor.net/config)
+- [GOOGLE_OAUTH_SETUP.md](GOOGLE_OAUTH_SETUP.md), [BACKUP_SYSTEM.md](BACKUP_SYSTEM.md)

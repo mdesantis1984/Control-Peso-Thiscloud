@@ -1,395 +1,167 @@
-# Security Documentation - Control Peso Thiscloud
+# Security - Control Peso Thiscloud
 
-> **Last Updated**: 2026-02-19  
-> **Status**: OAuth 2.0 Google Authentication ✅ IMPLEMENTED
+Security model of the application as implemented. Operational details (secrets, rotation, deployment) are in [SECRETS_MANAGEMENT.md](SECRETS_MANAGEMENT.md), [CREDENTIAL_ROTATION_GUIDE.md](CREDENTIAL_ROTATION_GUIDE.md) and [DEPLOYMENT.md](DEPLOYMENT.md).
 
-## Overview
+## Summary
 
-Security-first design with **Google OAuth 2.0**, HTTPS enforcement, CSP headers, rate limiting, and structured logging with PII redaction.
+| Area | Control |
+|------|---------|
+| Authentication | Google OAuth 2.0 only; no local passwords |
+| Session | Persistent cookie, `HttpOnly`, `Secure`, `SameSite=Lax`, 30 days sliding |
+| Authorization | `[Authorize]` and role `Administrator` for `/admin` and `/diag-auth` |
+| Transport | HTTPS redirection and HSTS (365 days, includes subdomains) in Production; TLS terminates at Cloudflare/NPMplus |
+| Headers | CSP, `X-Frame-Options: DENY`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` |
+| Abuse | Rate limiting on the OAuth login endpoints |
+| Data | EF Core parameterized queries, FluentValidation, per-user data isolation |
+| Container | Runs as non-root user `app` (UID 1654), verified by CI |
+| Secrets | Environment only; gitleaks in CI |
+| Logging | Structured NDJSON with redaction and correlation id |
 
-## Authentication & Authorization
+## Authentication and authorization
 
-### OAuth 2.0 Authentication
+### Flow
 
-**Implemented**: ✅ Google OAuth 2.0 (LinkedIn UI removed, backend preserved)
+1. The user opens `/login` and chooses Google; the app calls `GET /api/auth/login/google` (rate limited).
+2. The challenge redirects to Google. Credentials are handled only by Google.
+3. Google redirects to `/signin-google` with an authorization code; the server exchanges it (scopes `profile` and `email`).
+4. The user is created or updated in PostgreSQL (new users get role `User` and status `Active`) and the cookie is issued with `IsPersistent = true`.
+5. `UserClaimsTransformation` adds application claims on each request: `UserId`, role, `UserStatus` and `Language`.
+6. The post-login redirect only accepts local paths (`ToLocalUrl` rejects absolute URLs and forms such as `//host`).
 
-#### Authentication Flow
+LinkedIn is implemented in the backend (`/api/auth/login/linkedin`) but is registered only if `Authentication:LinkedIn:ClientId` is configured, and the UI offers Google only.
 
-1. **User Navigation**: User clicks "Continuar con Google" on `/login`
-2. **OAuth Challenge**: App redirects to Google OAuth (`/api/auth/login/google`)
-3. **User Consent**: User authenticates at Google (credentials handled by Google)
-4. **OAuth Callback**: Google redirects to `/signin-google` with authorization code
-5. **Token Exchange**: App exchanges code for access token (server-side)
-6. **User Creation/Update**: `OnCreatingTicket` event extracts claims and creates/updates user in SQLite
-7. **Claims Transformation**: `UserClaimsTransformation` service adds custom claims:
-   - `UserId` (GUID from database)
-   - `ClaimTypes.Role` (User/Administrator enum)
-   - `UserStatus` (Active/Inactive/Pending)
-   - `Language` (es/en for localization)
-8. **Cookie Issuance**: Secure authentication cookie issued (`HttpOnly + Secure + SameSite=Lax`)
-9. **Redirect**: User redirected to Dashboard
-
-#### Cookie Configuration
-
-```csharp
-options.Cookie.Name = ".AspNetCore.Cookies";
-options.Cookie.HttpOnly = true;   // JavaScript cannot access
-options.Cookie.SecurePolicy = CookieSecurePolicy.Always;  // HTTPS only
-options.Cookie.SameSite = SameSiteMode.Lax;  // CSRF protection
-options.ExpireTimeSpan = TimeSpan.FromDays(30);  // 30-day expiration
-options.SlidingExpiration = true;  // Renew on each request
-```
-
-#### Authorization Attributes
-
-- **`[Authorize]`**: Requires authenticated user (any role)
-- **`[Authorize(Roles="Administrator")]`**: Admin-only pages (Admin panel)
-- **Anonymous**: Home page, Login page (no attribute)
-
-#### Claims Transformation
-
-Custom claims are added post-authentication via `IClaimsTransformation`:
+### Cookie
 
 ```csharp
-// UserClaimsTransformation.cs
-public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
-{
-    if (!principal.Identity?.IsAuthenticated ?? false)
-        return principal;
-
-    // Check cache (if UserId already exists, skip DB query)
-    if (principal.HasClaim(c => c.Type == "UserId"))
-        return principal;
-
-    // Fetch user from DB by email
-    var email = principal.FindFirst(ClaimTypes.Email)?.Value;
-    var user = await _userService.GetByEmailAsync(email!);
-
-    if (user is null)
-        return principal;
-
-    // Add custom claims
-    var claims = new List<Claim>
-    {
-        new("UserId", user.Id.ToString()),
-        new(ClaimTypes.Role, user.Role.ToString()),
-        new("UserStatus", ((int)user.Status).ToString()),
-        new("Language", user.Language)
-    };
-
-    var claimsIdentity = new ClaimsIdentity(claims);
-    principal.AddIdentity(claimsIdentity);
-
-    return principal;
-}
+options.LoginPath = "/login";
+options.LogoutPath = "/api/auth/logout";
+options.AccessDeniedPath = "/access-denied";
+options.Cookie.HttpOnly = true;
+options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+options.Cookie.SameSite = SameSiteMode.Lax;
+options.ExpireTimeSpan = TimeSpan.FromDays(30);
+options.SlidingExpiration = true;
 ```
 
-**Benefits**:
-- Custom claims available throughout app via `ClaimsPrincipal`
-- Cached per request (no repeated DB queries)
-- Clean separation: OAuth handles authentication, ClaimsTransformation handles app-specific claims
+Data Protection keys (which protect the cookie and antiforgery tokens) are persisted in `DataProtection:Path` (`/app/keys`, a Docker volume). If the volume is lost, all sessions are invalidated.
 
-### Secrets Management
+### Authorization
 
-#### Development (Local)
+- Anonymous: home, `/login`, legal pages, `/health`, `/health/ready`, `/robots.txt`, `/sitemap.xml`.
+- `[Authorize]`: dashboard, history, trends and profile.
+- `[Authorize(Roles = "Administrator")]`: `/admin` and the diagnostics page `/diag-auth`.
+- Accounts are created as `User`. The first administrator must be set in the database (`"Users"."Role" = 1`); afterwards administrators can manage roles from the admin panel.
 
-**Docker**: Secrets in `docker-compose.override.yml` (gitignored)
+## Security headers (`SecurityHeadersMiddleware`)
 
-```yaml
-# docker-compose.override.yml (NOT in Git - in .gitignore)
-version: '3.8'
-services:
-  controlpeso-web:
-    environment:
-      - Authentication__Google__ClientId=YOUR_REAL_CLIENT_ID
-      - Authentication__Google__ClientSecret=YOUR_REAL_CLIENT_SECRET
-      - GoogleAnalytics__MeasurementId=G-XXXXXXXXXX
-```
+Applied to every non-static response (static paths such as `/css/`, `/js/`, `/images/`, `/uploads/` and common asset extensions are skipped).
 
-**User Secrets** (Visual Studio / dotnet CLI):
-```bash
-# Alternative for non-Docker development
-dotnet user-secrets set "Authentication:Google:ClientId" "YOUR_CLIENT_ID"
-dotnet user-secrets set "Authentication:Google:ClientSecret" "YOUR_CLIENT_SECRET"
-dotnet user-secrets set "GoogleAnalytics:MeasurementId" "G-XXXXXXXXX"
-```
+| Header | Value |
+|--------|-------|
+| `X-Content-Type-Options` | `nosniff` |
+| `X-Frame-Options` | `DENY` |
+| `X-XSS-Protection` | `0` (legacy filter disabled, CSP is used instead) |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` |
+| `Permissions-Policy` | `camera=(), microphone=(), geolocation=(), payment=(), usb=()` |
+| `Content-Security-Policy` | see below |
+| `Strict-Transport-Security` | Production only, via `UseHsts()` |
 
-**Storage Locations**:
-- Windows: `%APPDATA%\Microsoft\UserSecrets\<user_secrets_id>\secrets.json`
-- Linux/macOS: `~/.microsoft/usersecrets/<user_secrets_id>/secrets.json`
-- Docker: Environment variables via `docker-compose.override.yml`
-
-#### Production
-
-**Azure App Service**:
-```bash
-# Set via Azure Portal → Configuration → Application Settings
-Authentication__Google__ClientId = "YOUR_PROD_CLIENT_ID"
-Authentication__Google__ClientSecret = "YOUR_PROD_CLIENT_SECRET"
-```
-
-**Azure Key Vault** (recommended for production):
-```csharp
-// Program.cs
-builder.Configuration.AddAzureKeyVault(
-    new Uri("https://controlpeso-keyvault.vault.azure.net/"),
-    new DefaultAzureCredential());
-```
-
-**IIS / On-Premise**:
-- Set environment variables in `web.config` or machine-level environment variables
-- Use `<environmentVariables>` section in `web.config`
-
-**NEVER**:
-- ❌ Commit secrets to Git
-- ❌ Hardcode secrets in `appsettings.json`
-- ❌ Store secrets in plain text files
-- ❌ Share secrets via email/Slack/Teams
-
-### OAuth Provider Configuration
-
-**Google Cloud Console** (https://console.cloud.google.com):
-
-1. **Create Project**: `control-peso-thiscloud`
-2. **Enable APIs**: Google+ API, Google Identity Toolkit API
-3. **Create OAuth Client ID**:
-   - Application type: Web application
-   - Name: Control Peso Thiscloud (Production/Development)
-   - Authorized redirect URIs:
-     - Development: `http://localhost:8080/signin-google`
-     - Production: `https://controlpeso.thiscloud.com.ar/signin-google`
-4. **Obtain Credentials**: Download JSON with `client_id` and `client_secret`
-5. **Configure Consent Screen**:
-   - App name: Control Peso Thiscloud
-   - User support email: support@thiscloud.com.ar
-   - Developer contact: marco.alejandro.desantis@gmail.com
-   - Scopes: `openid`, `profile`, `email`
-
-**Scopes Requested**:
-- `openid`: OpenID Connect authentication
-- `profile`: Name, profile picture
-- `email`: Email address (used as unique identifier)
-
-## Security Headers (SecurityHeadersMiddleware)
-
-### Applied Headers
-
-| Header | Value | Purpose |
-|--------|-------|---------|
-| X-Content-Type-Options | nosniff | Prevent MIME type sniffing |
-| X-Frame-Options | DENY | Prevent clickjacking (no iframes) |
-| X-XSS-Protection | 0 | Disable legacy XSS filter (CSP replacement) |
-| Referrer-Policy | strict-origin-when-cross-origin | Limit referrer leak |
-| Permissions-Policy | camera=(), microphone=(), geolocation=(), payment=(), usb=() | Disable unused APIs |
-| Content-Security-Policy | (see below) | Restrict resource origins |
-
-### Content Security Policy (CSP)
+### Content Security Policy
 
 ```
 default-src 'self';
-script-src 'self' 'unsafe-inline' 'unsafe-eval'
-           https://www.googletagmanager.com
-           https://static.cloudflareinsights.com;
-style-src 'self' 'unsafe-inline'
-          https://fonts.googleapis.com;
+script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com [+ https://www.googletagmanager.com];
+style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
 font-src 'self' https://fonts.gstatic.com;
-img-src 'self' data: https://*.googleusercontent.com https://*.licdn.com;
-connect-src 'self' wss: https://www.google-analytics.com https://cloudflareinsights.com;
+img-src 'self' data: https://*.googleusercontent.com https://*.licdn.com https://flagcdn.com [+ https://www.googletagmanager.com https://*.google-analytics.com];
+connect-src 'self' wss: https://cloudflareinsights.com [+ https://www.googletagmanager.com https://*.google-analytics.com];
 frame-ancestors 'none';
 base-uri 'self';
 form-action 'self';
-upgrade-insecure-requests;
+upgrade-insecure-requests
 ```
 
-**Why `unsafe-inline` + `unsafe-eval`?**
-- **Blazor Server requirement**: SignalR uses inline scripts + dynamic compilation
-- **MudBlazor requirement**: Inline styles for components
-- **Tradeoff**: Necessary for framework functionality, still protects against many XSS vectors
+The bracketed Google entries are added **only** when `GoogleAnalytics:MeasurementId` holds a real id (not empty, not a `YOUR_*` placeholder, only letters, digits and dashes).
 
-## Rate Limiting
+`'unsafe-inline'` and `'unsafe-eval'` remain because Blazor Server and MudBlazor need them; this is a known tradeoff.
 
-### Policies
+## Rate limiting
 
-| Policy | Limit | Window | Endpoints |
-|--------|-------|--------|-----------|
-| `oauth` | 5 requests/IP | 1 minute | `/api/auth/login/google`, `/api/auth/login/linkedin` |
-| `fixed` | 10 requests/IP | 1 minute | (Global, optional) |
+| Policy | Limit | Window | Applied to |
+|--------|-------|--------|------------|
+| `oauth` | 5 requests per IP | 1 minute | `/api/auth/login/google`, `/api/auth/login/linkedin` |
+| `fixed` | 10 requests per IP | 1 minute | Defined; use `RequireRateLimiting("fixed")` where needed |
 
-**Response**: `429 Too Many Requests` when limit exceeded
+Exceeding the limit returns `429 Too Many Requests`. `/health` is excluded. Behind a proxy the client IP comes from `X-Forwarded-For`, accepted only from the networks in `ForwardedHeaders:KnownNetworks` / `KnownProxies` (see [DEPLOYMENT.md](DEPLOYMENT.md)).
 
-**Implementation**:
-```csharp
-builder.Services.AddRateLimiter(options =>
-{
-    options.AddPolicy("oauth", context => 
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            factory: _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 5,
-                Window = TimeSpan.FromMinutes(1)
-            }));
-});
+## HTTPS
 
-authGroup.MapGet("/login/google", ...).RequireRateLimiting("oauth");
-```
+- `UseHttpsRedirection()` and `UseHsts()` outside Development.
+- `DISABLE_HTTPS_REDIRECTION=true` disables the redirect and logs a warning; use it only for local Docker without TLS.
+- The authentication cookie is `Secure`, so login needs HTTPS (or a proxy that forwards `X-Forwarded-Proto: https`).
 
-## HTTPS Enforcement
+## Errors and logging
 
-- **Middleware**: `UseHttpsRedirection()` (HTTP → HTTPS 301 redirect)
-- **HSTS**: `UseHsts()` in Production (Strict-Transport-Security header)
-- **Cookie**: `SecurePolicy.Always` (cookies only over HTTPS)
+- `GlobalExceptionMiddleware` logs unhandled exceptions with path, method, user and `TraceIdentifier`, then redirects to `/error?traceId=...`. The page shows the trace id, never a stack trace. `DetailedErrors` for Blazor circuits are enabled only in Development.
+- Errors are recorded **only in the logs**: structured NDJSON files in `/app/logs` (Serilog through `ThisCloud.Framework.Loggings`). There are no external alert channels.
+- Redaction is enabled (`ThisCloud:Loggings:Redaction`) so sensitive fields such as authorization headers, cookies and tokens are masked.
+- Every request has an `X-Correlation-Id` (generated if missing) included in the log entries.
+- Never log tokens, secrets or full connection strings.
 
-## Logging & Monitoring
+## Injection, XSS and CSRF
 
-### Structured Logging (Serilog + ThisCloud.Framework)
+- **SQL**: Entity Framework Core parameterizes every query; avoid `FromSqlRaw`. Input is validated with FluentValidation in the Application layer.
+- **XSS**: Blazor escapes `@value` output; avoid `MarkupString` with user content; CSP restricts origins.
+- **CSRF**: `UseAntiforgery()` is enabled and the cookie is `SameSite=Lax`.
+- **Uploads**: avatars are decoded and re-encoded server-side with SkiaSharp to WebP (the original file is never served) and stored under `wwwroot/uploads/avatars`.
 
-- **File**: `logs/controlpeso-YYYYMMDD.ndjson` (rolling 10MB, 30 files retained)
-- **Console**: Colored output (Development)
-- **Format**: NDJSON (newline-delimited JSON, queryable)
+## Data handling
 
-### PII Redaction (Automatic)
+- **Passwords**: none are stored.
+- **OAuth tokens**: `SaveTokens = true` keeps them inside the encrypted cookie; they are never logged or returned by an API.
+- **Weight data**: every query is filtered by the authenticated user's id; only administrators see user lists.
+- **Email**: stored as `citext` with a unique index.
+- **Analytics**: Google Analytics runs only when configured; Cloudflare Web Analytics is controlled in Cloudflare ([CLOUDFLARE_ANALYTICS.md](CLOUDFLARE_ANALYTICS.md)). Privacy policy: `/privacy`.
 
-Redacts sensitive data in logs:
-- `Authorization` headers
-- `Cookie` headers
-- JWT tokens
-- Passwords (any field matching `password`, `pwd`, `secret`)
+## Infrastructure
 
-**Example**:
-```csharp
-_logger.LogInformation("User {UserId} logged in from {IpAddress}", userId, ipAddress);
-// Output: { "UserId": "guid", "IpAddress": "[REDACTED]", ... }
-```
+- Non-root container; only port 8080 is exposed and only to the reverse proxy.
+- PostgreSQL runs on a separate host and must be reachable only from the Docker host.
+- Daily database backups ([BACKUP_SYSTEM.md](BACKUP_SYSTEM.md)); backups contain personal data and must be protected.
+- `.gitignore` excludes `.env*`, `appsettings.Development.json`, `appsettings.Production.json`, `docker-compose.override.yml` and `.secrets.local`.
 
-### Correlation ID
+## Continuous verification
 
-- **Header**: `X-Correlation-Id` (auto-generated if missing)
-- **Propagation**: Included in all logs for request tracing
-- **Distributed tracing**: Ready for OpenTelemetry integration
+`.github/workflows/ci.yml` runs on every pull request:
 
-## Exception Handling
+- build and tests;
+- `dotnet list package --vulnerable --include-transitive` (fails on High or Critical findings);
+- gitleaks on the pull request diff;
+- Docker smoke test (image builds, runs as non-root, `/health` answers).
 
-### GlobalExceptionMiddleware
+Locally:
 
-- **Catches**: ALL unhandled exceptions
-- **Logs**: Structured with Path, Method, User, TraceId
-- **Development**: Returns full stack trace
-- **Production**: Returns generic message + TraceId (NO stack trace)
-
-**Status Codes**:
-- 400: `ArgumentException`, `ArgumentNullException`
-- 401: `UnauthorizedAccessException`
-- 409: `InvalidOperationException`
-- 500: All other exceptions
-
-## SQL Injection Prevention
-
-- **EF Core parameterization**: All queries parameterized automatically
-- **NO raw SQL**: Avoid `.FromSqlRaw()` unless absolutely necessary
-- **Input validation**: FluentValidation on all DTOs
-
-## XSS Prevention
-
-1. **Blazor automatic escaping**: All `@variable` syntax escaped
-2. **CSP headers**: Restrict inline scripts (with Blazor exceptions)
-3. **Input validation**: Sanitize user inputs (names, notes, etc.)
-4. **NO `@Html.Raw()`**: Never use unless content trusted (e.g., CMS)
-
-## CSRF Prevention
-
-- **Antiforgery tokens**: Enabled by default in Blazor Server
-- **SameSite cookies**: `SameSite=Lax` prevents CSRF
-- **`UseAntiforgery()` middleware**: Validates tokens on POST requests
-
-## Sensitive Data Handling
-
-### Passwords: ❌ NOT STORED
-- OAuth-only authentication (Google/LinkedIn)
-- NO local password storage
-
-### Tokens: ⚠️ Handle Carefully
-- OAuth tokens: `SaveTokens = true` (stored encrypted in cookie)
-- **NEVER** log tokens or expose in API responses
-
-### User Data: 🔒 Protected
-- Weight logs: Private per user (query filtered by UserId)
-- Email: Unique constraint, PII redacted in logs
-- Avatar URL: Public (from OAuth provider)
-
-## Vulnerability Scanning
-
-### NuGet Packages
 ```bash
-# Check for known vulnerabilities
 dotnet list package --vulnerable --include-transitive
-
-# Update packages
-dotnet restore
 ```
 
-### Dependency Updates
-- Monitor GitHub Dependabot alerts
-- Update packages regularly (Central Package Management in `Directory.Packages.props`)
+## Incident response
 
-## Security Checklist
+| Incident | Actions |
+|----------|---------|
+| Compromised secret | Rotate it immediately ([CREDENTIAL_ROTATION_GUIDE.md](CREDENTIAL_ROTATION_GUIDE.md)), review logs, redeploy |
+| Suspected session theft | Reset the Data Protection keys (all users must sign in again) |
+| Personal data breach | Isolate the host, review logs, rotate secrets and notify affected users as legally required |
+| Abusive traffic | Block it in Cloudflare, review the logs for the offending IPs |
 
-- [x] OAuth 2.0 authentication (Google + LinkedIn)
-- [x] HTTPS enforcement (`UseHttpsRedirection` + HSTS)
-- [x] Secure cookies (`HttpOnly`, `Secure`, `SameSite`)
-- [x] Security headers (CSP, X-Frame-Options, etc.)
-- [x] Rate limiting on OAuth endpoints
-- [x] Global exception handler (no info disclosure)
-- [x] Structured logging with PII redaction
-- [x] Input validation (FluentValidation)
-- [x] SQL injection prevention (EF Core parameterization)
-- [x] XSS prevention (Blazor escaping + CSP)
-- [x] CSRF prevention (Antiforgery tokens)
-- [ ] **TODO**: Implement security audit logging for Admin actions
-- [ ] **TODO**: Add brute force detection (repeated failed logins)
-- [ ] **TODO**: Implement account lockout after N failed attempts
-- [ ] **TODO**: Add 2FA support (optional, post-MVP)
+## Known limitations
 
-## Incident Response
-
-### Data Breach
-1. Isolate affected systems
-2. Notify users within 72 hours (GDPR)
-3. Review logs for unauthorized access
-4. Rotate OAuth secrets
-5. Force logout all users (clear cookies)
-
-### Compromised Secrets
-1. Rotate OAuth ClientId/ClientSecret immediately
-2. Revoke Google/LinkedIn OAuth app access
-3. Update User Secrets / Environment Variables
-4. Redeploy application
-
-### DDoS Attack
-1. Enable Cloudflare DDoS protection
-2. Increase rate limiting aggressiveness
-3. Monitor logs for suspicious IPs
-4. Consider IP blacklisting
-
-## Compliance
-
-### GDPR (General Data Protection Regulation)
-- **Right to access**: Users can export data (Admin CSV export)
-- **Right to deletion**: Implement user account deletion (TODO)
-- **Data minimization**: Collect only necessary data
-- **Consent**: OAuth login implies consent
-
-### CCPA (California Consumer Privacy Act)
-- **Do Not Sell**: No data sold to third parties
-- **Opt-out**: Users can delete account (TODO)
-
-### Security Standards
-- **OWASP Top 10**: Addressed (injection, auth, XSS, etc.)
-- **NIST Cybersecurity Framework**: Identify, Protect, Detect, Respond, Recover
+- CSP needs `'unsafe-inline'` and `'unsafe-eval'` (Blazor Server, MudBlazor).
+- Rate limiting is per instance and in memory (single container deployment).
+- No two-factor authentication of its own: it depends on the Google account.
 
 ## References
 
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
-- [ASP.NET Core Security](https://docs.microsoft.com/en-us/aspnet/core/security/)
-- [CSP Reference](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)
-- [OAuth 2.0 Best Practices](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics)
+- [ASP.NET Core security](https://learn.microsoft.com/en-us/aspnet/core/security/)
+- [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)

@@ -1,44 +1,25 @@
-# Open Graph Image Placeholder
+# Open Graph image
 
-**Location**: `src/ControlPeso.Web/wwwroot/images/og-image.png`
+**File**: `src/ControlPeso.Web/wwwroot/images/og-image.png` (served as `/images/og-image.png`)
 
-## Specifications
+## Current state
 
-- **Dimensions**: 1200x630 pixels (Facebook/LinkedIn recommended)
-- **Format**: PNG
-- **File size**: < 1MB (ideally < 300KB)
-- **Content**:
-  - Logo "Control Peso Thiscloud"
-  - Icon (scale/balanza)
-  - Tagline: "Seguimiento de Peso Corporal Simple y Efectivo"
-  - Background: Dark theme (consistent with app)
-  - Brand colors: Primary #1E88E5 (blue), Secondary #FFC107 (amber)
+- PNG, 700 x 660 px, about 700 KB.
 
-## Usage
+## Where it is used
 
-This image is referenced in all pages via Open Graph meta tags:
-```html
-<meta property="og:image" content="https://controlpeso.thiscloud.com.ar/images/og-image.png" />
-<meta name="twitter:image" content="https://controlpeso.thiscloud.com.ar/images/og-image.png" />
-```
+- `og:image` and `twitter:image` meta tags in `Components/App.razor` (default for every page) and in the `<HeadContent>` of `Dashboard`, `History`, `Profile` and `Admin`, with the absolute URL `https://controlpeso.thiscloud.com.ar/images/og-image.png`.
+- Small logo (48 px) in the header of the legal pages (`/privacy`, `/terms`, `/licenses`, `/changelog`) and in the Dashboard and Admin headers.
 
-## Creation
+Do not rename or delete the file without updating those references (a missing file produces 404 errors and broken link previews).
 
-Use a design tool (Figma, Canva, Adobe Express) to create the image with:
-1. Dark background (#1E1E1E or similar)
-2. Centered content with logo + tagline
-3. High contrast for visibility
-4. Export as PNG 1200x630
+## Recommended specs when it is replaced
 
-## Fallback
+| Property | Value |
+|----------|-------|
+| Dimensions | 1200 x 630 px (the ratio Facebook, LinkedIn and X expect for large previews) |
+| Format | PNG or JPEG |
+| Size | Under 300 KB |
+| Content | Logo, short tagline, dark background consistent with the app theme |
 
-Until the real image is created, ensure this file exists to avoid 404 errors.
-For now, a simple solid color PNG with text can be used as placeholder.
-
-## TODO
-
-- [ ] Create professional og-image.png with brand guidelines
-- [ ] Optimize image size (< 300KB)
-- [ ] Test image preview on Facebook Sharing Debugger
-- [ ] Test image preview on Twitter Card Validator
-- [ ] Test image preview on LinkedIn Post Inspector
+After replacing it, check the previews with the Facebook Sharing Debugger, the LinkedIn Post Inspector and a Twitter/X card validator. Social networks cache the previous image, so use the debugger tools to refresh it.

@@ -1,271 +1,109 @@
-# Configuration Management - Control Peso Thiscloud
+# Gestión de configuración - Control Peso Thiscloud
 
-## 📁 Sistema de Configuración con Templates
+La configuración se reparte entre un archivo base versionado, plantillas con marcadores de posición y archivos locales que **no** se versionan. Los secretos nunca entran al repositorio.
 
-Para evitar exponer secretos en el repositorio y mantener la configuración entre versiones, usamos **template files**.
+## Orden de precedencia
 
----
+ASP.NET Core aplica, de menor a mayor prioridad:
 
-## 🎯 Cómo Funciona
+1. `appsettings.json` (versionado, sin secretos)
+2. `appsettings.{Environment}.json` (local, ignorado por Git)
+3. User Secrets (solo en `Development`)
+4. Variables de entorno (por ejemplo `ConnectionStrings__DefaultConnection`; el doble guion bajo equivale a `:`)
 
-### Archivos en el Repositorio (Committed):
-- ✅ `appsettings.json` - Configuración base (sin secretos)
-- ✅ `appsettings.Development.json.template` - Template de desarrollo
-- ✅ `appsettings.Production.json.template` - Template de producción
-- ✅ `setup-config.ps1` - Script de setup automático
+En Docker y en producción se usan variables de entorno (ver [SECRETS_MANAGEMENT.md](SECRETS_MANAGEMENT.md)).
 
-### Archivos Locales (En .gitignore):
-- 🔒 `appsettings.Development.json` - Tu configuración real de desarrollo
-- 🔒 `appsettings.Production.json` - Tu configuración real de producción
+## Archivos
 
-**Resultado**: Los templates se commitean, los archivos con secretos NO.
+Todos bajo `src/ControlPeso.Web/`:
 
----
+| Archivo | ¿Versionado? | Contenido |
+|---------|--------------|-----------|
+| `appsettings.json` | Sí | Valores base sin secretos: cadena de conexión local con `CHANGE_ME_LOCAL`, `App:BaseUrl`, logging (`ThisCloud:Loggings`), `ForwardedHeaders`, `PhotoStorage`, claves de OAuth y Google Analytics en `null` |
+| `appsettings.Development.json.template` | Sí | Plantilla de desarrollo (PostgreSQL local y credenciales de Google con marcadores) |
+| `appsettings.Production.json.template` | Sí | Plantilla de producción con marcadores `CHANGE_ME` / `YOUR_*_HERE` |
+| `appsettings.Development.json.example` | Sí | Ejemplo mínimo de las claves de OAuth |
+| `appsettings.Development.json` | **No** (`.gitignore`) | Tu configuración local real |
+| `appsettings.Production.json` | **No** (`.gitignore`) | Configuración real de producción, si se usa un archivo en lugar de variables de entorno |
 
-## 🚀 Setup Inicial (Primera vez o después de clonar)
+## Primera configuración
 
-### 1. Ejecutar script de setup:
-```powershell
-pwsh setup-config.ps1
+```bash
+# Desde la raíz del repositorio. Copia las plantillas si los archivos reales no existen
+# (no sobrescribe archivos existentes)
+pwsh scripts/setup-config.ps1
 ```
 
-Esto crea los archivos de configuración desde los templates si no existen.
+Sin PowerShell, copiar a mano `appsettings.Development.json.template` a `appsettings.Development.json`.
 
-### 2. Editar archivos creados:
-```powershell
-# Editar configuración de desarrollo
-code src/ControlPeso.Web/appsettings.Development.json
+Luego reemplazar en `appsettings.Development.json` los marcadores por valores reales:
 
-# Editar configuración de producción
-code src/ControlPeso.Web/appsettings.Production.json
-```
-
-### 3. Reemplazar placeholders:
-Busca y reemplaza TODOS los valores `YOUR_*_HERE` con tus valores reales:
-
-#### Development (`appsettings.Development.json`):
-```json
-{
-  "Authentication": {
-    "Google": {
-      "ClientId": "YOUR_GOOGLE_CLIENT_ID_HERE",      // ← REEMPLAZAR
-      "ClientSecret": "YOUR_GOOGLE_CLIENT_SECRET_HERE" // ← REEMPLAZAR
-    }
-  }
-}
-```
-
-#### Production (`appsettings.Production.json`):
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=...;Password=YOUR_SQL_PASSWORD_HERE;" // ← REEMPLAZAR
+    "DefaultConnection": "Host=localhost;Port=5432;Database=controlpeso;Username=controlpeso;Password=<contraseña>"
   },
   "Authentication": {
     "Google": {
-      "ClientId": "YOUR_GOOGLE_CLIENT_ID_HERE",      // ← REEMPLAZAR
-      "ClientSecret": "YOUR_GOOGLE_CLIENT_SECRET_HERE" // ← REEMPLAZAR
+      "ClientId": "<client-id>.apps.googleusercontent.com",
+      "ClientSecret": "<client-secret>"
     }
-  },
-  "GoogleAnalytics": {
-    "MeasurementId": "YOUR_GA_MEASUREMENT_ID_HERE"   // ← REEMPLAZAR
   }
 }
 ```
 
----
+La base de datos local se levanta con `docker compose up -d postgres` y el esquema se crea con `scripts/migrate-postgres.sh` (ver [DEPLOYMENT.md](DEPLOYMENT.md)). Cómo obtener las credenciales de Google: [GOOGLE_OAUTH_SETUP.md](GOOGLE_OAUTH_SETUP.md).
 
-## 🔄 Workflow de Desarrollo
+### Alternativa: User Secrets
 
-### Clonaste el repo por primera vez:
 ```bash
-git clone https://github.com/mdesantis1984/Control-Peso-Thiscloud.git
-cd Control-Peso-Thiscloud
-pwsh setup-config.ps1  # Crea archivos desde templates
-# Editar archivos y reemplazar placeholders
-dotnet run --project src/ControlPeso.Web
+cd src/ControlPeso.Web
+dotnet user-secrets set "Authentication:Google:ClientId" "<client-id>"
+dotnet user-secrets set "Authentication:Google:ClientSecret" "<client-secret>"
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=controlpeso;Username=controlpeso;Password=<contraseña>"
 ```
 
-### Cambiaste de rama:
-```bash
-git checkout develop
-pwsh setup-config.ps1  # Verifica/crea archivos si no existen
-dotnet run --project src/ControlPeso.Web
-```
+## Claves principales
 
-### Actualizaste desde main/develop:
-```bash
-git pull origin develop
-pwsh setup-config.ps1  # Verifica archivos
-dotnet run --project src/ControlPeso.Web
-```
+| Clave | Uso |
+|-------|-----|
+| `ConnectionStrings:DefaultConnection` | Cadena de conexión Npgsql de PostgreSQL |
+| `Authentication:Google:ClientId` / `ClientSecret` | Google OAuth. El proveedor solo se registra si `ClientId` no está vacío |
+| `Authentication:LinkedIn:ClientId` / `ClientSecret` | Opcional y desactivado por defecto; la interfaz no ofrece este inicio de sesión |
+| `GoogleAnalytics:MeasurementId` | Opcional. Solo se activa con un id real (`G-...`); los marcadores `YOUR_*` se ignoran |
+| `App:BaseUrl` | URL pública de la aplicación |
+| `DataProtection:Path` | Directorio de las claves de Data Protection (`/app/keys` en Docker) |
+| `ForwardedHeaders:KnownNetworks` / `KnownProxies` | Proxies de confianza para `X-Forwarded-*` |
+| `ThisCloud:Loggings:*` | Logging estructurado (archivo NDJSON, redacción, correlación) |
+| `PhotoStorage:WebRootPath` / `AvatarsFolder` | Ubicación de los avatares (`uploads/avatars` bajo `wwwroot`) |
+| `DISABLE_HTTPS_REDIRECTION` | `true` solo para pruebas locales en Docker sin TLS |
 
-**TUS ARCHIVOS DE CONFIGURACIÓN NUNCA SE PIERDEN** porque están en `.gitignore` (git no los toca).
+## Qué se puede commitear
 
----
+- Sí: `appsettings.json`, `*.template`, `*.example`, `scripts/setup-config.ps1`.
+- No: `appsettings.Development.json`, `appsettings.Production.json`, `docker-compose.override.yml`, archivos `.env` locales y cualquier archivo con valores reales.
 
-## 🔒 Seguridad
+Antes de cada commit, revisar `git diff --staged` en busca de contraseñas, `ClientSecret` o tokens. El workflow de CI ejecuta además gitleaks sobre el diff de cada pull request.
 
-### ✅ Archivos SEGUROS para commitear:
-- `appsettings.json` (solo config base sin secretos)
-- `*.template` files (placeholders, no valores reales)
-- `setup-config.ps1` (script de setup)
+> **Imágenes Docker**: el `Dockerfile` copia todo el contexto de build y `.dockerignore` no excluye los `appsettings.*.json` locales. Construir las imágenes de producción desde un checkout limpio (o desde CI) para no incluir archivos locales con secretos.
 
-### ❌ Archivos QUE NUNCA SE DEBEN COMMITEAR:
-- `appsettings.Development.json` (tiene secretos reales)
-- `appsettings.Production.json` (tiene secretos reales)
-- `appsettings.*.json` (cualquier ambiente específico)
+## Cómo actualizar las plantillas
 
-**Nota**: `.gitignore` ya está configurado para ignorar estos archivos automáticamente.
+1. Agregar la nueva clave con un marcador (`YOUR_*_HERE` o `CHANGE_ME`) a la plantilla correspondiente y, si no es un secreto, un valor por defecto en `appsettings.json`.
+2. Documentar la clave en este archivo.
+3. Avisar al equipo: cada persona agrega el valor real en su archivo local (el script no sobrescribe archivos existentes).
 
----
+## Problemas frecuentes
 
-## 📝 Actualizar Templates (Para maintainers)
+| Problema | Causa y solución |
+|----------|------------------|
+| `Connection string 'DefaultConnection' not found` | Falta la clave. Definirla en el archivo local o como variable de entorno |
+| No aparece el botón de Google o el login falla | `Authentication:Google:ClientId` vacío: el proveedor no se registra |
+| Se perdió el archivo local tras cambiar de rama | Los archivos ignorados no los toca Git; si se borraron, volver a ejecutar `scripts/setup-config.ps1` y completar los valores |
+| La aplicación no conecta a la base de datos | Verificar que PostgreSQL esté levantado y que el esquema exista (`scripts/migrate-postgres.sh`) |
 
-Si necesitás agregar nueva configuración que todos los devs deben tener:
+## Si se commitearon secretos por error
 
-### 1. Actualizar template:
-```powershell
-# Editar el template (NO el archivo real)
-code src/ControlPeso.Web/appsettings.Development.json.template
-```
-
-### 2. Agregar nueva sección con placeholder:
-```json
-{
-  "NewService": {
-    "ApiKey": "YOUR_NEW_SERVICE_API_KEY_HERE",
-    "Endpoint": "https://api.example.com"
-  }
-}
-```
-
-### 3. Commitear el template actualizado:
-```bash
-git add src/ControlPeso.Web/appsettings.Development.json.template
-git commit -m "feat(config): add NewService configuration to template"
-git push
-```
-
-### 4. Notificar al equipo:
-- Los devs ejecutan `pwsh setup-config.ps1` (detecta cambios)
-- Editan su archivo local y agregan el nuevo valor real
-- El script NO sobreescribe archivos existentes (safe)
-
----
-
-## 🛠️ Troubleshooting
-
-### Problema: "Template file not found"
-**Causa**: Falta el archivo `.template` en el repo.
-
-**Solución**:
-```bash
-git pull origin develop  # Asegurar templates actualizados
-pwsh setup-config.ps1
-```
-
-### Problema: "Configuration files are in .gitignore"
-**Causa**: Intentaste commitear archivos con secretos.
-
-**Solución**: Esto es CORRECTO. Los archivos están protegidos intencionalmente.
-
-### Problema: "Perdí mi configuración local"
-**Causa**: Borraste accidentalmente los archivos de config.
-
-**Solución**:
-```powershell
-pwsh setup-config.ps1  # Re-crear desde templates
-# Editar y reemplazar placeholders nuevamente
-```
-
-**Prevención**: Hacer backup de tus archivos de config locales en un lugar seguro (fuera del repo).
-
-### Problema: "Cambié de branch y la app no arranca"
-**Causa**: El branch nuevo tiene configuración diferente.
-
-**Solución**:
-```bash
-git checkout <branch>
-pwsh setup-config.ps1  # Verificar/crear archivos
-# Editar si hay nuevas configuraciones requeridas
-dotnet run --project src/ControlPeso.Web
-```
-
----
-
-## 📊 Estructura de Archivos
-
-```
-ControlPeso.Thiscloud/
-├── src/
-│   └── ControlPeso.Web/
-│       ├── appsettings.json                         ✅ Committed (base config)
-│       ├── appsettings.Development.json             🔒 Local (gitignored)
-│       ├── appsettings.Development.json.template    ✅ Committed (template)
-│       ├── appsettings.Production.json              🔒 Local (gitignored)
-│       └── appsettings.Production.json.template     ✅ Committed (template)
-├── setup-config.ps1                                 ✅ Committed (setup script)
-├── docs/
-│   └── CONFIG_MANAGEMENT.md                         ✅ Committed (this file)
-└── .gitignore                                       ✅ Committed (ignores secrets)
-```
-
----
-
-## 🎓 Best Practices
-
-### Para Developers:
-1. ✅ **NUNCA** commitear archivos con secretos reales
-2. ✅ Ejecutar `setup-config.ps1` después de cada `git clone` o `git checkout`
-3. ✅ Hacer backup de tus archivos de config locales (fuera del repo)
-4. ✅ Usar User Secrets en desarrollo cuando sea posible
-5. ✅ Reportar si falta alguna configuración en los templates
-
-### Para Maintainers:
-1. ✅ Actualizar templates cuando agregues nuevas configuraciones
-2. ✅ Documentar placeholders claramente (`YOUR_*_HERE`)
-3. ✅ Notificar al equipo sobre cambios de configuración
-4. ✅ Revisar PRs para asegurar que no se commitean secretos
-5. ✅ Mantener `.gitignore` actualizado
-
----
-
-## 🚨 Emergency: "Commiteé secretos accidentalmente"
-
-Si commiteaste secretos por error:
-
-### 1. Rotar secretos INMEDIATAMENTE:
-- Regenerar Google OAuth Client Secret
-- Cambiar SQL Server password
-- Regenerar API keys
-
-### 2. Limpiar historial de Git:
-```bash
-# Usar BFG Repo-Cleaner o git-filter-branch
-# Contactar al lead para asistencia
-```
-
-### 3. Force push (después de limpiar):
-```bash
-git push origin <branch> --force
-```
-
-### 4. Notificar al equipo:
-- Informar sobre el incidente
-- Solicitar que todos hagan `git pull --rebase`
-
----
-
-## 📞 Soporte
-
-Para consultas sobre configuración:
-- **Documentation**: `docs/CONFIG_MANAGEMENT.md` (este archivo)
-- **Setup Script**: `pwsh setup-config.ps1`
-- **Repository**: https://github.com/mdesantis1984/Control-Peso-Thiscloud
-
----
-
-**Last Updated**: 2026-02-28  
-**Version**: 1.0.0  
-**Maintainer**: Control Peso Thiscloud Team
+1. Rotar los secretos de inmediato ([CREDENTIAL_ROTATION_GUIDE.md](CREDENTIAL_ROTATION_GUIDE.md)).
+2. Quitar el secreto del historial de Git (por ejemplo con `git filter-repo`) y coordinar con el propietario del repositorio antes de reescribir ramas compartidas.
+3. Avisar a quienes tengan clones para que se vuelvan a sincronizar.
