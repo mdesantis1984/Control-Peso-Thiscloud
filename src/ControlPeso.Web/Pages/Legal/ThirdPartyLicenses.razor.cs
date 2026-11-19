@@ -23,6 +23,7 @@ public partial class ThirdPartyLicenses
     private string CoreTitle => _isEnglish ? "Core Framework and Runtime" : "Framework y Runtime Principal";
     private string UiFrameworkTitle => _isEnglish ? "UI Framework" : "Framework de UI";
     private string DatabaseTitle => _isEnglish ? "Database and ORM" : "Base de Datos y ORM";
+    private string ImagingTitle => _isEnglish ? "Imaging and Data Export" : "Imágenes y Exportación de Datos";
     private string AuthTitle => _isEnglish ? "Authentication" : "Autenticación";
     private string LoggingTitle => _isEnglish ? "Logging and Observability" : "Logging y Observabilidad";
     private string ValidationTestingTitle => _isEnglish ? "Validation and Testing" : "Validación y Testing";
@@ -54,7 +55,7 @@ public partial class ThirdPartyLicenses
     private string MitSummary => _isEnglish
         ? "Allows almost unrestricted freedom to use, copy, modify, merge, publish, distribute, sublicense, and sell copies. Requires preservation of copyright notice."
         : "Permite libertad casi sin restricciones para usar, copiar, modificar, fusionar, publicar, distribuir, sublicenciar y vender copias. Requiere preservación del aviso de copyright.";
-    private string MitUsed => _isEnglish ? "Used by: .NET, EF Core, MudBlazor, xUnit, bUnit" : "Usada por: .NET, EF Core, MudBlazor, xUnit, bUnit";
+    private string MitUsed => _isEnglish ? "Used by: .NET, EF Core, MudBlazor, SkiaSharp, xUnit, bUnit" : "Usada por: .NET, EF Core, MudBlazor, SkiaSharp, xUnit, bUnit";
 
     private string ApacheSummary => _isEnglish
         ? "Similar to MIT but includes explicit patent grants. Requires preservation of copyright notice and attribution."
@@ -66,10 +67,16 @@ public partial class ThirdPartyLicenses
         : "Licencia permisiva similar a MIT, con cláusula adicional que prohíbe el uso del nombre del proyecto para respaldo sin permiso.";
     private string BsdUsed => _isEnglish ? "Used by: Moq" : "Usada por: Moq";
 
+    private string PostgreSqlSummary => _isEnglish
+        ? "Permissive license similar to BSD/MIT. Allows use, copy, modification and distribution, provided the copyright notice and license text are kept."
+        : "Licencia permisiva similar a BSD/MIT. Permite usar, copiar, modificar y distribuir, conservando el aviso de copyright y el texto de la licencia.";
+    private string PostgreSqlUsed => _isEnglish ? "Used by: PostgreSQL, Npgsql EF Core provider" : "Usada por: PostgreSQL, proveedor Npgsql EF Core";
+
     private string ComplianceText => _isEnglish
         ? "Control Peso Thiscloud complies with all license terms of third-party software and services. We include all required copyright notices, provide attribution to original authors, retain original license texts, and comply with redistribution requirements."
         : "Control Peso Thiscloud cumple con todos los términos de licencia del software y servicios de terceros. Incluimos todos los avisos de copyright requeridos, proporcionamos atribución a los autores originales, conservamos los textos de licencia originales y cumplimos con los requisitos de redistribución.";
 
+    private string LastUpdated => LegalDateFormatter.Format(LegalDateFormatter.DocumentDate, _isEnglish);
     private string LastUpdatedLabel => _isEnglish ? "Last Updated" : "Última Actualización";
     private string ThankYouText => _isEnglish ? "Thank you to everyone who contributes to open source!" : "¡Gracias a todos los que contribuyen al código abierto!";
 
@@ -81,13 +88,19 @@ public partial class ThirdPartyLicenses
     private List<Dependency> DatabaseDependencies => new()
     {
         new("Entity Framework Core", "10.0.3", "MIT", "https://github.com/dotnet/efcore"),
-        new("EF Core SQLite Provider", "10.0.3", "MIT", "https://github.com/dotnet/efcore"),
-        new("EF Core SQL Server Provider", "10.0.3", "MIT", "https://github.com/dotnet/efcore"),
+        new("Npgsql.EntityFrameworkCore.PostgreSQL", "10.0.0", "PostgreSQL License", "https://github.com/npgsql/efcore.pg"),
+        new("PostgreSQL 15", "15", "PostgreSQL License", "https://www.postgresql.org/"),
+    };
+
+    private List<Dependency> ImagingDependencies => new()
+    {
+        new("SkiaSharp", "4.157.0", "MIT", "https://github.com/mono/SkiaSharp"),
+        new("CsvHelper", "33.1.0", "MS-PL / Apache 2.0", "https://github.com/JoshClose/CsvHelper"),
     };
 
     private List<Dependency> ValidationTestingDependencies => new()
     {
-        new("FluentValidation", "11.11.0", "Apache 2.0", "https://github.com/FluentValidation/FluentValidation"),
+        new("FluentValidation", "12.1.1", "Apache 2.0", "https://github.com/FluentValidation/FluentValidation"),
         new("xUnit.net", "2.9.2", "Apache 2.0 / MIT", "https://github.com/xunit/xunit"),
         new("Moq", "4.20.72", "BSD 3-Clause", "https://github.com/devlooped/moq"),
         new("bUnit", "1.34.7", "MIT", "https://github.com/bUnit-dev/bUnit"),
@@ -95,7 +108,7 @@ public partial class ThirdPartyLicenses
 
     protected override void OnInitialized()
     {
-        _isEnglish = false; // Default to Spanish
+        _isEnglish = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en"; // Default to Spanish
     }
 
     private void ToggleLanguage()

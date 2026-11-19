@@ -187,4 +187,8 @@
     <value>Contactar Soporte</value>
     <comment>Enlace a soporte técnico</comment>
   </data>
+  <data name="OAuthFailedMessage" xml:space="preserve">
+    <value>No pudimos iniciar sesión con tu cuenta. Probá de nuevo.</value>
+    <comment>Mensaje cuando falla el inicio de sesión con OAuth (/login?error=...)</comment>
+  </data>
 </root>

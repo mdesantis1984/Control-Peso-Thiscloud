@@ -20,17 +20,15 @@ public sealed class ServiceCollectionExtensionsTests : IDisposable
     private readonly ServiceCollection _services;
     private readonly IConfiguration _configuration;
     private readonly Mock<IHostEnvironment> _mockEnvironment;
-    private readonly string _testDbPath;
 
     public ServiceCollectionExtensionsTests()
     {
         _services = new ServiceCollection();
-        _testDbPath = Path.Combine(Path.GetTempPath(), $"test_db_{Guid.NewGuid()}.db");
 
         // Create configuration with connection string
         var configData = new Dictionary<string, string?>
         {
-            ["ConnectionStrings:DefaultConnection"] = $"Data Source={_testDbPath}"
+            ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=controlpeso_test;Username=test;Password=test"
         };
 
         _configuration = new ConfigurationBuilder()
@@ -42,18 +40,7 @@ public sealed class ServiceCollectionExtensionsTests : IDisposable
 
     public void Dispose()
     {
-        // Clean up test database
-        if (File.Exists(_testDbPath))
-        {
-            try
-            {
-                File.Delete(_testDbPath);
-            }
-            catch
-            {
-                // Ignore cleanup errors
-            }
-        }
+        // Nothing to clean up: no database is created (Npgsql contexts do not connect until used)
     }
 
     #region Parameter Validation Tests
@@ -109,10 +96,9 @@ public sealed class ServiceCollectionExtensionsTests : IDisposable
         factoryDescriptor.Should().NotBeNull("IDbContextFactory<ControlPesoDbContext> should be registered");
         factoryDescriptor!.Lifetime.Should().Be(ServiceLifetime.Singleton, "Factory should be Singleton");
 
-        // Backward compatibility: ControlPesoDbContext should also be available as Scoped
-        var dbContextDescriptor = _services.FirstOrDefault(d => d.ServiceType == typeof(ControlPesoDbContext));
-        dbContextDescriptor.Should().NotBeNull("ControlPesoDbContext should be registered for backward compatibility");
-        dbContextDescriptor!.Lifetime.Should().Be(ServiceLifetime.Scoped);
+        // S15: no hand-written scoped registration. The only ControlPesoDbContext descriptor left is the one
+        // AddDbContextFactory adds itself; a second one would be our removed backward-compatibility shim.
+        _services.Count(d => d.ServiceType == typeof(ControlPesoDbContext)).Should().Be(1);
     }
 
     [Fact]
@@ -126,10 +112,9 @@ public sealed class ServiceCollectionExtensionsTests : IDisposable
         factoryDescriptor.Should().NotBeNull("IDbContextFactory<DbContext> wrapper should be registered");
         factoryDescriptor!.Lifetime.Should().Be(ServiceLifetime.Singleton, "Factory wrapper should be Singleton");
 
-        // Backward compatibility: DbContext should also be available as Scoped
-        var dbContextDescriptor = _services.FirstOrDefault(d => d.ServiceType == typeof(DbContext));
-        dbContextDescriptor.Should().NotBeNull("DbContext should be registered for backward compatibility");
-        dbContextDescriptor!.Lifetime.Should().Be(ServiceLifetime.Scoped);
+        // S15: no long-lived scoped context; consumers create short-lived contexts from the factory
+        _services.Should().NotContain(d => d.ServiceType == typeof(DbContext),
+            "DbContext must only come from the factory");
     }
 
     // NOTE: IDbSeeder test removed - service was intentionally removed from Infrastructure
@@ -236,7 +221,7 @@ public sealed class ServiceCollectionExtensionsTests : IDisposable
     }
 
     [Fact]
-    public void AddInfrastructureServices_ShouldRegisterDbContextWithSQLite_WhenCalled()
+    public void AddInfrastructureServices_ShouldRegisterDbContextWithNpgsql_WhenCalled()
     {
         // Act
         _services.AddInfrastructureServices(_configuration);
@@ -248,7 +233,16 @@ public sealed class ServiceCollectionExtensionsTests : IDisposable
 
         using var dbContext = factory.CreateDbContext();
         dbContext.Should().NotBeNull("Factory should create DbContext instances");
-        dbContext.Database.ProviderName.Should().Be("Microsoft.EntityFrameworkCore.Sqlite", "SQLite provider should be detected from Data Source connection string");
+        dbContext.Database.ProviderName.Should().Be("Npgsql.EntityFrameworkCore.PostgreSQL");
+    }
+
+    [Fact]
+    public void InfrastructureAssembly_DoesNotReferenceTheSqliteProvider()
+    {
+        // The SQLite provider ships a native library with a known advisory (GHSA-2m69-gcr7-jv3q); only tests use it
+        typeof(ControlPesoDbContext).Assembly.GetReferencedAssemblies()
+            .Select(a => a.Name)
+            .Should().NotContain(name => name!.Contains("Sqlite", StringComparison.OrdinalIgnoreCase));
     }
 
     #endregion

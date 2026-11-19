@@ -82,7 +82,8 @@ internal sealed class RequestDurationMiddleware
                path.EndsWith(".woff2", StringComparison.OrdinalIgnoreCase) ||
                path.EndsWith(".woff", StringComparison.OrdinalIgnoreCase) ||
                path.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase) ||
-               path.Equals("/health", StringComparison.OrdinalIgnoreCase);
+               path.Equals("/health", StringComparison.OrdinalIgnoreCase) ||
+               path.Equals("/health/ready", StringComparison.OrdinalIgnoreCase);
     }
 }
 

@@ -110,7 +110,7 @@ public sealed class UpdateUserProfileValidatorTests
             Name = "Test User",
             Height = 175m,
             UnitSystem = UnitSystem.Metric,
-            DateOfBirth = DateOnly.FromDateTime(DateTime.Today.AddDays(1)),
+            DateOfBirth = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)),
             Language = "es",
             GoalWeight = null
         };

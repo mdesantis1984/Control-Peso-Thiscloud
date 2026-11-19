@@ -24,7 +24,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.3.0] - 2026-02-25
+## [1.3.0] - 2026-11-19
+
+### Changed
+
+- 🗄️ **Database**: Migrated to PostgreSQL 15 (Npgsql). The schema is applied from `docs/schema/postgresql_schema_v1.sql` (EF Core migration `InitialPostgreSql`) with `scripts/migrate-postgres.sh`; the application no longer migrates the database on startup.
+- 🖼️ **Imaging**: Profile image processing uses SkiaSharp (MIT) instead of ImageSharp.
+- 📦 **Dependencies**: Updated to MudBlazor 9 and FluentValidation 12; third-party license list refreshed.
+
+### Added
+
+- 🔐 **Persistent sign-in**: The Google sign-in cookie lasts 30 days with sliding expiration.
+- ❤️ **Health checks**: `/health` (liveness) and `/health/ready` (database readiness).
+- 💾 **Backups**: Daily `pg_dump` backups with 14-day retention.
+- 🧪 **CI**: Build, tests, vulnerable-package check, secret scanning (gitleaks) on pull requests and a Docker smoke test.
+
+### Security
+
+- 🐳 The container now runs as a non-root user; Data Protection keys are persisted in a dedicated volume.
+- 🔒 Hardening pass over security headers, configuration and secrets handling.
+
+### Removed
+
+- 🚫 **Telegram error notifications**: errors are now recorded only in the structured application logs (NDJSON).
+- 🧹 Demo pages (Counter, Weather, test pages) and the SQL Server and SQLite runtime providers.
+- 📈 Google Analytics is only loaded when it is configured.
+
+---
+
+## [1.3.0-initial] - 2026-02-25
 
 ### Added
 

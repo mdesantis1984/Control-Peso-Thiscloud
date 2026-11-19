@@ -37,6 +37,17 @@ jobs:
       - name: Test
         run: dotnet test -c Release --no-build --verbosity normal
 
+      - name: Check vulnerable packages (fail on High or Critical)
+        env:
+          DOTNET_CLI_UI_LANGUAGE: en
+        run: |
+          dotnet list ControlPeso.slnx package --vulnerable --include-transitive | tee vulnerable-packages.txt
+          # Severity is the column right before the advisory URL on every finding line.
+          if grep -E '(^|[[:space:]])(High|Critical)[[:space:]]+https://' vulnerable-packages.txt; then
+            echo "::error::High or Critical vulnerable NuGet packages found (see above)."
+            exit 1
+          fi
+
       - name: Upload coverage artifact
         if: always()
         uses: actions/upload-artifact@v4
@@ -45,3 +56,63 @@ jobs:
           path: |
             **/TestResults/**/*.coverage
             **/coverage.cobertura.xml
+
+  gitleaks:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # On pull requests gitleaks-action scans only the commits of the PR,
+      # so secrets already in the old history do not fail every run.
+      - name: Scan for secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  docker_smoke:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t controlpeso-web:ci .
+
+      - name: Run container as non-root and probe /health
+        run: |
+          docker run -d --name controlpeso-smoke -p 8080:8080 \
+            -e ConnectionStrings__DefaultConnection="Data Source=/app/data/smoke.db" \
+            controlpeso-web:ci
+
+          uid="$(docker exec controlpeso-smoke id -u)"
+          if [ "$uid" = "0" ]; then
+            echo "::error::Container runs as root."
+            exit 1
+          fi
+          echo "Container user id: $uid"
+
+          # X-Forwarded-Proto avoids the HTTPS redirect answering instead of /health.
+          status=000
+          for _ in $(seq 1 30); do
+            status="$(curl -s -o /dev/null -w '%{http_code}' -H 'X-Forwarded-Proto: https' http://localhost:8080/health || true)"
+            [ "$status" = "200" ] && break
+            sleep 2
+          done
+          echo "GET /health -> $status"
+          [ "$status" = "200" ]
+
+      - name: Container logs on failure
+        if: failure()
+        run: docker logs controlpeso-smoke || true
+
+      - name: Remove container
+        if: always()
+        run: docker rm -f controlpeso-smoke || true

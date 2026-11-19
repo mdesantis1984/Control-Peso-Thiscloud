@@ -198,8 +198,8 @@
     <comment>Stats card label for goal progress</comment>
   </data>
   <data name="ToTarget" xml:space="preserve">
-    <value>PARA META: {0} LBS RESTANTES</value>
-    <comment>Remaining weight to goal. Placeholder {0} = lbs remaining</comment>
+    <value>PARA META: {0} RESTANTES</value>
+    <comment>Remaining weight to goal. Placeholder {0} = remaining weight with its unit (for example 5,4 kg)</comment>
   </data>
 
   <!-- Chart Section -->
@@ -242,8 +242,8 @@
     <comment>Table column header for date and time</comment>
   </data>
   <data name="TableHeaderWeight" xml:space="preserve">
-    <value>PESO (LBS)</value>
-    <comment>Table column header for weight</comment>
+    <value>PESO ({0})</value>
+    <comment>Table column header for weight. Placeholder {0} = display unit (kg or lb)</comment>
   </data>
   <data name="TableHeaderTrend" xml:space="preserve">
     <value>TENDENCIA</value>

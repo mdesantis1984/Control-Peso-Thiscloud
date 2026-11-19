@@ -14,12 +14,13 @@
             @* Header *@
             <MudStack Row="true" Justify="Justify.SpaceBetween" Spacing="2" AlignItems="AlignItems.Center">
                 <img src="/images/og-image.png" alt="Control Peso Thiscloud Logo" style="width: 48px; height: 48px; border-radius: 8px;" />
-                <MudText Typo="Typo.h3" Color="Color.Success">@Title</MudText>
+                <MudText Typo="Typo.h3" HtmlTag="h1" Color="Color.Success">@Title</MudText>
                 <MudSpacer />
                 <MudTooltip Text="@LanguageSwitchTooltip">
                     <MudIconButton Icon="@Icons.Material.Filled.Translate"
                                    Color="Color.Secondary"
-                                   OnClick="ToggleLanguage" />
+                                   OnClick="ToggleLanguage"
+                                   aria-label="@LanguageSwitchTooltip" />
                 </MudTooltip>
             </MudStack>
 
@@ -43,7 +44,8 @@
                             <MudIconButton Icon="@Icons.Material.Filled.OpenInNew"
                                            Href="@context.Item.Url"
                                            Target="_blank"
-                                           Size="Size.Small" />
+                                           Size="Size.Small"
+                                           aria-label="@($"{LinkHeader}: {context.Item.Name}")" />
                         </CellTemplate>
                     </TemplateColumn>
                 </Columns>
@@ -57,7 +59,7 @@
                         <MudText Typo="Typo.h6">MudBlazor</MudText>
                     </CardHeaderContent>
                     <CardHeaderActions>
-                        <MudChip T="string" Size="Size.Small" Color="Color.Primary">v8.0.0</MudChip>
+                        <MudChip T="string" Size="Size.Small" Color="Color.Primary">v9.0.0</MudChip>
                     </CardHeaderActions>
                 </MudCardHeader>
                 <MudCardContent>
@@ -80,6 +82,16 @@
                 </Columns>
             </MudDataGrid>
 
+            @* Imaging and Data Export *@
+            <MudText Typo="Typo.h5">@ImagingTitle</MudText>
+            <MudDataGrid T="Dependency" Items="@ImagingDependencies" Filterable="false" Dense="true" Elevation="0">
+                <Columns>
+                    <PropertyColumn Property="x => x.Name" Title="@NameHeader" />
+                    <PropertyColumn Property="x => x.Version" Title="@VersionHeader" />
+                    <PropertyColumn Property="x => x.License" Title="@LicenseHeader" />
+                </Columns>
+            </MudDataGrid>
+
             @* Authentication *@
             <MudText Typo="Typo.h5">@AuthTitle</MudText>
             <MudStack Row="true" Spacing="2">
@@ -92,7 +104,7 @@
             <MudText Typo="Typo.h5">@LoggingTitle</MudText>
             <MudList T="string">
                 <MudListItem T="string" Icon="@Icons.Material.Filled.Settings">
-                    <MudText><strong>ThisCloud.Framework.Loggings</strong> (v1.0.86) - @ThisCloudLoggingDesc</MudText>
+                    <MudText><strong>ThisCloud.Framework.Loggings</strong> (v1.0.94) - @ThisCloudLoggingDesc</MudText>
                 </MudListItem>
                 <MudListItem T="string" Icon="@Icons.Material.Filled.Description">
                     <MudText><strong>Serilog</strong> (Apache 2.0) - @SerilogDesc</MudText>
@@ -126,6 +138,11 @@
                     <MudText Typo="Typo.body2">@BsdSummary</MudText>
                     <MudChip T="string" Size="Size.Small" Class="mt-1">@BsdUsed</MudChip>
                 </MudTimelineItem>
+                <MudTimelineItem Color="Color.Primary" Elevation="1">
+                    <MudText Typo="Typo.h6">PostgreSQL License (Permissive)</MudText>
+                    <MudText Typo="Typo.body2">@PostgreSqlSummary</MudText>
+                    <MudChip T="string" Size="Size.Small" Class="mt-1">@PostgreSqlUsed</MudChip>
+                </MudTimelineItem>
             </MudTimeline>
 
             @* Compliance Statement *@
@@ -137,7 +154,7 @@
             @* Footer *@
             <MudDivider />
             <MudText Typo="Typo.caption" Align="Align.Center" Color="Color.Secondary">
-                @LastUpdatedLabel: February 25, 2026
+                @LastUpdatedLabel: @LastUpdated
             </MudText>
             <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Success">
                 💙 @ThankYouText

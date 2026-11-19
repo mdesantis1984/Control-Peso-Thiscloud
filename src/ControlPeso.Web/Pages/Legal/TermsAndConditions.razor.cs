@@ -158,15 +158,15 @@ public partial class TermsAndConditions
         : "Acepta indemnizar y eximir de responsabilidad a Control Peso Thiscloud de cualquier reclamo";
 
     private string LastUpdatedLabel => _isEnglish ? "Last Updated" : "Última Actualización";
-    private string LastUpdated => "February 25, 2026";
+    private string LastUpdated => LegalDateFormatter.Format(LegalDateFormatter.DocumentDate, _isEnglish);
     private string EffectiveDateLabel => _isEnglish ? "Effective Date" : "Fecha de Vigencia";
-    private string EffectiveDate => "February 25, 2026";
+    private string EffectiveDate => LegalDateFormatter.Format(LegalDateFormatter.DocumentDate, _isEnglish);
     private string Subtitle => _isEnglish ? "Weight Tracking Tool - For informational purposes only. Not medical advice." : "Herramienta de Seguimiento de Peso - Solo con fines informativos. No constituye asesoramiento médico.";
 
     protected override void OnInitialized()
     {
         // Default to Spanish
-        _isEnglish = false;
+        _isEnglish = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en";
     }
 
     private void ToggleLanguage()

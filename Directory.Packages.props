@@ -7,10 +7,10 @@
     <!-- MudBlazor UI Framework -->
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.3" />
     <PackageVersion Include="MudBlazor" Version="9.0.0" />
-    <!-- Entity Framework Core (Database First - SQLite + SQL Server) -->
+    <!-- Entity Framework Core (SQLite for tests + PostgreSQL via Npgsql) -->
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.3" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.3" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.3" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.3" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.3" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.3" />
@@ -40,9 +40,11 @@
     <!-- ThisCloud.Framework - Logging estructurado enterprise-grade -->
     <PackageVersion Include="ThisCloud.Framework.Loggings.Abstractions" Version="1.0.94" />
     <PackageVersion Include="ThisCloud.Framework.Loggings.Serilog" Version="1.0.94" />
-    <!-- Image Processing - SixLabors.ImageSharp -->
-    <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
-    <PackageVersion Include="SixLabors.ImageSharp.Web" Version="3.1.4" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.3" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.17.0" />
+    <!-- Image Processing - SkiaSharp (MIT) -->
+    <PackageVersion Include="SkiaSharp" Version="4.157.0" />
+    <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.157.0" />
   </ItemGroup>
   <ItemGroup Label="Testing Dependencies">
     <!-- Testing Framework -->
@@ -60,5 +62,14 @@
     <!-- Blazor Component Testing -->
     <PackageVersion Include="bunit" Version="1.34.7" />
     <PackageVersion Include="bunit.web" Version="1.34.7" />
+  </ItemGroup>
+  <ItemGroup Label="Transitive security pins (test-only dependencies)">
+    <!-- GHSA-2m69-gcr7-jv3q: SQLitePCLRaw.lib.e_sqlite3 <= 2.1.11 bundles a vulnerable SQLite (via EF Core Sqlite in tests). -->
+    <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.14" />
+    <PackageVersion Include="SQLitePCLRaw.core" Version="2.1.14" />
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.14" />
+    <PackageVersion Include="SQLitePCLRaw.provider.e_sqlite3" Version="2.1.14" />
+    <!-- GHSA-pgww-w46g-26qg: AngleSharp < 1.5.0 (via bUnit in Web tests). -->
+    <PackageVersion Include="AngleSharp" Version="1.5.0" />
   </ItemGroup>
 </Project>
