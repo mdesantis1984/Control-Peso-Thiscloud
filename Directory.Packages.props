@@ -42,9 +42,9 @@
     <PackageVersion Include="ThisCloud.Framework.Loggings.Serilog" Version="1.0.94" />
     <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.3" />
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.17.0" />
-    <!-- Image Processing - SixLabors.ImageSharp -->
-    <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
-    <PackageVersion Include="SixLabors.ImageSharp.Web" Version="3.1.4" />
+    <!-- Image Processing - SkiaSharp (MIT) -->
+    <PackageVersion Include="SkiaSharp" Version="4.157.0" />
+    <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.157.0" />
   </ItemGroup>
   <ItemGroup Label="Testing Dependencies">
     <!-- Testing Framework -->
