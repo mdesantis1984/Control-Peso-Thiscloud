@@ -170,7 +170,7 @@ public partial class Profile : IDisposable
 
     // Methods with placeholders
     private string GetMemberSinceText() => Localizer["MemberSince", _user?.MemberSince.ToString("MMMM yyyy") ?? string.Empty];
-    private string GetErrorUploadingPhoto(string error) => Localizer["ErrorUploadingPhoto", error];
+    private string ErrorUploadingPhoto => Localizer["ErrorUploadingPhoto"];
 
     // ========================================================================
     // LIFECYCLE METHODS
@@ -823,7 +823,7 @@ public partial class Profile : IDisposable
         catch (Exception ex)
         {
             Logger.LogError(ex, "Profile: Error saving avatar - UserId: {UserId}", _user.Id);
-            Snackbar.Add(GetErrorUploadingPhoto(ex.Message), Severity.Error);
+            Snackbar.Add(ErrorUploadingPhoto, Severity.Error); // details stay in the log, never in the UI
         }
         finally
         {

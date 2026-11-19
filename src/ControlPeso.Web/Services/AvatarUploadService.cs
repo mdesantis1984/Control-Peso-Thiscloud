@@ -63,7 +63,7 @@ public sealed partial class AvatarUploadService : IAvatarUploadService
     private const int Quality = 85;
     private const string UrlPrefix = "/uploads/avatars/";
 
-    [GeneratedRegex(@"^/uploads/avatars/[A-Za-z0-9_\-.]+\.webp$", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"^/uploads/avatars/[A-Za-z0-9_\-.]+\.webp\z", RegexOptions.CultureInvariant)]
     private static partial Regex LocalAvatarUrlRegex();
 
     private readonly IImageProcessingService _imageProcessing;

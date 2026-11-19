@@ -190,6 +190,18 @@ public sealed class AvatarUploadServiceTests : IDisposable
         _sut.TryDeleteLocalAvatar("/uploads/avatars/missing.webp").Should().BeFalse();
     }
 
+    [Fact]
+    public void TryDeleteLocalAvatar_TrailingNewline_DeletesNothing()
+    {
+        var avatars = Path.Combine(_webRoot, "uploads", "avatars");
+        Directory.CreateDirectory(avatars);
+        var keep = Path.Combine(avatars, "keep.webp");
+        File.WriteAllBytes(keep, [1]);
+
+        _sut.TryDeleteLocalAvatar("/uploads/avatars/keep.webp\n").Should().BeFalse();
+        File.Exists(keep).Should().BeTrue();
+    }
+
     [Theory]
     [InlineData("/uploads/avatars/../../appsettings.json")]
     [InlineData("/uploads/avatars/../../secret.webp")]

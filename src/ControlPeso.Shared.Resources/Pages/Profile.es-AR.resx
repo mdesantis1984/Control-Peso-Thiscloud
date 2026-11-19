@@ -67,7 +67,7 @@
   <data name="ErrorChangingNotificationPreference" xml:space="preserve"><value>Error al cambiar preferencia de notificaciones</value></data>
   <data name="ErrorSigningOut" xml:space="preserve"><value>Error al cerrar sesión</value></data>
   <data name="ErrorDeletingAccount" xml:space="preserve"><value>Error al eliminar la cuenta</value></data>
-  <data name="ErrorUploadingPhoto" xml:space="preserve"><value>Error al subir la foto: {0}</value><comment>{0} = error message</comment></data>
+  <data name="ErrorUploadingPhoto" xml:space="preserve"><value>No se pudo subir la foto. Intente nuevamente.</value></data>
 
   <!-- Success Messages -->
   <data name="ProfileSavedSuccess" xml:space="preserve"><value>Cambios guardados correctamente</value></data>
