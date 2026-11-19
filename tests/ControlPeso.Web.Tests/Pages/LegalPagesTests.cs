@@ -91,6 +91,46 @@ public sealed class LegalPagesTests : TestContext
     }
 
     [Theory]
+    [InlineData("es-AR", "19 de noviembre de 2026")]
+    [InlineData("en-US", "November 19, 2026")]
+    public void Changelog_ShouldShowTheCurrentVersionWithItsReleaseDate(string culture, string datePart)
+    {
+        var cut = Render<Changelog>(culture);
+
+        cut.Markup.Should().Contain("v1.3.0 - ");
+        cut.Markup.Should().Contain(datePart);
+        cut.Markup.Should().Contain("v1.3.0-initial - February 25, 2026");
+        cut.Markup.Should().Contain("PostgreSQL 15");
+        cut.Markup.Should().Contain("SkiaSharp");
+    }
+
+    [Theory]
+    [InlineData("es-AR")]
+    [InlineData("en-US")]
+    public void ThirdPartyLicenses_ShouldListSkiaSharpAndPostgreSql_WithoutLegacyProviders(string culture)
+    {
+        var cut = Render<ThirdPartyLicenses>(culture);
+
+        cut.Markup.Should().Contain("SkiaSharp");
+        cut.Markup.Should().Contain("Npgsql.EntityFrameworkCore.PostgreSQL");
+        cut.Markup.Should().NotContain("ImageSharp");
+        cut.Markup.Should().NotContain("SQL Server");
+        cut.Markup.Should().NotContain("SQLite");
+        cut.Markup.Should().NotContain("Telegram");
+    }
+
+    [Theory]
+    [InlineData("es-AR", "PostgreSQL con controles de acceso")]
+    [InlineData("en-US", "PostgreSQL with access controls")]
+    public void PrivacyPolicy_ShouldDescribeThePostgreSqlDatabase(string culture, string expected)
+    {
+        var cut = Render<PrivacyPolicy>(culture);
+
+        cut.Markup.Should().Contain(expected);
+        cut.Markup.Should().NotContain("SQL Server");
+    }
+
+    [Theory]
     [InlineData(typeof(PrivacyPolicy))]
     [InlineData(typeof(TermsAndConditions))]
     [InlineData(typeof(ThirdPartyLicenses))]

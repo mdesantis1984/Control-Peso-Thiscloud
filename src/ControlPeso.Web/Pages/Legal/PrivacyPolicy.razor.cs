@@ -88,8 +88,8 @@ public partial class PrivacyPolicy
 
     private string DatabaseLabel => _isEnglish ? "Database Security" : "Seguridad de Base de Datos";
     private string DatabaseDetails => _isEnglish
-        ? "SQL Server with access controls and encryption at rest"
-        : "SQL Server con controles de acceso y cifrado en reposo";
+        ? "PostgreSQL with access controls and encryption at rest"
+        : "PostgreSQL con controles de acceso y cifrado en reposo";
 
     private string AuthenticationLabel => _isEnglish ? "Authentication" : "Autenticación";
     private string AuthenticationDetails => _isEnglish
