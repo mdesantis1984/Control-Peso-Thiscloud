@@ -56,7 +56,7 @@ Rules that hold in the code today:
 | Framework | .NET 10 (`net10.0`), C# latest, Blazor Server (`InteractiveServer`) |
 | UI | MudBlazor 9.0.0 (Material Design) |
 | Database | **PostgreSQL 15** through EF Core 10 + `Npgsql.EntityFrameworkCore.PostgreSQL` 10 |
-| Authentication | Cookie auth + Google OAuth 2.0 (login). LinkedIn OAuth is supported by the code but only registered when `Authentication:LinkedIn:ClientId` is configured |
+| Authentication | Cookie auth + Google OAuth 2.0 (login) |
 | Validation | FluentValidation 12 |
 | Logging | Serilog through `ThisCloud.Framework.Loggings.Serilog` (Console + rolling NDJSON file, PII redaction, correlation id) |
 | Images | SkiaSharp 4.157 (MIT) + `SkiaSharp.NativeAssets.Linux.NoDependencies` |
@@ -85,7 +85,7 @@ ControlPeso.slnx
 │   │   └── Services/           WeightLogService, UserService, TrendService, AdminService, AvatarHelper
 │   ├── ControlPeso.Infrastructure/
 │   │   ├── ControlPesoDbContext.cs, ControlPesoDbContextFactory.cs
-│   │   ├── Migrations/         EF Core migrations (InitialPostgreSql)
+│   │   ├── Migrations/         EF Core migrations (InitialPostgreSql, RemoveLinkedInId)
 │   │   ├── Data/               IDbSeeder, DbSeeder (not registered: the app never seeds data)
 │   │   ├── Services/           ImageProcessingService, LocalPhotoStorageService,
 │   │   │                       UserNotificationService, UserPreferencesService
@@ -108,7 +108,7 @@ ControlPeso.slnx
 └── Directory.Packages.props    Central Package Management
 ```
 
-Routes: `/` (Home), `/login`, `/logout`, `/dashboard`, `/history`, `/trends`, `/profile`, `/admin`, `/privacy`, `/terms`, `/changelog`, `/licenses` (Spanish aliases `/privacidad`, `/terminos`, `/historial`, `/licencias`), `/diag-auth`, `/Error`. Minimal API endpoints: `/api/auth/login/google`, `/api/auth/login/linkedin`, `/api/auth/logout`, `/robots.txt`, `/sitemap.xml`, `/health`, `/health/ready`.
+Routes: `/` (Home), `/login`, `/logout`, `/dashboard`, `/history`, `/trends`, `/profile`, `/admin`, `/privacy`, `/terms`, `/changelog`, `/licenses` (Spanish aliases `/privacidad`, `/terminos`, `/historial`, `/licencias`), `/diag-auth`, `/Error`. Minimal API endpoints: `/api/auth/login/google`, `/api/auth/logout`, `/robots.txt`, `/sitemap.xml`, `/health`, `/health/ready`.
 
 ## Request Pipeline
 

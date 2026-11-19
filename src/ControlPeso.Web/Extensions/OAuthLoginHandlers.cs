@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Authentication.OAuth;
 namespace ControlPeso.Web.Extensions;
 
 /// <summary>
-/// Shared OAuth event handlers for Google and LinkedIn: map provider claims to a local user
+/// Shared OAuth event handlers for the Google sign-in: map provider claims to a local user
 /// (by provider id, never by an unverified email) and turn any failure into a login redirect.
 /// </summary>
 public static class OAuthLoginHandlers

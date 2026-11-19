@@ -37,14 +37,13 @@ public sealed class UserServiceOAuthIdentityTests : IDisposable
         _cache.Dispose();
     }
 
-    private async Task<Guid> SeedAsync(string email, string? googleId = null, string? linkedInId = null, string name = "Seeded")
+    private async Task<Guid> SeedAsync(string email, string? googleId = null, string name = "Seeded")
     {
         await using var context = new TestDbContext(_options);
         var user = new Users
         {
             Id = Guid.NewGuid(),
             GoogleId = googleId,
-            LinkedInId = linkedInId,
             Name = name,
             Email = email,
             Role = (int)UserRole.Administrator,
@@ -125,37 +124,30 @@ public sealed class UserServiceOAuthIdentityTests : IDisposable
         var users = await AllUsersAsync();
         users.Should().ContainSingle();
         users[0].GoogleId.Should().Be("g-new");
-        users[0].LinkedInId.Should().BeNull();
     }
 
     [Fact]
-    public async Task UnknownLinkedInId_WithVerifiedEmailOfExistingUser_LinksThatUser()
-    {
-        var id = await SeedAsync("person@example.com", googleId: "g-1");
-
-        var result = await _service.CreateOrUpdateFromOAuthAsync(Info("LinkedIn", "li-new", "person@example.com", verified: true));
-
-        result.Id.Should().Be(id);
-        var users = await AllUsersAsync();
-        users.Should().ContainSingle();
-        users[0].LinkedInId.Should().Be("li-new");
-        users[0].GoogleId.Should().Be("g-1");
-    }
-
-    [Theory]
-    [InlineData("Google")]
-    [InlineData("LinkedIn")]
-    public async Task UnknownProviderId_WithUnverifiedEmailOfExistingUser_FailsAndLeavesUserUntouched(string provider)
+    public async Task UnknownGoogleId_WithUnverifiedEmailOfExistingUser_FailsAndLeavesUserUntouched()
     {
         await SeedAsync("victim@example.com");
 
-        var act = async () => await _service.CreateOrUpdateFromOAuthAsync(Info(provider, "attacker-id", "victim@example.com", verified: false));
+        var act = async () => await _service.CreateOrUpdateFromOAuthAsync(Info("Google", "attacker-id", "victim@example.com", verified: false));
 
         await act.Should().ThrowAsync<OAuthLoginException>();
         var users = await AllUsersAsync();
         users.Should().ContainSingle();
         users[0].GoogleId.Should().BeNull();
-        users[0].LinkedInId.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData("LinkedIn")]
+    [InlineData("Facebook")]
+    public async Task UnsupportedProvider_IsRejectedAndCreatesNoUser(string provider)
+    {
+        var act = async () => await _service.CreateOrUpdateFromOAuthAsync(Info(provider, "ext-1", "person@example.com", verified: true));
+
+        await act.Should().ThrowAsync<NotSupportedException>();
+        (await AllUsersAsync()).Should().BeEmpty();
     }
 
     [Fact]

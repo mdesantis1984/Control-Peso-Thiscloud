@@ -153,3 +153,21 @@ BEGIN
 END $EF$;
 COMMIT;
 
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261119193552_RemoveLinkedInId') THEN
+    ALTER TABLE "Users" DROP COLUMN "LinkedInId";
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261119193552_RemoveLinkedInId') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261119193552_RemoveLinkedInId', '10.0.3');
+    END IF;
+END $EF$;
+COMMIT;
+

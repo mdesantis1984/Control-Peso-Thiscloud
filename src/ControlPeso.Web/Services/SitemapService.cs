@@ -336,13 +336,9 @@ public sealed class SitemapService
         // ============================================
         sb.AppendLine("# ============================================");
         sb.AppendLine("# AI CRAWLERS - TIER 6: SOCIAL MEDIA AI");
-        sb.AppendLine("# LinkedIn, Pinterest, Instagram, Reddit");
+        sb.AppendLine("# Pinterest, Instagram, Reddit");
         sb.AppendLine("# ============================================");
         sb.AppendLine();
-
-        // LinkedIn AI (LinkedIn Learning, Recruiter AI)
-        AddAiCrawlerRules(sb, "LinkedIn AI (LinkedIn Learning, Recruiter AI)", 
-            ["LinkedInBot"], 3);
 
         // Pinterest AI (Visual search, recommendations)
         AddAiCrawlerRules(sb, "Pinterest AI (Visual search, product recommendations)", 
@@ -543,7 +539,7 @@ public sealed class SitemapService
         // Tier 3: 4 providers (Perplexity, You.com, Brave, DuckDuckGo)
         // Tier 4: 5 providers (Common Crawl, Cohere, AI2, Diffbot, ImagesiftBot)
         // Tier 5: 5 providers (Baidu, ByteDance, Naver, Yandex, Sogou)
-        // Tier 6: 5 providers (LinkedIn, Pinterest, Instagram, Reddit, Quora)
+        // Tier 6: 4 providers (Pinterest, Instagram, Reddit, Quora)
         // Tier 7: 4 providers (Telegram, WhatsApp, Slack, Discord)
         // Tier 8: 4 providers (Salesforce, Anthropic Research, Hugging Face, OpenAI Research)
         // Total: 35 AI providers with 50+ user-agent variants

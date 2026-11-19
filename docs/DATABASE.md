@@ -31,7 +31,7 @@ All ids are `uuid` (default `gen_random_uuid()`); all timestamps are `timestamp 
 | Column | Type | Notes |
 |--------|------|-------|
 | `Id` | uuid | PK |
-| `GoogleId`, `LinkedInId` | text, nullable | OAuth subject ids (LinkedIn login is disabled in the UI) |
+| `GoogleId` | text, nullable | Google OAuth subject id |
 | `Name` | text | |
 | `Email` | **citext**, unique | Case-insensitive; requires the `citext` extension |
 | `Role` | integer | 0 = User, 1 = Administrator |

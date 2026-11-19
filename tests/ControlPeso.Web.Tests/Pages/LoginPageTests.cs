@@ -69,4 +69,16 @@ public sealed class LoginPageTests : TestContext
 
         cut.FindAll("h1").Should().ContainSingle();
     }
+
+    [Theory]
+    [InlineData("es-AR")]
+    [InlineData("en-US")]
+    public void ShouldOfferGoogleOnly_WithoutAnyLinkedInOption(string culture)
+    {
+        var cut = Render(culture, "");
+
+        cut.Markup.Should().Contain("login-google-button");
+        cut.Markup.Should().NotContainEquivalentOf("linkedin");
+        cut.FindAll("button, a[href]").Should().NotContain(e => e.OuterHtml.Contains("linkedin", StringComparison.OrdinalIgnoreCase));
+    }
 }

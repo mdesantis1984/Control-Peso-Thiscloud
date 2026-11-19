@@ -126,22 +126,6 @@ public sealed class OAuthLoginHandlersTests
             It.Is<OAuthUserInfo>(i => i.Name == "a@example.com"), It.IsAny<CancellationToken>()), Times.Once);
     }
 
-    [Fact]
-    public async Task CreatingTicket_LinkedInReadsSubClaim()
-    {
-        var users = UserServiceReturning(StoredUser());
-        var context = TicketContext(users, """{"sub":"li-9","email":"a@example.com","email_verified":true}""",
-            new Claim("sub", "li-9"),
-            new Claim("email", "a@example.com"),
-            new Claim("name", "Ann"));
-
-        await OAuthLoginHandlers.OnCreatingTicketAsync(context, "LinkedIn");
-
-        users.Verify(s => s.CreateOrUpdateFromOAuthAsync(
-            It.Is<OAuthUserInfo>(i => i.Provider == "LinkedIn" && i.ExternalId == "li-9" && i.EmailVerified),
-            It.IsAny<CancellationToken>()), Times.Once);
-    }
-
     [Theory]
     [InlineData("subject")]
     [InlineData("email")]
@@ -203,31 +187,47 @@ public sealed class OAuthLoginHandlersTests
         context.Result!.Handled.Should().BeTrue();
     }
 
-    [Fact]
-    public async Task AddOAuthAuthentication_WiresFailureHandlingForBothProviders()
+    private static IServiceCollection AuthServices(bool withLinkedInConfig)
     {
-        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        var settings = new Dictionary<string, string?>
         {
             ["Authentication:Google:ClientId"] = "google-id",
-            ["Authentication:Google:ClientSecret"] = "google-secret",
-            ["Authentication:LinkedIn:ClientId"] = "linkedin-id",
-            ["Authentication:LinkedIn:ClientSecret"] = "linkedin-secret"
-        }).Build();
+            ["Authentication:Google:ClientSecret"] = "google-secret"
+        };
+        if (withLinkedInConfig)
+        {
+            // Leftover configuration from the removed sign-in must be ignored.
+            settings["Authentication:LinkedIn:ClientId"] = "linkedin-id";
+            settings["Authentication:LinkedIn:ClientSecret"] = "linkedin-secret";
+        }
+
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(settings).Build();
         var services = new ServiceCollection().AddLogging();
         services.AddOAuthAuthentication(configuration);
-        await using var provider = services.BuildServiceProvider();
+        return services;
+    }
+
+    [Fact]
+    public async Task AddOAuthAuthentication_WiresFailureHandlingForGoogle()
+    {
+        await using var provider = AuthServices(withLinkedInConfig: false).BuildServiceProvider();
 
         var google = provider.GetRequiredService<IOptionsMonitor<GoogleOptions>>().Get("Google");
-        var linkedIn = provider.GetRequiredService<IOptionsMonitor<AspNet.Security.OAuth.LinkedIn.LinkedInAuthenticationOptions>>()
-            .Get(AspNet.Security.OAuth.LinkedIn.LinkedInAuthenticationDefaults.AuthenticationScheme);
 
-        foreach (var options in new OAuthOptions[] { google, linkedIn })
-        {
-            var context = FailureContext();
-            await options.Events.OnRemoteFailure(context);
+        var context = FailureContext();
+        await google.Events.OnRemoteFailure(context);
 
-            context.Response.Headers.Location.ToString().Should().Be("/login?error=oauth_failed");
-            context.Result!.Handled.Should().BeTrue();
-        }
+        context.Response.Headers.Location.ToString().Should().Be("/login?error=oauth_failed");
+        context.Result!.Handled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task AddOAuthAuthentication_RegistersOnlyCookieAndGoogle_EvenWhenLinkedInIsConfigured()
+    {
+        await using var provider = AuthServices(withLinkedInConfig: true).BuildServiceProvider();
+
+        var schemes = await provider.GetRequiredService<IAuthenticationSchemeProvider>().GetAllSchemesAsync();
+
+        schemes.Select(s => s.Name).Should().BeEquivalentTo(["Cookies", "Google"]);
     }
 }

@@ -56,7 +56,7 @@ internal sealed class UserClaimsTransformation : IClaimsTransformation
 
         try
         {
-            // Obtener email del claim OAuth (Google o LinkedIn)
+            // Obtener email del claim OAuth (Google)
             var email = principal.FindFirst(ClaimTypes.Email)?.Value;
             if (string.IsNullOrWhiteSpace(email))
             {
@@ -77,7 +77,7 @@ internal sealed class UserClaimsTransformation : IClaimsTransformation
             _logger.LogInformation("UserClaimsTransformation: User found in DB - UserId: {UserId}, Email: {Email}",
                 user.Id, user.Email);
 
-            // CRÍTICO: REMOVER claim NameIdentifier existente (GoogleId/LinkedInId del proveedor OAuth)
+            // CRÍTICO: REMOVER claim NameIdentifier existente (GoogleId del proveedor OAuth)
             var existingNameIdentifier = identity.FindFirst(ClaimTypes.NameIdentifier);
             if (existingNameIdentifier != null)
             {

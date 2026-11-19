@@ -24,6 +24,14 @@ y este proyecto se adhiere al [Versionado Semántico](https://semver.org/lang/es
 
 ---
 
+## [9.0.3] - 2026-11-19
+
+### Eliminado
+
+- 🗑️ **Inicio de sesión con LinkedIn**, que nunca estuvo habilitado; se eliminaron su columna en la base de datos y su dependencia.
+
+---
+
 ## [9.0.2] - 2026-11-19
 
 ### Corregido

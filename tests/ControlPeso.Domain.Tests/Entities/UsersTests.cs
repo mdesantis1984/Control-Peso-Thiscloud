@@ -34,20 +34,6 @@ public class UsersTests
     }
 
     [Fact]
-    public void Users_ShouldSetAndGetLinkedInId()
-    {
-        // Arrange
-        var user = new Users();
-        const string linkedInId = "linkedin-123";
-
-        // Act
-        user.LinkedInId = linkedInId;
-
-        // Assert
-        user.LinkedInId.Should().Be(linkedInId);
-    }
-
-    [Fact]
     public void Users_ShouldSetAndGetName()
     {
         // Arrange

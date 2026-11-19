@@ -24,6 +24,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [9.0.3] - 2026-11-19
+
+### Removed
+
+- 🗑️ **LinkedIn sign-in**, which was never enabled; its database column and dependency were removed.
+
+---
+
 ## [9.0.2] - 2026-11-19
 
 ### Fixed

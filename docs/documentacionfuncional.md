@@ -19,7 +19,7 @@ Qué hace la aplicación, qué reglas aplica y cómo se prueba. La arquitectura 
 | Ruta | Acceso | Descripción |
 |------|--------|-------------|
 | `/` | Público | Página de inicio. |
-| `/login`, `/logout` | Público / autenticado | Inicio de sesión con Google (único método; LinkedIn solo si está configurado). La sesión persiste 30 días con renovación deslizante. |
+| `/login`, `/logout` | Público / autenticado | Inicio de sesión con Google (único método). La sesión persiste 30 días con renovación deslizante. |
 | `/dashboard` | Autenticado | Resumen: peso actual, cambio, progreso hacia el objetivo, tendencia y gráfico; alta rápida de registros. |
 | `/history` | Autenticado | Historial paginado de registros de peso con filtros, edición y borrado. |
 | `/trends` | Autenticado | Análisis de tendencias (promedios, variaciones y proyección) por período. |

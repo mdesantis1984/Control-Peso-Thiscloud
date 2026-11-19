@@ -118,7 +118,7 @@ public sealed class ServiceCollectionExtensionsTests : IDisposable
     }
 
     // NOTE: IDbSeeder test removed - service was intentionally removed from Infrastructure
-    // App works ONLY with real OAuth users (Google/LinkedIn), no fake/demo data seeding
+    // App works ONLY with real OAuth users (Google), no fake/demo data seeding
 
     [Fact]
     public void AddInfrastructureServices_ShouldRegisterUserPreferencesService_WhenCalled()
