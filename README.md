@@ -169,7 +169,7 @@ La imagen Docker ejecuta la aplicación como usuario no root (`app`, UID 1654) e
 
 ## Licencia y contacto
 
-El repositorio no incluye un archivo de licencia; las dependencias de terceros y sus licencias están en [docs/legal/THIRD_PARTY_LICENSES.es.md](docs/legal/THIRD_PARTY_LICENSES.es.md). © Thiscloud Services.
+El código se distribuye bajo la [licencia MIT](LICENSE). Las dependencias de terceros y sus licencias están en [docs/legal/THIRD_PARTY_LICENSES.es.md](docs/legal/THIRD_PARTY_LICENSES.es.md). © 2026 Thiscloud Services.
 
 - Web: <https://thiscloud.com.ar>
 - Correo: <contacto@thiscloud.com.ar>

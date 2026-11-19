@@ -12,7 +12,8 @@
     <Product>ControlPeso Thiscloud</Product>
     <Company>Thiscloud Services</Company>
     <Authors>Thiscloud Team</Authors>
-    <Copyright>© 2026 Thiscloud Services. All rights reserved.</Copyright>
+    <Copyright>© 2026 Thiscloud Services. Licensed under the MIT License.</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>Aplicación web de control de peso corporal con Blazor Server y MudBlazor</Description>
 
     <!-- Análisis de código -->
