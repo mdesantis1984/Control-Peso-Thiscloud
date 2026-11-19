@@ -97,15 +97,6 @@ This document lists all third-party dependencies, their licenses, and our acknow
 - **Purpose**: Google OAuth 2.0 authentication integration
 - **Acknowledgment**: Thank you for simplifying secure authentication with Google accounts.
 
-### AspNet.Security.OAuth.LinkedIn
-
-- **Project**: [AspNet.Security.OAuth.Providers](https://github.com/aspnet-contrib/AspNet.Security.OAuth.Providers)
-- **Version**: 10.0.0
-- **License**: Apache License 2.0
-- **Copyright**: © .NET Foundation and Contributors
-- **Purpose**: LinkedIn OAuth provider (registered only when configured; Google is the primary sign-in)
-- **Acknowledgment**: Thank you to the aspnet-contrib community for the OAuth providers.
-
 ### Google Identity Platform
 
 - **Service**: [Google Identity](https://developers.google.com/identity)
@@ -332,7 +323,7 @@ Used by: .NET, EF Core, MudBlazor, SkiaSharp, Testcontainers, xUnit, bUnit, gith
 
 ### Apache License 2.0 (Permissive)
 
-Used by: FluentValidation, FluentAssertions, Serilog, AspNet.Security.OAuth.LinkedIn, CsvHelper (dual-licensed), xUnit (dual-licensed), Docker
+Used by: FluentValidation, FluentAssertions, Serilog, CsvHelper (dual-licensed), xUnit (dual-licensed), Docker
 
 **Summary**: Similar to MIT but includes explicit patent grants. Requires preservation of copyright notice, disclaimer, and attribution notices.
 

@@ -165,7 +165,7 @@ builder.Services.AddScoped<ControlPeso.Web.Services.IAvatarUploadService, Contro
 // 6.9. Add health checks (database readiness)
 builder.Services.AddApplicationHealthChecks();
 
-// 7. Add Authentication & Authorization (Google OAuth + LinkedIn OAuth)
+// 7. Add Authentication & Authorization (Google OAuth)
 builder.Services.AddOAuthAuthentication(builder.Configuration);
 
 // 8. Add Claims Transformation (populate custom claims from DB after OAuth login)

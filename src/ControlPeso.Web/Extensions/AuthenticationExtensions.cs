@@ -4,12 +4,12 @@ using Microsoft.AspNetCore.Authentication.OAuth;
 namespace ControlPeso.Web.Extensions;
 
 /// <summary>
-/// Extensiones para configurar autenticación OAuth 2.0 (Google + LinkedIn).
+/// Extensiones para configurar autenticación OAuth 2.0 (Google).
 /// </summary>
 public static class AuthenticationExtensions
 {
     /// <summary>
-    /// Configura autenticación con Cookie + Google OAuth + LinkedIn OAuth.
+    /// Configura autenticación con Cookie + Google OAuth.
     /// </summary>
     /// <param name="services">Service collection.</param>
     /// <param name="configuration">Configuration con sección Authentication.</param>
@@ -36,17 +36,10 @@ public static class AuthenticationExtensions
             authBuilder.AddGoogle("Google", options => ConfigureGoogleOptions(options, configuration));
         }
 
-        // 3. Agregar LinkedIn OAuth (solo si está configurado - OPCIONAL)
-        var linkedInClientId = configuration.GetValue<string>("Authentication:LinkedIn:ClientId");
-        if (!string.IsNullOrWhiteSpace(linkedInClientId))
-        {
-            authBuilder.AddLinkedIn(options => ConfigureLinkedInOptions(options, configuration));
-        }
-
-        // 4. Agregar servicios de autorización
+        // 3. Agregar servicios de autorización
         services.AddAuthorization();
 
-        // 5. Agregar cascading authentication state para Blazor
+        // 4. Agregar cascading authentication state para Blazor
         services.AddCascadingAuthenticationState();
 
         return services;
@@ -93,36 +86,6 @@ public static class AuthenticationExtensions
         options.Events = new OAuthEvents
         {
             OnCreatingTicket = context => OAuthLoginHandlers.OnCreatingTicketAsync(context, "Google"),
-            OnRemoteFailure = OAuthLoginHandlers.OnRemoteFailureAsync
-        };
-    }
-
-    /// <summary>
-    /// Configura opciones de LinkedIn OAuth.
-    /// </summary>
-    private static void ConfigureLinkedInOptions(
-        AspNet.Security.OAuth.LinkedIn.LinkedInAuthenticationOptions options,
-        IConfiguration configuration)
-    {
-        var linkedInConfig = configuration.GetSection("Authentication:LinkedIn");
-
-        options.ClientId = linkedInConfig["ClientId"]
-            ?? throw new InvalidOperationException("LinkedIn ClientId not configured in appsettings.json");
-
-        options.ClientSecret = linkedInConfig["ClientSecret"]
-            ?? throw new InvalidOperationException("LinkedIn ClientSecret not configured in appsettings.json");
-
-        options.SaveTokens = true;
-
-        // Scopes para obtener información del usuario de LinkedIn
-        options.Scope.Add("openid");
-        options.Scope.Add("profile");
-        options.Scope.Add("email");
-
-        // Callback after the provider authenticated the user; any failure ends in OnRemoteFailure
-        options.Events = new OAuthEvents
-        {
-            OnCreatingTicket = context => OAuthLoginHandlers.OnCreatingTicketAsync(context, "LinkedIn"),
             OnRemoteFailure = OAuthLoginHandlers.OnRemoteFailureAsync
         };
     }

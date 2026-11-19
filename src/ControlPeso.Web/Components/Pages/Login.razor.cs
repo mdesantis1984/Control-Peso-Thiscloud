@@ -5,7 +5,7 @@ using Microsoft.Extensions.Localization;
 namespace ControlPeso.Web.Components.Pages;
 
 /// <summary>
-/// Página de autenticación OAuth con Google y LinkedIn.
+/// Página de autenticación OAuth con Google.
 /// Diseño pixel perfect basado en prototipo Google AI Studio.
 /// </summary>
 public partial class Login
@@ -94,20 +94,6 @@ public partial class Login
         var returnUrl = NavigationManager.ToAbsoluteUri("/").ToString();
         NavigationManager.NavigateTo(
             $"/api/auth/login/google?returnUrl={Uri.EscapeDataString(returnUrl)}",
-            forceLoad: true);
-    }
-
-    /// <summary>
-    /// Inicia el flujo de autenticación con LinkedIn OAuth.
-    /// Redirige al endpoint Challenge de ASP.NET Core Authentication.
-    /// </summary>
-    private void LoginWithLinkedIn()
-    {
-        // Endpoint OAuth Challenge para LinkedIn
-        // El middleware de autenticación manejará el redirect a LinkedIn OAuth
-        var returnUrl = NavigationManager.ToAbsoluteUri("/").ToString();
-        NavigationManager.NavigateTo(
-            $"/api/auth/login/linkedin?returnUrl={Uri.EscapeDataString(returnUrl)}",
             forceLoad: true);
     }
 }

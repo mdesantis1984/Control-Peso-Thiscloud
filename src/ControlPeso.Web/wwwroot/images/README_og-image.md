@@ -17,9 +17,9 @@ Do not rename or delete the file without updating those references (a missing fi
 
 | Property | Value |
 |----------|-------|
-| Dimensions | 1200 x 630 px (the ratio Facebook, LinkedIn and X expect for large previews) |
+| Dimensions | 1200 x 630 px (the ratio Facebook and X expect for large previews) |
 | Format | PNG or JPEG |
 | Size | Under 300 KB |
 | Content | Logo, short tagline, dark background consistent with the app theme |
 
-After replacing it, check the previews with the Facebook Sharing Debugger, the LinkedIn Post Inspector and a Twitter/X card validator. Social networks cache the previous image, so use the debugger tools to refresh it.
+After replacing it, check the previews with the Facebook Sharing Debugger and a Twitter/X card validator. Social networks cache the previous image, so use the debugger tools to refresh it.

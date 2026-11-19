@@ -124,11 +124,11 @@
     <comment>Título de la página mostrado en la pestaña del navegador</comment>
   </data>
   <data name="MetaDescription" xml:space="preserve">
-    <value>Inicia sesión en Control Peso Thiscloud con tu cuenta de Google o LinkedIn para comenzar a llevar un registro detallado de tu peso y alcanzar tus objetivos de salud.</value>
+    <value>Inicia sesión en Control Peso Thiscloud con tu cuenta de Google para comenzar a llevar un registro detallado de tu peso y alcanzar tus objetivos de salud.</value>
     <comment>Meta descripción para SEO</comment>
   </data>
   <data name="MetaKeywords" xml:space="preserve">
-    <value>control peso, iniciar sesión, login, Google, LinkedIn, seguimiento peso, salud</value>
+    <value>control peso, iniciar sesión, login, Google, seguimiento peso, salud</value>
     <comment>Meta keywords para SEO</comment>
   </data>
   <data name="OgTitle" xml:space="preserve">
@@ -136,7 +136,7 @@
     <comment>Open Graph title para redes sociales</comment>
   </data>
   <data name="OgDescription" xml:space="preserve">
-    <value>Inicia sesión con Google o LinkedIn y comienza a controlar tu peso de forma inteligente</value>
+    <value>Inicia sesión con Google y comienza a controlar tu peso de forma inteligente</value>
     <comment>Open Graph description para redes sociales</comment>
   </data>
   <data name="TwitterTitle" xml:space="preserve">
@@ -144,7 +144,7 @@
     <comment>Twitter Card title</comment>
   </data>
   <data name="TwitterDescription" xml:space="preserve">
-    <value>Inicia sesión con Google o LinkedIn y comienza a controlar tu peso de forma inteligente</value>
+    <value>Inicia sesión con Google y comienza a controlar tu peso de forma inteligente</value>
     <comment>Twitter Card description</comment>
   </data>
   

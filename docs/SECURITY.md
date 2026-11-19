@@ -28,8 +28,6 @@ Security model of the application as implemented. Operational details (secrets, 
 5. `UserClaimsTransformation` adds application claims on each request: `UserId`, role, `UserStatus` and `Language`.
 6. The post-login redirect only accepts local paths (`ToLocalUrl` rejects absolute URLs and forms such as `//host`).
 
-LinkedIn is implemented in the backend (`/api/auth/login/linkedin`) but is registered only if `Authentication:LinkedIn:ClientId` is configured, and the UI offers Google only.
-
 ### Cookie
 
 ```csharp
@@ -73,7 +71,7 @@ default-src 'self';
 script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com [+ https://www.googletagmanager.com];
 style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
 font-src 'self' https://fonts.gstatic.com;
-img-src 'self' data: https://*.googleusercontent.com https://*.licdn.com https://flagcdn.com [+ https://www.googletagmanager.com https://*.google-analytics.com];
+img-src 'self' data: https://*.googleusercontent.com https://flagcdn.com [+ https://www.googletagmanager.com https://*.google-analytics.com];
 connect-src 'self' wss: https://cloudflareinsights.com [+ https://www.googletagmanager.com https://*.google-analytics.com];
 frame-ancestors 'none';
 base-uri 'self';
@@ -89,7 +87,7 @@ The bracketed Google entries are added **only** when `GoogleAnalytics:Measuremen
 
 | Policy | Limit | Window | Applied to |
 |--------|-------|--------|------------|
-| `oauth` | 5 requests per IP | 1 minute | `/api/auth/login/google`, `/api/auth/login/linkedin` |
+| `oauth` | 5 requests per IP | 1 minute | `/api/auth/login/google` |
 | `fixed` | 10 requests per IP | 1 minute | Defined; use `RequireRateLimiting("fixed")` where needed |
 
 Exceeding the limit returns `429 Too Many Requests`. `/health` is excluded. Behind a proxy the client IP comes from `X-Forwarded-For`, accepted only from the networks in `ForwardedHeaders:KnownNetworks` / `KnownProxies` (see [DEPLOYMENT.md](DEPLOYMENT.md)).

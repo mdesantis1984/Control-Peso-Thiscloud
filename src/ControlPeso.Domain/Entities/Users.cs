@@ -6,8 +6,6 @@ public partial class Users
 
     public string? GoogleId { get; set; }
 
-    public string? LinkedInId { get; set; }
-
     public string Name { get; set; } = null!;
 
     public string Email { get; set; } = null!;

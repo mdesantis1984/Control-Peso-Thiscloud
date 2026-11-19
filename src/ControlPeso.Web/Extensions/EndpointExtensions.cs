@@ -9,7 +9,7 @@ public static class EndpointExtensions
 {
     /// <summary>
     /// Registra todos los endpoints de autenticación OAuth.
-    /// Incluye Challenge endpoints para Google y LinkedIn.
+    /// Incluye el Challenge endpoint de Google.
     /// </summary>
     /// <param name="app">WebApplication instance.</param>
     /// <returns>WebApplication para chaining.</returns>
@@ -28,14 +28,6 @@ public static class EndpointExtensions
             return Results.Challenge(CreateChallengeProperties(returnUrl), ["Google"]);
         })
         .WithName("LoginGoogle")
-        .RequireRateLimiting("oauth"); // Rate limit: 5 attempts per minute
-
-        // LinkedIn OAuth Challenge endpoint
-        authGroup.MapGet("/login/linkedin", (string? returnUrl) =>
-        {
-            return Results.Challenge(CreateChallengeProperties(returnUrl), ["LinkedIn"]);
-        })
-        .WithName("LoginLinkedIn")
         .RequireRateLimiting("oauth"); // Rate limit: 5 attempts per minute
 
         // Logout endpoint (GET para compatibilidad con Blazor NavigationManager)

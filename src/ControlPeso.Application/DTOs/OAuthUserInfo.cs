@@ -1,12 +1,12 @@
 namespace ControlPeso.Application.DTOs;
 
 /// <summary>
-/// DTO genérico con información del usuario proveniente de OAuth providers (Google, LinkedIn, etc.).
+/// DTO genérico con información del usuario proveniente de OAuth providers (currently Google).
 /// </summary>
 public sealed record OAuthUserInfo
 {
     /// <summary>
-    /// Provider que autenticó al usuario (ej: "Google", "LinkedIn").
+    /// Provider que autenticó al usuario (ej: "Google").
     /// </summary>
     public required string Provider { get; init; }
 

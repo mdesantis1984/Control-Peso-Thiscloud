@@ -69,7 +69,6 @@ dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Po
 |-------|-----|
 | `ConnectionStrings:DefaultConnection` | Cadena de conexión Npgsql de PostgreSQL |
 | `Authentication:Google:ClientId` / `ClientSecret` | Google OAuth. El proveedor solo se registra si `ClientId` no está vacío |
-| `Authentication:LinkedIn:ClientId` / `ClientSecret` | Opcional y desactivado por defecto; la interfaz no ofrece este inicio de sesión |
 | `GoogleAnalytics:MeasurementId` | Opcional. Solo se activa con un id real (`G-...`); los marcadores `YOUR_*` se ignoran |
 | `App:BaseUrl` | URL pública de la aplicación |
 | `DataProtection:Path` | Directorio de las claves de Data Protection (`/app/keys` en Docker) |
