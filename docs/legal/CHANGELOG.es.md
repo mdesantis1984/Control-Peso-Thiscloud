@@ -24,7 +24,22 @@ y este proyecto se adhiere al [Versionado Semántico](https://semver.org/lang/es
 
 ---
 
-## [1.3.0] - 2026-11-19
+## [9.0.1] - 2026-11-19
+
+### Corregido
+
+- 🏷️ **Versión de la aplicación**: la aplicación ahora muestra la versión del release derivada de los tags de git (mostraba 1.3.0 de forma fija).
+
+### Cambiado
+
+- 🚀 **Releases**: solo se genera un release cuando se integran commits `feat`, `fix` o con cambios incompatibles; `docs`, `build`, `ci`, `chore` y `test` ya no generan versiones.
+- 📝 La entrada del changelog del 2026-11-19 se renumeró como 9.0.0.
+
+---
+
+## [9.0.0] - 2026-11-19
+
+> **Nota**: desde esta versión el número de versión de la aplicación sigue los tags de release (`v9.0.0`); la numeración interna anterior de la aplicación era 1.x.
 
 ### Cambiado
 

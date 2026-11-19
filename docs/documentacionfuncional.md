@@ -1,6 +1,6 @@
 # Documentación Funcional - Control Peso Thiscloud
 
-> **Verificado contra el código**: 2026-11-19 (versión 1.3.0)
+> **Verificado contra el código**: 2026-11-19 (versión 9.0.0)
 
 Qué hace la aplicación, qué reglas aplica y cómo se prueba. La arquitectura técnica está en [ARCHITECTURE.md](./ARCHITECTURE.md); la infraestructura y el despliegue en [DEPLOYMENT.md](./DEPLOYMENT.md) y [infraestructura.md](./infraestructura.md).
 

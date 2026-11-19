@@ -35,13 +35,16 @@ jobs:
         uses: mathieudutour/github-tag-action@v6.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          default_bump: minor
+          # false = no tag when no feat/fix/perf/revert/breaking commit was merged (docs, build, ci, chore, test do not release)
+          default_bump: false
           tag_prefix: v
           release_branches: main
           pre_release_branches: develop
           create_annotated_tag: true
 
+      # new_tag is only set when the action actually bumped the version
       - name: Create GitHub Release
+        if: steps.tag_version.outputs.new_tag != ''
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ steps.tag_version.outputs.new_tag }}
@@ -62,6 +65,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Summary
+        if: steps.tag_version.outputs.new_tag != ''
         run: |
           echo "## Release Created 🚀" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY

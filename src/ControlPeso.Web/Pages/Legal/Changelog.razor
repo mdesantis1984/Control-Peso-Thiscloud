@@ -54,43 +54,71 @@
             @* Version Timeline *@
             <MudTimeline TimelineOrientation="TimelineOrientation.Vertical" TimelinePosition="TimelinePosition.Start">
                 
-                @* v1.3.0 - Current (docs/legal/CHANGELOG.*.md) *@
+                @* v9.0.1 - Current (docs/legal/CHANGELOG.*.md) *@
                 <MudTimelineItem Color="Color.Success" Size="Size.Large" Elevation="2">
                     <ItemOpposite>
-                        <MudChip T="string" Color="Color.Success" Size="Size.Large">v1.3.0</MudChip>
+                        <MudChip T="string" Color="Color.Success" Size="Size.Large">v9.0.1</MudChip>
                     </ItemOpposite>
                     <ItemContent>
                         <MudCard Elevation="0">
                             <MudCardHeader>
                                 <CardHeaderContent>
-                                    <MudText Typo="Typo.h6">@($"v1.3.0 - {V130_Date}")</MudText>
+                                    <MudText Typo="Typo.h6">@($"v9.0.1 - {V901_Date}")</MudText>
                                     <MudChip T="string" Icon="@Icons.Material.Filled.Star" Color="Color.Success" Size="Size.Small">@CurrentVersionLabel</MudChip>
                                 </CardHeaderContent>
                             </MudCardHeader>
                             <MudCardContent>
+                                <MudText Typo="Typo.subtitle2" Class="mb-2">@FixedLabel</MudText>
+                                <MudList T="string" Dense="true">
+                                    <MudListItem T="string" Icon="@Icons.Material.Filled.Sell">@V901_Fixed1</MudListItem>
+                                </MudList>
+                                <MudText Typo="Typo.subtitle2" Class="mb-2 mt-2">@ChangedLabel</MudText>
+                                <MudList T="string" Dense="true">
+                                    <MudListItem T="string" Icon="@Icons.Material.Filled.RocketLaunch">@V901_Changed1</MudListItem>
+                                    <MudListItem T="string" Icon="@Icons.Material.Filled.EditNote">@V901_Changed2</MudListItem>
+                                </MudList>
+                            </MudCardContent>
+                        </MudCard>
+                    </ItemContent>
+                </MudTimelineItem>
+
+                @* v9.0.0 *@
+                <MudTimelineItem Color="Color.Info" Elevation="1">
+                    <ItemOpposite>
+                        <MudChip T="string" Color="Color.Info">v9.0.0</MudChip>
+                    </ItemOpposite>
+                    <ItemContent>
+                        <MudCard Elevation="0">
+                            <MudCardHeader>
+                                <CardHeaderContent>
+                                    <MudText Typo="Typo.h6">@($"v9.0.0 - {V900_Date}")</MudText>
+                                </CardHeaderContent>
+                            </MudCardHeader>
+                            <MudCardContent>
+                                <MudText Typo="Typo.body2" Class="mb-2">@V900_Note</MudText>
                                 <MudText Typo="Typo.subtitle2" Class="mb-2">@ChangedLabel</MudText>
                                 <MudList T="string" Dense="true">
-                                    <MudListItem T="string" Icon="@Icons.Material.Filled.Storage">@V130_Changed1</MudListItem>
-                                    <MudListItem T="string" Icon="@Icons.Material.Filled.Image">@V130_Changed2</MudListItem>
-                                    <MudListItem T="string" Icon="@Icons.Material.Filled.Inventory2">@V130_Changed3</MudListItem>
+                                    <MudListItem T="string" Icon="@Icons.Material.Filled.Storage">@V900_Changed1</MudListItem>
+                                    <MudListItem T="string" Icon="@Icons.Material.Filled.Image">@V900_Changed2</MudListItem>
+                                    <MudListItem T="string" Icon="@Icons.Material.Filled.Inventory2">@V900_Changed3</MudListItem>
                                 </MudList>
                                 <MudText Typo="Typo.subtitle2" Class="mb-2 mt-2">@AddedLabel</MudText>
                                 <MudList T="string" Dense="true">
-                                    <MudListItem T="string" Icon="@Icons.Material.Filled.Lock">@V130_Added1</MudListItem>
-                                    <MudListItem T="string" Icon="@Icons.Material.Filled.MonitorHeart">@V130_Added2</MudListItem>
-                                    <MudListItem T="string" Icon="@Icons.Material.Filled.Backup">@V130_Added3</MudListItem>
-                                    <MudListItem T="string" Icon="@Icons.Material.Filled.Science">@V130_Added4</MudListItem>
+                                    <MudListItem T="string" Icon="@Icons.Material.Filled.Lock">@V900_Added1</MudListItem>
+                                    <MudListItem T="string" Icon="@Icons.Material.Filled.MonitorHeart">@V900_Added2</MudListItem>
+                                    <MudListItem T="string" Icon="@Icons.Material.Filled.Backup">@V900_Added3</MudListItem>
+                                    <MudListItem T="string" Icon="@Icons.Material.Filled.Science">@V900_Added4</MudListItem>
                                 </MudList>
                                 <MudText Typo="Typo.subtitle2" Class="mb-2 mt-2">@SecurityLabel</MudText>
                                 <MudList T="string" Dense="true">
-                                    <MudListItem T="string" Icon="@Icons.Material.Filled.Security">@V130_Security1</MudListItem>
-                                    <MudListItem T="string" Icon="@Icons.Material.Filled.Shield">@V130_Security2</MudListItem>
+                                    <MudListItem T="string" Icon="@Icons.Material.Filled.Security">@V900_Security1</MudListItem>
+                                    <MudListItem T="string" Icon="@Icons.Material.Filled.Shield">@V900_Security2</MudListItem>
                                 </MudList>
                                 <MudText Typo="Typo.subtitle2" Class="mb-2 mt-2">@RemovedLabel</MudText>
                                 <MudList T="string" Dense="true">
-                                    <MudListItem T="string" Icon="@Icons.Material.Filled.NotificationsOff">@V130_Removed1</MudListItem>
-                                    <MudListItem T="string" Icon="@Icons.Material.Filled.CleaningServices">@V130_Removed2</MudListItem>
-                                    <MudListItem T="string" Icon="@Icons.Material.Filled.Analytics">@V130_Removed3</MudListItem>
+                                    <MudListItem T="string" Icon="@Icons.Material.Filled.NotificationsOff">@V900_Removed1</MudListItem>
+                                    <MudListItem T="string" Icon="@Icons.Material.Filled.CleaningServices">@V900_Removed2</MudListItem>
+                                    <MudListItem T="string" Icon="@Icons.Material.Filled.Analytics">@V900_Removed3</MudListItem>
                                 </MudList>
                             </MudCardContent>
                         </MudCard>

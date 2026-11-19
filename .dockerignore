@@ -21,3 +21,6 @@ backup-*.db
 **/appsettings.Local.json
 odd/
 .worktrees/
+
+# Local tooling state (sockets break the build context upload)
+.codegraph/

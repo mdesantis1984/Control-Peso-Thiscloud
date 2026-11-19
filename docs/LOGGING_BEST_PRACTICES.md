@@ -461,5 +461,5 @@ Ver guía completa en: [`LOGGING_QUERY_GUIDE.md`](./LOGGING_QUERY_GUIDE.md)
 ---
 
 **Última verificación**: 2026-11-19  
-**Versión de la aplicación**: 1.3.0  
+**Versión de la aplicación**: 9.0.0  
 **Revisar**: Cada release mayor
